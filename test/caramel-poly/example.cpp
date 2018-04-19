@@ -3,19 +3,25 @@
 #include <cassert>
 #include <memory>
 
+#include "caramel-poly/storage/SBORemote.hpp"
+#include "caramel-poly/storage/SharedRemote.hpp"
+
 namespace /* anonymous */ {
 
-class Interface {
+using namespace caramel_poly;
+using namespace caramel_poly::storage;
+
+class Interface final {
 public:
 
 	template <class T>
 	Interface(T model) :
-		model_(std::make_shared<Model<T>>(std::move(model)))
+		storage_(Model<T>(std::move(model)))
 	{
 	}
 
 	bool polymorphicFunction(int argument) const {
-		return model_->polymorphicFunction(argument);
+		return reinterpret_cast<const Concept*>(storage_.get())->polymorphicFunction(argument);
 	}
 
 private:
@@ -48,18 +54,18 @@ private:
 
 	};
 
-	std::shared_ptr<Concept> model_;
+	SBORemote<SharedRemote> storage_;
 
 };
 
-struct Registry {
+struct Registry final {
 	bool constructed = false;
 	bool destructed = false;
 	int functionArgument = 0;
 	const void* objectAddress = nullptr;
 };
 
-class UserClass {
+class UserClass final {
 public:
 
 	UserClass() = default;
