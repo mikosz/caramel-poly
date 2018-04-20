@@ -80,6 +80,7 @@ public:
 
 	~UserClass() {
 		if (registry_) {
+			assert(!registry_->destructed);
 			registry_->destructed = true;
 		}
 	}

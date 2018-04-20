@@ -17,33 +17,44 @@ public:
 	template <class T>
 	SBORemote(T data) {
 		if constexpr (
-			(sizeof(data) <= BUFFER_SIZE_BYTES) &&
+			(sizeof(data) <= sizeof(Buffer)) &&
 			(alignof(T) <= BUFFER_ALIGNMENT_BYTES)
 			)
 		{
-			data_.emplace<Local>();
-			new (&std::get<Local>(data_)) T(std::move(data));
+			new (&data_) T(std::move(data));
+			usingSBO_ = true;
 		} else {
-			data_.emplace<Remote>(std::move(data));
+			new (&data_) RemoteStorageType(std::move(data));
+			usingSBO_ = false;
+		}
+	}
+
+	~SBORemote() {
+		if (!usingSBO_) {
+			reinterpret_cast<RemoteStorageType*>(&data_)->~RemoteStorageType();
 		}
 	}
 
 	const void* get() const {
-		auto* local = std::get_if<Local>(&data_);
-		if (local == nullptr) {
-			return std::get<Remote>(data_).get();
+		if (usingSBO_) {
+			return &data_;
 		} else {
-			return local;
+			return reinterpret_cast<const RemoteStorageType*>(&data_)->get();
 		}
 	}
 
 private:
 
-	using Local = std::aligned_storage_t<BUFFER_SIZE_BYTES, BUFFER_ALIGNMENT_BYTES>;
+	using Buffer = std::aligned_storage_t<
+		std::max(BUFFER_SIZE_BYTES, sizeof(RemoteStorageType)), // TODO: if the buffer size is 4B and
+			// alignment is 4B, we will get 3 extra bytes at the end of the object, right? If so, we should
+			// extend the buffer by the 3 bytes, because why not. Right? Right?
+		std::max(BUFFER_ALIGNMENT_BYTES, alignof(RemoteStorageType))
+		>;
 
-	using Remote = RemoteStorageType;
+	Buffer data_;
 
-	std::variant<Local, Remote> data_;
+	bool usingSBO_;
 
 };
 
