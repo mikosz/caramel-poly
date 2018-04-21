@@ -1,51 +1,25 @@
-#pragma once
-
-#include <array>
+#ifndef CARAMELPOLY_VTABLE_STATIC_HPP__
+#define CARAMELPOLY_VTABLE_STATIC_HPP__
 
 namespace caramel_poly::vtable {
 
-template <class HeadFunction, class... TailFunctions>
-class Container : Container<TailFunctions...> {
-public:
-
-	template <size_t idx>
-	auto operator get() const {
-		if constexpr (idx == 0) {
-			return function_;
-		} else {
-			return Container<TailFunctions...>::get<idx - 1>();
-		}
-	}
-
-private:
-
-	HeadFunction function_;
-
-};
-
-class Container {
-public:
-
-	template <size_t idx>
-	auto operator get() const {
-		static_assert(false, "Invalid index provided");
-	}
-
-};
-
-template <class... Functions>
+template <class... Methods>
 class Static {
 public:
 
-	template <size_t idx>
-	auto operator get() const {
-		return functions_.get<idx, Functions...>();
+	constexpr Static(Methods&&... methods) :
+		methods_(std::forward<Methods>(methods)...)
+	{
 	}
+
+	
 
 private:
 
-	Container<Functions...> functions_;
+	Container<Methods...> methods_;
 
 };
 
 } // namespace caramel_poly::vtable
+
+#endif /* CARAMELPOLY_VTABLE_STATIC_HPP__ */
