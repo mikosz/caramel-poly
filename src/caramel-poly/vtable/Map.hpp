@@ -19,7 +19,7 @@ public:
 
 	template <class Key>
 	constexpr auto operator[](Key key) const {
-		if constexpr (element_.key == key) {
+		if (MapEntryKey<Head>()(element_) == key) {
 			return element_;
 		} else {
 			return Container<Tail...>::operator[](key);
@@ -43,10 +43,10 @@ public:
 
 	template <class Key>
 	constexpr auto operator[](Key key) const {
-		if constexpr (element_.key == key) {
+		if (MapEntryKey<Head>()(element_) == key) {
 			return element_;
 		} else {
-			throw std::out_of_range("Key not found")
+			throw std::out_of_range("Key not found");
 		}
 	}
 
@@ -82,6 +82,9 @@ template <class... Entries>
 constexpr auto makeMap(Entries... entries) {
 	return Map<Entries...>(entries...);
 }
+
+template <class Entry>
+struct MapEntryKey;
 
 } // namespace caramel_poly::vtable
 
