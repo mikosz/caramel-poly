@@ -24,4 +24,12 @@ TEST(ConstStringTest, ConstStringsAreEqualityTestable) {
 	static_assert(cs != different);
 }
 
+TEST(ConstStringTest, CompileTimeCRC32IsAvailable) {
+	constexpr auto cs = ConstString("Test string");
+	constexpr auto ocs = ConstString("Other test string");
+
+	static_assert(cs.crc32() == 0x95db9a92);
+	static_assert(ocs.crc32() == 0x66ec86bc);
+}
+
 } // anonymous namespace

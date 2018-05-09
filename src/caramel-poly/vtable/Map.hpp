@@ -11,24 +11,14 @@ template <class Head, class... Tail>
 class Container : Container<Tail...> {
 public:
 
-	constexpr Container(Head element, Tail... tail) :
-		Container<Tail...>(tail...),
-		element_(element)
-	{
-	}
-
-	template <class Key>
-	constexpr auto operator[](Key key) const {
-		if (MapEntryKey<Head>()(element_) == key) {
-			return element_;
+	template <class Key, Key key>
+	constexpr auto get() const {
+		if constexpr (MapEntryKey<Head>{}() == key) {
+			return Head{};
 		} else {
-			return Container<Tail...>::operator[](key);
+			return Container<Tail...>::get<Key, key>();
 		}
 	}
-
-private:
-
-	const Head element_;
 
 };
 
@@ -36,23 +26,14 @@ template <class Head>
 class Container<Head> {
 public:
 
-	constexpr Container(Head element) :
-		element_(std::move(element))
-	{
-	}
-
-	template <class Key>
-	constexpr auto operator[](Key key) const {
-		if (MapEntryKey<Head>()(element_) == key) {
-			return element_;
+	template <class Key, Key key>
+	constexpr auto get() const {
+		if constexpr (MapEntryKey<Head>{}() == key) {
+			return Head{};
 		} else {
 			throw std::out_of_range("Key not found");
 		}
 	}
-
-private:
-
-	const Head element_;
 
 };
 
@@ -62,14 +43,9 @@ template <class... Entries>
 class Map {
 public:
 
-	constexpr Map(Entries... entries) :
-		elements_(entries...)
-	{
-	}
-
-	template <class Key>
-	constexpr auto operator[](Key key) const {
-		return elements_[key];
+	template <class Key, Key key>
+	constexpr auto get() const {
+		return elements_.get<Key, key>();
 	}
 
 private:
@@ -79,8 +55,8 @@ private:
 };
 
 template <class... Entries>
-constexpr auto makeMap(Entries... entries) {
-	return Map<Entries...>(entries...);
+constexpr auto makeMap(Entries...) {
+	return Map<Entries...>();
 }
 
 template <class Entry>
