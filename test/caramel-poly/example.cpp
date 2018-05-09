@@ -11,35 +11,30 @@ namespace /* anonymous */ {
 using namespace caramel_poly;
 using namespace caramel_poly::storage;
 
+class MP {
+public:
+
+private:
+
+};
+
+template <class... Methods>
 class VT {
 public:
 
-	using Destructor = void (*)(const void*);
-
-	using PolymorphicFunction = bool (*)(const void*, int);
-
-	VT(Destructor destructor, PolymorphicFunction polymorphicFunction) :
-		destructor_(destructor),
-		polymorphicFunction_(polymorphicFunction)
+	VT(Methods&&... methods) :
+		mp_(std::forward<Methods>(methods)...)
 	{
 	}
 
 	template <int fun, class ReturnType, class... Args>
 	ReturnType invoke(Args&&... args) const {
-		if constexpr (fun == 0) {
-			return (*destructor_)(std::forward<Args>(args)...);
-		} else if constexpr (fun == 1) {
-			return (*polymorphicFunction_)(std::forward<Args>(args)...);
-		} else {
-			throw std::out_of_range("Bad fun");
-		}
+		return (*mp_.get<fun>())(std::forward<Args>(args)...);
 	}
 
 private:
 
-	Destructor destructor_;
-
-	PolymorphicFunction polymorphicFunction_;
+	MP<Methods...> mp_;
 
 };
 
@@ -63,8 +58,8 @@ public:
 
 	template <class T>
 	Poly(T model) :
-		storage_(std::move(model)),
-		vtable_(makeVT<T>())
+		vtable_(makeVT<T>()),
+		storage_(std::move(model))
 	{
 	}
 
@@ -75,9 +70,9 @@ public:
 
 private:
 
-	SBORemote<SharedRemote> storage_;
-
 	VT vtable_;
+
+	SBORemote<SharedRemote> storage_;
 
 };
 
