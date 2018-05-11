@@ -11,17 +11,51 @@ namespace /* anonymous */ {
 using namespace caramel_poly;
 using namespace caramel_poly::storage;
 
-class MP {
+template <int... MethodIds>
+class MP;
+
+template <int METHOD_ID, int... MethodIds>
+class MP<METHOD_ID, MethodIds...> : MP<MethodIds...> {
 public:
+
+	template <class Method, class... Methods>
+	MP(Method&& method, Methods&&... methods) :
+		MP<MethodIds...>(std::forward<Methods>(methods)...),
+		method_(std::forward<Method>(method))
+	{
+	}
+
+	template <int ID>
+	const void* const get() const {
+		if constexpr (ID == METHOD_ID) {
+			return method_;
+		} else {
+			return MP<MethodIds...>::get<ID>();
+		}
+	}
 
 private:
 
+	const void* const method_;
+
 };
 
-template <class... Methods>
+template <>
+class MP<> {
+public:
+
+	template <int ID>
+	const void* get() const {
+		throw std::out_of_range("No such function");
+	}
+
+};
+
+template <int... MethodIds>
 class VT {
 public:
 
+	template <class... Methods>
 	VT(Methods&&... methods) :
 		mp_(std::forward<Methods>(methods)...)
 	{
@@ -29,12 +63,14 @@ public:
 
 	template <int fun, class ReturnType, class... Args>
 	ReturnType invoke(Args&&... args) const {
-		return (*mp_.get<fun>())(std::forward<Args>(args)...);
+		// this is a bug: due to args being passed by a universal-reference, we cast a function
+		// that takes a by-value argument to a function taking a rvalue-reference.
+		return (*static_cast<ReturnType (*)(Args...)>(mp_.get<fun>()))(std::forward<Args>(args)...);
 	}
 
 private:
 
-	MP<Methods...> mp_;
+	MP<MethodIds...> mp_;
 
 };
 
@@ -49,8 +85,8 @@ bool polyPoly(const void* self, int arg) {
 }
 
 template <class T>
-VT makeVT() {
-	return VT(&polyDes<T>, &polyPoly<T>);
+VT<0, 1> makeVT() {
+	return VT<0, 1>(&polyDes<T>, &polyPoly<T>);
 }
 
 class Poly final {
@@ -70,7 +106,7 @@ public:
 
 private:
 
-	VT vtable_;
+	VT<0, 1> vtable_;
 
 	SBORemote<SharedRemote> storage_;
 
