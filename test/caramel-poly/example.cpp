@@ -1,10 +1,62 @@
 #include <gtest/gtest.h>
 
+#include <type_traits>
 #include <cassert>
 #include <memory>
 
 #include "caramel-poly/storage/SBORemote.hpp"
 #include "caramel-poly/storage/SharedRemote.hpp"
+
+// better compile-time string?
+
+namespace w00t {
+
+template <char... CHARS>
+class CompileTimeString final {
+public:
+
+	constexpr CompileTimeString() = default;
+
+	template <char... OTHER_CHARS>
+	constexpr bool operator==([[maybe_unused]] CompileTimeString<OTHER_CHARS...> other) const {
+		return std::is_same_v<CompileTimeString, CompileTimeString<OTHER_CHARS...>>;
+	}
+
+	template <char... OTHER_CHARS>
+	constexpr bool operator!=(CompileTimeString<OTHER_CHARS...> other) const {
+		return !(*this == other);
+	}
+
+};
+
+namespace string_detail {
+
+template <class S, std::size_t... N>
+constexpr auto prepare_impl(S, std::index_sequence<N...>)
+{
+	return CompileTimeString<S::get()[N]...>{};
+}
+
+template <typename S>
+constexpr decltype(auto) prepare(S s) {
+	return prepare_impl(s, std::make_index_sequence<sizeof(S::get()) - 1>{});
+}
+
+} // namespace string_detail
+
+#define COMPILE_TIME_STRING(s)                                              \
+    (::w00t::string_detail::prepare([]{                                     \
+        struct tmp {                                                        \
+            static constexpr decltype(auto) get() {                         \
+				return s;                                                   \
+			}                                                               \
+        };                                                                  \
+        return tmp{};                                                       \
+    }()))
+
+} // namespace w00t
+
+////
 
 namespace /* anonymous */ {
 
@@ -224,6 +276,10 @@ TEST(ExampleTest, ConcreteImplementationsAreCalled) {
 	EXPECT_TRUE(registry.destructed);
 	EXPECT_EQ(registry.functionArgument, 42);
 	EXPECT_NE(registry.objectAddress, &userObject);
+
+	using namespace w00t;
+	static_assert(COMPILE_TIME_STRING("dupa") == COMPILE_TIME_STRING("dupa"));
+	static_assert(COMPILE_TIME_STRING("dupa") != COMPILE_TIME_STRING("dojpa"));
 }
 
 } // anonymous namespace
