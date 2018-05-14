@@ -4,12 +4,15 @@
 #include <cassert>
 #include <memory>
 
+#include "caramel-poly/detail/EmptyObject.hpp"
 #include "caramel-poly/storage/SBORemote.hpp"
 #include "caramel-poly/storage/SharedRemote.hpp"
 
 // better compile-time string?
 
 namespace w00t {
+
+/// COMPILE TIME STRING
 
 template <char... CHARS>
 class CompileTimeString final {
@@ -58,6 +61,35 @@ constexpr decltype(auto) prepare(S s) {
 
 ////
 
+//// POINTER TO LAMBDA
+
+template <class F, class Signature>
+class Lambda;
+
+template <class LambdaType, class ReturnType, class... Args>
+class Lambda<LambdaType, ReturnType(Args...)> {
+public:
+
+	static ReturnType invoke(Args... args) {
+		const auto lambda = detail::EmptyObject<LambdaType>{}.get();
+		return lambda(std::forward<Args>(args)...);
+	}
+
+};
+
+template <class LambdaType, class... Args>
+class Lambda<LambdaType, void(Args...)> {
+public:
+
+	static void invoke(Args... args) {
+		const auto lambda = detail::EmptyObject<LambdaType>{}.get();
+		lambda(std::forward<Args>(args)...);
+	}
+
+};
+
+////
+
 namespace /* anonymous */ {
 
 using namespace caramel_poly;
@@ -77,7 +109,7 @@ class MP<Entry<ID, Head>, Tail...> : MP<Tail...> {
 public:
 
 	template <class... TailMethods>
-	constexpr MP(Head head, TailMethods... tail) :
+	constexpr MP(Head* head, TailMethods... tail) :
 		MP<Tail...>(tail...),
 		method_(head)
 	{
@@ -94,7 +126,7 @@ public:
 
 private:
 
-	Head method_;
+	Head* method_;
 
 };
 
@@ -119,8 +151,8 @@ class VT {
 public:
 
 	template <class... Methods>
-	constexpr VT(Methods... methods) :
-		mp_(methods...)
+	constexpr VT(Methods... /*methods*/) :
+		mp_(&Lambda<Methods, typename Entries::Method>::invoke...)
 	{
 	}
 
@@ -135,26 +167,19 @@ private:
 
 };
 
-template <class T>
-void polyDes(const void* self) {
-	static_cast<const T*>(self)->~T();
-}
-
-template <class T>
-bool polyPoly(const void* self, int arg) {
-	return static_cast<const T*>(self)->polymorphicFunction(arg);
-}
-
 struct VTConcept {
 	using VTType = VT<
-		Entry<0, void (*)(const void*)>,
-		Entry<1, bool (*)(const void*, int)>
+		Entry<0, void (const void*)>,
+		Entry<1, bool (const void*, int)>
 		>;
 };
 
 template <class T>
 struct VTMapping {
-	static constexpr auto vt = VTConcept::VTType(&polyDes<T>, &polyPoly<T>);
+	static constexpr auto vt = VTConcept::VTType(
+		[](const void* self) { static_cast<const T*>(self)->~T(); },
+		[](const void* self, int arg) { return static_cast<const T*>(self)->polymorphicFunction(arg); }
+		);
 };
 
 class Poly final {

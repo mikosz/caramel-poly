@@ -1,6 +1,9 @@
 #ifndef CARAMELPOLY_DETAIL_EMPTYOBJECT_HPP__
 #define CARAMELPOLY_DETAIL_EMPTYOBJECT_HPP__
 
+namespace caramel_poly {
+namespace detail {
+
 // Copied from dyno::detail::empty_object by Louis Dionne
 // @see https://github.com/ldionne/dyno
 
@@ -20,7 +23,7 @@
 // For details on standard layout types, see:
 // http://en.cppreference.com/w/cpp/language/data_members#Standard_layout
 template <typename T>
-class empty_object {
+class EmptyObject {
 public:
 
 	static_assert(std::is_standard_layout<T>{},
@@ -78,7 +81,7 @@ private:
 	};
 
 	union Storage {
-		
+
 		constexpr Storage() :
 			t1{}
 		{
@@ -91,5 +94,8 @@ private:
 	};
 
 };
+
+} // namespace detail
+} // namespace caramel_poly
 
 #endif /* CARAMELPOLY_DETAIL_EMPTYOBJECT_HPP__ */
