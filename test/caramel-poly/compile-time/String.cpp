@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <sstream>
 #include <string>
 
 #include "caramel-poly/compile-time/String.hpp"
@@ -30,6 +31,13 @@ TEST(StringTest, IsEqualityTestable) {
 	constexpr auto different = COMPILE_TIME_STRING("01_34");
 	static_assert(cs == same);
 	static_assert(cs != different);
+}
+
+TEST(StringTest, ShiftLeftOperatorPrintsToOstream) {
+	constexpr auto cs = COMPILE_TIME_STRING("Test");
+	auto oss = std::ostringstream{};
+	oss << cs;
+	EXPECT_EQ(oss.str(), "Test"s);
 }
 
 } // anonymous namespace

@@ -7,6 +7,7 @@
 #include "caramel-poly/detail/EmptyObject.hpp"
 #include "caramel-poly/storage/SBORemote.hpp"
 #include "caramel-poly/storage/SharedRemote.hpp"
+#include "caramel-poly/vtable/ConceptMap.hpp"
 
 //// POINTER TO LAMBDA
 
@@ -42,57 +43,6 @@ namespace /* anonymous */ {
 using namespace caramel_poly;
 using namespace caramel_poly::storage;
 
-template <int ID_PARAM, class MethodType>
-struct Entry {
-	static constexpr auto ID = ID_PARAM;
-	using Method = MethodType;
-};
-
-template <class... Entries>
-class MP;
-
-template <int ID, class Head, class... Tail>
-class MP<Entry<ID, Head>, Tail...> : MP<Tail...> {
-public:
-
-	template <class... TailMethods>
-	constexpr MP(Head* head, TailMethods... tail) :
-		MP<Tail...>(tail...),
-		method_(head)
-	{
-	}
-
-	template <int GET_ID>
-	constexpr auto get() const {
-		if constexpr (GET_ID == ID) {
-			return method_;
-		} else {
-			return MP<Tail...>::get<GET_ID>();
-		}
-	}
-
-private:
-
-	Head* method_;
-
-};
-
-template <>
-class MP<> {
-public:
-
-	template <int GET_ID>
-	constexpr auto get() const {
-		throw std::out_of_range("No such function");
-	}
-
-};
-
-template <class... Methods>
-constexpr auto makeMethodMap(Methods... methods) {
-	return MP<Methods...>(methods...);
-}
-
 template <class... Entries>
 class VT {
 public:
@@ -110,14 +60,14 @@ public:
 
 private:
 
-	MP<Entries...> mp_;
+	vtable::ConceptMap<Entries...> mp_;
 
 };
 
 struct VTConcept {
 	using VTType = VT<
-		Entry<0, void (const void*)>,
-		Entry<1, bool (const void*, int)>
+		vtable::ConceptMapEntry<0, void (const void*)>,
+		vtable::ConceptMapEntry<1, bool (const void*, int)>
 		>;
 };
 

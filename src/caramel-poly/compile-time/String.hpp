@@ -2,6 +2,7 @@
 #define CARAMELPOLY_COMPILETIME_STRING_HPP__
 
 #include <utility>
+#include <iosfwd>
 
 namespace caramel_poly {
 namespace compile_time {
@@ -35,6 +36,11 @@ public:
 	}
 
 };
+
+template <char... CHARS>
+std::ostream& operator<<(std::ostream& os, CompileTimeString<CHARS...> s) {
+	return os << s.c_str();
+}
 
 namespace string_detail {
 
