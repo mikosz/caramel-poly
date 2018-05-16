@@ -9,6 +9,8 @@
 #include "caramel-poly/storage/SharedRemote.hpp"
 #include "caramel-poly/vtable/ConceptMap.hpp"
 
+#if 0
+
 //// POINTER TO LAMBDA
 
 template <class F, class Signature>
@@ -201,3 +203,5 @@ TEST(ExampleTest, ConcreteImplementationsAreCalled) {
 }
 
 } // anonymous namespace
+
+#endif

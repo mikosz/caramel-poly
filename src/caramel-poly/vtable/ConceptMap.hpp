@@ -3,40 +3,36 @@
 
 #include <stdexcept>
 
+#include "caramel-poly/compile-time/String.hpp"
+
 namespace caramel_poly::vtable {
 
-template <int ID_PARAM, class MethodType>
+template <class NameString, class MethodType>
 struct ConceptMapEntry {
-	static constexpr auto ID = ID_PARAM;
+	using Name = NameString;
 	using Method = MethodType;
 };
+
+template <class NameString, class MethodType>
+constexpr auto makeConceptMapEntry([[maybe_unused]] NameString name, [[maybe_unused]] MethodType method) {
+	return ConceptMapEntry<NameString, MethodType>{};
+}
 
 template <class... Entries>
 class ConceptMap;
 
-template <int ID, class Head, class... Tail>
-class ConceptMap<ConceptMapEntry<ID, Head>, Tail...> : ConceptMap<Tail...> {
+template <class HeadNameString, class HeadMethod, class... TailEntries>
+class ConceptMap<ConceptMapEntry<HeadNameString, HeadMethod>, TailEntries...> : ConceptMap<TailEntries...> {
 public:
 
-	template <class... TailMethods>
-	constexpr ConceptMap(Head* head, TailMethods... tail) :
-		ConceptMap<Tail...>(tail...),
-		method_(head)
-	{
-	}
-
-	template <int GET_ID>
-	constexpr auto get() const {
-		if constexpr (GET_ID == ID) {
-			return method_;
+	template <class NameString>
+	constexpr auto get([[maybe_unused]] NameString name) const {
+		if constexpr (NameString{} == HeadNameString{}) {
+			return HeadMethod{};
 		} else {
-			return ConceptMap<Tail...>::get<GET_ID>();
+			return ConceptMap<TailEntries...>::get(name);
 		}
 	}
-
-private:
-
-	Head* method_;
 
 };
 
@@ -44,16 +40,16 @@ template <>
 class ConceptMap<> {
 public:
 
-	template <int GET_ID>
-	constexpr auto get() const {
-		throw std::out_of_range("No such function");
+	template <class NameString>
+	constexpr auto get([[maybe_unused]] NameString name) const {
+		static_assert(false, "Provided function name not registered in concept map");
 	}
 
 };
 
-template <class... Methods>
-constexpr auto makeMethodMap(Methods... methods) {
-	return ConceptMap<Methods...>(methods...);
+template <class... Entries>
+constexpr auto makeConceptMap(Entries... /*entries*/) {
+	return ConceptMap<Entries...>{};
 }
 
 } // namespace caramel_poly::vtable
