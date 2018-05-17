@@ -1,7 +1,7 @@
 #ifndef CARAMELPOLY_VTABLE_CONCEPT_HPP__
 #define CARAMELPOLY_VTABLE_CONCEPT_HPP__
 
-#include <stdexcept>
+#include <type_traits>
 
 namespace caramel_poly::vtable {
 
@@ -11,33 +11,59 @@ struct ConceptEntry {
 	using Signature = SignatureType;
 };
 
+template <class NameString, class SignatureType>
+constexpr auto makeConceptEntry([[maybe_unused]] NameString nameString, [[maybe_unused]] SignatureType signature) {
+	static_assert(std::is_empty_v<SignatureType>, "Concept function signature must be stateless");
+	return ConceptEntry<NameString, SignatureType>{};
+}
+
 template <class... Entries>
-class Concept;
+struct Concept;
 
 template <class HeadNameString, class HeadSignature, class... TailEntries>
-class Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...> : Concept<TailEntries...> {
-private:
+struct Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...> : Concept<TailEntries...> {
+//private:
+//
+//	template <class NameString>
+//	struct SignatureHelper {
+//		using Signature = typename Concept<TailEntries...>::template Signature<NameString>;
+//	};
+//
+//	template <>
+//	struct SignatureHelper<HeadNameString> {
+//		using Signature = HeadSignature;
+//	};
+//
+//public:
+//
+//	template <class NameString>
+//	using Signature = typename SignatureHelper<NameString>::Signature;
 
 	template <class NameString>
-	struct SignatureHelper {
-		using Signature = typename Concept<TailEntries...>::Signature;
-	};
-
-	template <>
-	struct SignatureHelper<HeadNameString> {
-		using Signature = HeadSignature;
-	};
-
-public:
-
-	template <class NameString>
-	using Signature = typename SignatureHelper<NameString>::Signature;
+	constexpr auto methodSignature(NameString nameString) const {
+		if constexpr (nameString == HeadNameString{}) {
+			return HeadSignature{};
+		} else {
+			return Concept<TailEntries...>::methodSignature(nameString);
+		}
+	}
 
 };
 
 template <>
-class Concept<> {
+struct Concept<> {
+
+	template <class NameString>
+	constexpr auto methodSignature([[maybe_unused]] NameString nameString) const {
+		static_assert(false, "Method not declared in concept");
+	}
+
 };
+
+template <class... Entries>
+constexpr auto makeConcept(Entries... /* entries */) {
+	return Concept<Entries...>{};
+}
 
 } // namespace caramel_poly::vtable
 
