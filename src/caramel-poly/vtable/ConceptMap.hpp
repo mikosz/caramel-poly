@@ -3,8 +3,6 @@
 
 #include <stdexcept>
 
-#include "caramel-poly/compile-time/String.hpp"
-
 namespace caramel_poly::vtable {
 
 template <class NameString, class MethodType>

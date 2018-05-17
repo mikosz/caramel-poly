@@ -11,35 +11,6 @@
 
 #if 0
 
-//// POINTER TO LAMBDA
-
-template <class F, class Signature>
-class Lambda;
-
-template <class LambdaType, class ReturnType, class... Args>
-class Lambda<LambdaType, ReturnType(Args...)> {
-public:
-
-	static ReturnType invoke(Args... args) {
-		const auto lambda = detail::EmptyObject<LambdaType>{}.get();
-		return lambda(std::forward<Args>(args)...);
-	}
-
-};
-
-template <class LambdaType, class... Args>
-class Lambda<LambdaType, void(Args...)> {
-public:
-
-	static void invoke(Args... args) {
-		const auto lambda = detail::EmptyObject<LambdaType>{}.get();
-		lambda(std::forward<Args>(args)...);
-	}
-
-};
-
-////
-
 namespace /* anonymous */ {
 
 using namespace caramel_poly;

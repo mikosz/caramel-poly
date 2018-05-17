@@ -1,17 +1,18 @@
-#ifndef CARAMELPOLY_VTABLE_STATIC_HPP__
-#define CARAMELPOLY_VTABLE_STATIC_HPP__
-
-#include "caramel-poly/const-string/ConstString.hpp"
-#include "Method.hpp"
-#include "Map.hpp"
+#ifndef CARAMELPOLY_VTABLE_LOCAL_HPP__
+#define CARAMELPOLY_VTABLE_LOCAL_HPP__
 
 namespace caramel_poly::vtable {
 
-template <class... Methods>
-class Static {
+namespace detail {
+
+} // namespace detail
+
+template <class Concept>
+class Local {
 public:
 
-	constexpr Static(Methods... methods) :
+	template <class ConceptMap>
+	constexpr Local(Methods... methods) :
 		methods_(makeMap(methods)...)
 	{
 	}
@@ -23,7 +24,7 @@ public:
 
 private:
 
-	Map<Methods...> methods_;
+	detail::Container<Concept>
 
 };
 
@@ -41,4 +42,4 @@ struct MapEntryKey<Method<MethodNameCrc, Function>> {
 
 } // namespace caramel_poly::vtable
 
-#endif /* CARAMELPOLY_VTABLE_STATIC_HPP__ */
+#endif /* CARAMELPOLY_VTABLE_LOCAL_HPP__ */

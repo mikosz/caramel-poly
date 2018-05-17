@@ -27,6 +27,9 @@ TEST(ConceptMapTest, ReturnsStoredElements) {
 
 	constexpr auto method3 = conceptMap.get(COMPILE_TIME_STRING("Method3"));
 	static_assert(std::is_same_v<std::remove_const_t<decltype(method3)>, Method3>);
+
+	// This should not (and does not) compile:
+	// constexpr auto method4 = conceptMap.get(COMPILE_TIME_STRING("Method4"));
 }
 
 } // anonymous namespace
