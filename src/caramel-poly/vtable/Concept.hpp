@@ -22,22 +22,6 @@ struct Concept;
 
 template <class HeadNameString, class HeadSignature, class... TailEntries>
 struct Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...> : Concept<TailEntries...> {
-//private:
-//
-//	template <class NameString>
-//	struct SignatureHelper {
-//		using Signature = typename Concept<TailEntries...>::template Signature<NameString>;
-//	};
-//
-//	template <>
-//	struct SignatureHelper<HeadNameString> {
-//		using Signature = HeadSignature;
-//	};
-//
-//public:
-//
-//	template <class NameString>
-//	using Signature = typename SignatureHelper<NameString>::Signature;
 
 	template <class NameString>
 	constexpr auto methodSignature(NameString nameString) const {

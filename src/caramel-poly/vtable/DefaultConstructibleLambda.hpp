@@ -12,6 +12,8 @@ template <class LambdaType, class ReturnType, class... Args>
 class DefaultConstructibleLambda<LambdaType, ReturnType (Args...)> {
 public:
 
+	using Signature = ReturnType (Args...);
+
 	static ReturnType invoke(Args... args) {
 		const auto lambda = detail::EmptyObject<LambdaType>{}.get();
 		return lambda(std::forward<Args>(args)...);
@@ -22,6 +24,8 @@ public:
 template <class LambdaType, class... Args>
 class DefaultConstructibleLambda<LambdaType, void (Args...)> {
 public:
+
+	using Signature = void (Args...);
 
 	static void invoke(Args... args) {
 		const auto lambda = detail::EmptyObject<LambdaType>{}.get();

@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include "caramel-poly/vtable/Static.hpp"
+//#include "caramel-poly/vtable/Static.hpp"
 
 namespace /* anonymous */ {
 
-using namespace caramel_poly;
-using namespace caramel_poly::vtable;
+//using namespace caramel_poly;
+//using namespace caramel_poly::vtable;
 
 struct Foo {
 	int operator()() const {

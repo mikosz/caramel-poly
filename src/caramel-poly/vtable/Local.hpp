@@ -1,9 +1,51 @@
 #ifndef CARAMELPOLY_VTABLE_LOCAL_HPP__
 #define CARAMELPOLY_VTABLE_LOCAL_HPP__
 
+#include "Concept.hpp"
+
 namespace caramel_poly::vtable {
 
 namespace detail {
+
+template <class Signature>
+struct ErasedFunction;
+
+template <class ReturnType, class... Args>
+struct ErasedFunction<ReturnType (Args...)> {
+
+};
+
+template <class Signature>
+constexpr auto eraseSelf(Signature* function);
+
+template <class ReturnType, class... Args>
+constexpr auto eraseSelf(ReturnType (function*)(Args...)) {
+
+}
+
+template <class Concept>
+struct Methods;
+
+template <class HeadNameString, class HeadSignature, class... TailEntries>
+struct Methods<Concept<HeadNameString, HeadSignature, TailEntries...>> : Methods<Concept<TailEntries...>> {
+public:
+
+	template <ConceptMap>
+	Methods(ConceptMap conceptMap) :
+		Methods<Concept<TailEntries...>>(conceptMap),
+		method_(eraseSelf(conceptMap.get(HeadNameString{})))
+	{
+	}
+
+private:
+
+	using Signature = decltype(
+		typename Concept<HeadNameString, HeadSignature, TailEntries...>::template methodSignature<HeadNameString>::MappingSignature
+		);
+
+	Signature* method_;
+
+};
 
 } // namespace detail
 
@@ -12,8 +54,8 @@ class Local {
 public:
 
 	template <class ConceptMap>
-	constexpr Local(Methods... methods) :
-		methods_(makeMap(methods)...)
+	constexpr Local(ConceptMap conceptMap) :
+		methods_(conceptMap)
 	{
 	}
 
@@ -24,7 +66,7 @@ public:
 
 private:
 
-	detail::Container<Concept>
+	detail::Methods<Concept> methods_;
 
 };
 
