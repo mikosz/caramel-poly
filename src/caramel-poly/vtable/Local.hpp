@@ -7,21 +7,30 @@ namespace caramel_poly::vtable {
 
 namespace detail {
 
-template <class Signature>
-struct ErasedFunction;
+template <class MappingSignature>
+class Method;
 
-template <class ReturnType, class... Args>
-struct ErasedFunction<ReturnType (Args...)> {
+template <class MappingReturnType, class MappingArgs...>
+class Method<MappingReturnType (MappingArgs...)> {
+public:
+
+	using FunctionPtr = MappingReturnType (*)(MappingArgs...);
+
+	Method(FunctionPtr function) :
+		function_(std::move(function))
+	{
+	}
+
+	template <class RequestReturnType, class RequestArgs...>
+	RequestReturnType invoke(RequestArgs&&... requestArgs) const {
+
+	}
+
+private:
+
+	FunctionPtr function_;
 
 };
-
-template <class Signature>
-constexpr auto eraseSelf(Signature* function);
-
-template <class ReturnType, class... Args>
-constexpr auto eraseSelf(ReturnType (function*)(Args...)) {
-
-}
 
 template <class Concept>
 struct Methods;
@@ -33,17 +42,28 @@ public:
 	template <ConceptMap>
 	Methods(ConceptMap conceptMap) :
 		Methods<Concept<TailEntries...>>(conceptMap),
-		method_(eraseSelf(conceptMap.get(HeadNameString{})))
+		method_(conceptMap.get(HeadNameString{}))
 	{
+	}
+
+	template <class NameString>
+	constexpr auto operator[]([[maybe_unused]] NameString name) const {
+		if constexpr (NameString{} == HeadNameString{}) {
+			return method_;
+		} else {
+			return Methods<Concept<TailEntries...>>::operator[](name);
+		}
 	}
 
 private:
 
-	using Signature = decltype(
-		typename Concept<HeadNameString, HeadSignature, TailEntries...>::template methodSignature<HeadNameString>::MappingSignature
+	using Concept = Concept<HeadNameString, HeadSignature, TailEntries...>;
+
+	using MappingSignature = decltype(
+		typename Concept::template methodSignature<HeadNameString>::MappingSignature
 		);
 
-	Signature* method_;
+	Method<MappingSignature> method_;
 
 };
 
@@ -59,27 +79,16 @@ public:
 	{
 	}
 
-	template <class ReturnType, class... Args>
-	constexpr ReturnType invoke(const_string::ConstString name, Args&&... args) const {
-		return methods_[name].invoke<ReturnType>(std::forward<Args>(args)...);
+	template <class ReturnType, class NameString, class... Args>
+	ReturnType invoke([[maybe_unused]] NameString name, Args&&... args) const {
+		constexpr auto method = methods_[NameString{}];
+		return method.invoke<ReturnType>(std::forward<Args>(args)...);
 	}
 
 private:
 
 	detail::Methods<Concept> methods_;
 
-};
-
-template <class... Methods>
-constexpr auto makeStatic(Methods... methods) {
-	return Static<Methods...>(methods...);
-}
-
-template <uint32_t MethodNameCrc, class Function>
-struct MapEntryKey<Method<MethodNameCrc, Function>> {
-	constexpr auto operator()() const {
-		return MethodNameCrc;
-	}
 };
 
 } // namespace caramel_poly::vtable
