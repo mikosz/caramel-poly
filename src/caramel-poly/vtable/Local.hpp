@@ -1,36 +1,12 @@
 #ifndef CARAMELPOLY_VTABLE_LOCAL_HPP__
 #define CARAMELPOLY_VTABLE_LOCAL_HPP__
 
+#include "caramel-poly/detail/Method.hpp"
 #include "Concept.hpp"
 
 namespace caramel_poly::vtable {
 
 namespace detail {
-
-template <class MappingSignature>
-class Method;
-
-template <class MappingReturnType, class MappingArgs...>
-class Method<MappingReturnType (MappingArgs...)> {
-public:
-
-	using FunctionPtr = MappingReturnType (*)(MappingArgs...);
-
-	Method(FunctionPtr function) :
-		function_(std::move(function))
-	{
-	}
-
-	template <class RequestReturnType, class RequestArgs...>
-	RequestReturnType invoke(RequestArgs&&... requestArgs) const {
-
-	}
-
-private:
-
-	FunctionPtr function_;
-
-};
 
 template <class Concept>
 struct Methods;
