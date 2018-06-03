@@ -7,24 +7,24 @@
 
 namespace caramel_poly::detail {
 
-template <class MappingSignature>
+template <class SelfType, class MappingSignature>
 class Method;
 
-template <class SelfType, class MappingReturnType, class MappingArgs...>
-class Method<MappingReturnType (MappingArgs...)> {
+template <class SelfType, class MappingReturnType, class... MappingArgs>
+class Method<SelfType, MappingReturnType (MappingArgs...)> {
 public:
 
 	using FunctionPtr = MappingReturnType (*)(MappingArgs...);
 
 	struct ErasedFunction {
 
-		ErasedFunction(FunctionPtr function) :
+		constexpr ErasedFunction(FunctionPtr function) :
 			function_(std::move(function))
 		{
 		}
 
 		template <class T, class MappingType>
-		static auto unerase(MappingType&& arg) {
+		constexpr static auto unerase(MappingType&& arg) {
 			// TODO: this is not finished (and probably not even correct)
 			if constexpr (std::is_same_v<MappingType, vtable::Object&>) {
 				return static_cast<SelfType&>(arg);
@@ -36,19 +36,19 @@ public:
 		}
 
 		static MappingReturnType invoke(MappingArgs... mappingArgs) {
-			return (*function_)(unerase(std::forward<MappingArgs>(mappingArgs)...)));
+			return (*function_)(unerase(std::forward<MappingArgs>(mappingArgs)...));
 		}
 
 		FunctionPtr function_;
 
 	};
 
-	Method(FunctionPtr function) :
+	constexpr Method(FunctionPtr function) :
 		function_(std::move(function))
 	{
 	}
 
-	template <class RequestReturnType, class RequestArgs...>
+	template <class RequestReturnType, class... RequestArgs>
 	RequestReturnType invoke(RequestArgs&&... requestArgs) const {
 		return (*function_)(std::forward<RequestArgs>(requestArgs)...);
 	}

@@ -24,8 +24,8 @@ template <class HeadNameString, class HeadSignature, class... TailEntries>
 struct Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...> : Concept<TailEntries...> {
 
 	template <class NameString>
-	constexpr auto methodSignature(NameString nameString) const {
-		if constexpr (nameString == HeadNameString{}) {
+	constexpr auto methodSignature([[maybe_unused]] NameString nameString) const {
+		if constexpr (NameString{} == HeadNameString{}) {
 			return HeadSignature{};
 		} else {
 			return Concept<TailEntries...>::methodSignature(nameString);
