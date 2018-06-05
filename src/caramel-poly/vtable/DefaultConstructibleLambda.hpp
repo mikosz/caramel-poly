@@ -14,7 +14,7 @@ public:
 
 	using Signature = ReturnType (Args...);
 
-	static ReturnType invoke(Args... args) {
+	ReturnType operator()(Args... args) {
 		const auto lambda = detail::EmptyObject<LambdaType>{}.get();
 		return lambda(std::forward<Args>(args)...);
 	}
@@ -27,7 +27,7 @@ public:
 
 	using Signature = void (Args...);
 
-	static void invoke(Args... args) {
+	ReturnType operator()(Args... args) {
 		const auto lambda = detail::EmptyObject<LambdaType>{}.get();
 		lambda(std::forward<Args>(args)...);
 	}
