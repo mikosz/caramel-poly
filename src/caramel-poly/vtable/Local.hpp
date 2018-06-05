@@ -33,8 +33,8 @@ public:
 	constexpr auto operator[]([[maybe_unused]] NameString name) const {
 		if constexpr (NameString{} == HeadNameString{}) {
 			return method_;
-		} else {
-			return Parent::operator[](name);
+		//} else {
+		//	return Parent::operator[](name);
 		}
 	}
 
@@ -79,7 +79,7 @@ public:
 
 	template <class ReturnType, class NameString, class... Args>
 	ReturnType invoke([[maybe_unused]] NameString name, Args&&... args) const {
-		constexpr auto method = methods_[NameString{}];
+		/*constexpr */ const auto method = methods_[NameString{}];
 		return method.invoke<ReturnType>(std::forward<Args>(args)...);
 	}
 

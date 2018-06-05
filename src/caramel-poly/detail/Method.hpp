@@ -16,41 +16,61 @@ public:
 
 	using FunctionPtr = MappingReturnType (*)(MappingArgs...);
 
-	struct ErasedFunction {
+	class ErasedFunction {
+	public:
 
-		constexpr ErasedFunction(FunctionPtr function) :
-			function_(std::move(function))
-		{
-		}
+		// TODO: this is not finished (and probably not even correct)
+		template <class MappingType>
+		struct UnerasedType {
+			using Type = MappingType;
+		};
 
-		template <class T, class MappingType>
-		constexpr static auto unerase(MappingType&& arg) {
-			// TODO: this is not finished (and probably not even correct)
+		template <>
+		struct UnerasedType<vtable::Object&> {
+			using Type = SelfType&;
+		};
+
+		template <>
+		struct UnerasedType<const vtable::Object&> {
+			using Type = const SelfType&;
+		};
+
+		template <class MappingType>
+		constexpr static decltype(auto) unerase(MappingType&& arg) {
 			if constexpr (std::is_same_v<MappingType, vtable::Object&>) {
-				return static_cast<SelfType&>(arg);
+				return reinterpret_cast<SelfType&>(arg);
 			} else if constexpr (std::is_same_v<MappingType, const vtable::Object&>) {
-				return static_cast<const SelfType&>(arg);
+				return reinterpret_cast<const SelfType&>(arg);
 			} else {
 				return std::forward<MappingType>(arg);
 			}
 		}
 
-		static MappingReturnType invoke(MappingArgs... mappingArgs) {
-			return (*function_)(unerase(std::forward<MappingArgs>(mappingArgs)...));
+		using UnerasedFunctionPtr = MappingReturnType (*)(UnerasedType<MappingArgs>...);
+
+		constexpr ErasedFunction(UnerasedFunctionPtr function) :
+			function_(std::move(function))
+		{
 		}
 
-		FunctionPtr function_;
+		MappingReturnType invoke(MappingArgs... mappingArgs) const {
+			return (*function_)(unerase(std::forward<MappingArgs>(mappingArgs))...);
+		}
+
+	private:
+
+		UnerasedFunctionPtr function_;
 
 	};
 
-	constexpr Method(FunctionPtr function) :
+	constexpr Method(typename ErasedFunction::UnerasedFunctionPtr function) :
 		function_(std::move(function))
 	{
 	}
 
 	template <class RequestReturnType, class... RequestArgs>
 	RequestReturnType invoke(RequestArgs&&... requestArgs) const {
-		return (*function_)(std::forward<RequestArgs>(requestArgs)...);
+		return function_.invoke(std::forward<RequestArgs>(requestArgs)...);
 	}
 
 private:
