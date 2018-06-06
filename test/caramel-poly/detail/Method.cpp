@@ -13,10 +13,12 @@ struct S {
 };
 
 TEST(ConceptTest, CallsStoredFunction) {
-	const auto returns42 = [](const S&) { return 42; }
-	const auto method = Method<int (const Object&)>{ DefaultConstructibleLambda<decltype(returns42), int (const S&)> };
+	const auto returns42 = [](const S&) { return 42; };
+	const auto dcl = DefaultConstructibleLambda<decltype(returns42), int(const S&)>{};
+	const auto method = Method<int (const Object&)>(dcl);
 
-	EXPECT_EQ(method.invoke(S{}), 42);
+	const auto& s = S{};
+	EXPECT_EQ(method.invoke(s), 42);
 }
 
 } // anonymous namespace

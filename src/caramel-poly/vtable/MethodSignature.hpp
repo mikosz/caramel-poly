@@ -1,9 +1,9 @@
 #ifndef CARAMELPOLY_VTABLE_METHODSIGNATURE_HPP__
 #define CARAMELPOLY_VTABLE_METHODSIGNATURE_HPP__
 
-namespace caramel_poly::vtable {
+#include "Object.hpp"
 
-struct Object;
+namespace caramel_poly::vtable {
 
 template <class Signature>
 struct MethodSignature;

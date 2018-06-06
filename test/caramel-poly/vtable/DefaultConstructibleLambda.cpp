@@ -15,11 +15,11 @@ struct Functor {
 
 TEST(DefaultConstructibleLambdaTest, InvokesProvidedFunctionWithArguments) {
 	constexpr auto functor = DefaultConstructibleLambda<Functor, std::pair<int, int> (int)>();
-	EXPECT_EQ(functor.invoke(42), std::make_pair(0, 42));
+	EXPECT_EQ(functor(42), std::make_pair(0, 42));
 
 	auto lambda = [](int arg) { return std::make_pair(1, arg); };
 	constexpr auto lambdaFunctor = DefaultConstructibleLambda<decltype(lambda), std::pair<int, int> (int)>();
-	EXPECT_EQ(lambdaFunctor.invoke(42), std::make_pair(1, 42));
+	EXPECT_EQ(lambdaFunctor(42), std::make_pair(1, 42));
 }
 
 } // anonymous namespace

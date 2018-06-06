@@ -6,15 +6,14 @@
 namespace caramel_poly::vtable {
 
 template <class LambdaType, class Signature>
-class DefaultConstructibleLambda;
+struct DefaultConstructibleLambda;
 
 template <class LambdaType, class ReturnType, class... Args>
-class DefaultConstructibleLambda<LambdaType, ReturnType (Args...)> {
-public:
+struct DefaultConstructibleLambda<LambdaType, ReturnType (Args...)> {
 
 	using Signature = ReturnType (Args...);
 
-	ReturnType operator()(Args... args) {
+	ReturnType operator()(Args... args) const {
 		const auto lambda = detail::EmptyObject<LambdaType>{}.get();
 		return lambda(std::forward<Args>(args)...);
 	}
@@ -22,12 +21,11 @@ public:
 };
 
 template <class LambdaType, class... Args>
-class DefaultConstructibleLambda<LambdaType, void (Args...)> {
-public:
+struct DefaultConstructibleLambda<LambdaType, void (Args...)> {
 
 	using Signature = void (Args...);
 
-	ReturnType operator()(Args... args) {
+	void operator()(Args... args) const {
 		const auto lambda = detail::EmptyObject<LambdaType>{}.get();
 		lambda(std::forward<Args>(args)...);
 	}

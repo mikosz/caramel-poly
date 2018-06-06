@@ -17,34 +17,56 @@ public:
 
 	using FunctionPtr = MappingReturnType (*)(MappingArgs...);
 
-	template <class Functor>
-	constexpr Method([[maybe_unused]] Functor functor) :
-		function_(Uneraser<Functor>::invoke)
+	template <class DefaultConstructibleLambdaType>
+	constexpr Method([[maybe_unused]] DefaultConstructibleLambdaType default_constructible_lambda) :
+		function_(&Uneraser<DefaultConstructibleLambdaType, typename DefaultConstructibleLambdaType::Signature, MappingArgs...>::invoke)
 	{
 	}
 
-	template <class SelfType, class ReturnType, class... Args>
-	ReturnType invoke(SelfType&& self, Args&&... Args) const {
-		return function_.invoke(erase(std::forward<SelfType>(self)), std::forward<RequestArgs>(requestArgs)...);
+	template <class SelfType, class... Args>
+	decltype(auto) invoke(SelfType&& self, Args... args) const {
+		return (*function_)(erase(std::forward<SelfType>(self)), std::forward<Args>(args)...);
 	}
 
 private:
 
 	template <class SelfType>
 	constexpr static decltype(auto) erase(SelfType&& arg) {
-		if constexpr (std::is_const_v<SelfType> && std::is_lvalue_reference_v<SelfType>) {
-			return reinterpret_cast<const Object&>(arg);
-		} else if constexpr (!std::is_const_v<SelfType> && std::is_lvalue_reference_v<SelfType>) {
-			return reinterpret_cast<Object&>(arg);
+		return reinterpret_cast<const Object&>(arg);
+		//if constexpr (std::is_const_v<SelfType> && std::is_lvalue_reference_v<SelfType>) {
+		//	return reinterpret_cast<const Object&>(arg);
+		//} else if constexpr (!std::is_const_v<SelfType> && std::is_lvalue_reference_v<SelfType>) {
+		//	return reinterpret_cast<Object&>(arg);
+		//} else if constexpr (std::is_const_v<SelfType> && std::is_rvalue_reference_v<SelfType>) {
+		//	return reinterpret_cast<const Object&&>(arg);
+		//} else if constexpr (!std::is_const_v<SelfType> && std::is_rvalue_reference_v<SelfType>) {
+		//	return reinterpret_cast<Object&&>(arg);
+		//} else {
+		//	static_assert(false, "incomplete...");
+		//}
+	}
+
+	template <class SelfType, class ObjectArg>
+	constexpr static decltype(auto) unerase(ObjectArg arg) {
+		if constexpr (std::is_const_v<ObjectType> && std::is_lvalue_reference_v<ObjectArg>) {
+			return reinterpret_cast<const SelfType&>(arg);
+		} else if constexpr (!std::is_const_v<ObjectArg> && std::is_lvalue_reference_v<ObjectArg>) {
+			return reinterpret_cast<SelfType&>(arg);
 		} else {
 			static_assert(false, "incomplete...");
 		}
 	}
 
-	template <class Functor>
-	struct Uneraser {
-		static MappingReturnType invoke(MappingArgs&&... mappingArgs) {
-			Functor{}(std::forward);
+	template <class DefaultConstructibleLambdaType, class DefaultConstructibleLambdaTypeSignature, class... InvokeArgs>
+	struct Uneraser;
+
+	template <class DefaultConstructibleLambdaType, class FunctorReturnType, class FunctorSelfArg, class... FunctorArgs, class ObjectArg, class... InvokeArgs>
+	struct Uneraser<DefaultConstructibleLambdaType, FunctorReturnType (FunctorSelfArg, FunctorArgs...), ObjectArg, InvokeArgs...> {
+		static MappingReturnType invoke(ObjectArg object, InvokeArgs... invokeArgs) {
+			return DefaultConstructibleLambdaType{}(
+				unerase<FunctorSelfArg>(std::forward<ObjectArg>(object)),
+				std::forward<InvokeArgs>(invokeArgs)...
+				);
 		}
 	};
 
@@ -55,52 +77,3 @@ private:
 } // namespace caramel_poly::detail
 
 #endif /* CARAMELPOLY_DETAIL_METHOD__ */
-
-
-
-class ErasedFunction {
-public:
-
-	// TODO: this is not finished (and probably not even correct)
-	template <class MappingType>
-	struct UnerasedType {
-		using Type = MappingType;
-	};
-
-	template <>
-	struct UnerasedType<vtable::Object&> {
-		using Type = SelfType&;
-	};
-
-	template <>
-	struct UnerasedType<const vtable::Object&> {
-		using Type = const SelfType&;
-	};
-
-	template <class MappingType>
-	constexpr static decltype(auto) unerase(MappingType&& arg) {
-		if constexpr (std::is_same_v<MappingType, vtable::Object&>) {
-			return reinterpret_cast<SelfType&>(arg);
-		} else if constexpr (std::is_same_v<MappingType, const vtable::Object&>) {
-			return reinterpret_cast<const SelfType&>(arg);
-		} else {
-			return std::forward<MappingType>(arg);
-		}
-	}
-
-	using UnerasedFunctionPtr = MappingReturnType (*)(UnerasedType<MappingArgs>...);
-
-	constexpr ErasedFunction(UnerasedFunctionPtr function) :
-		function_(std::move(function))
-	{
-	}
-
-	MappingReturnType invoke(MappingArgs... mappingArgs) const {
-		return (*function_)(unerase(std::forward<MappingArgs>(mappingArgs))...);
-	}
-
-private:
-
-	UnerasedFunctionPtr function_;
-
-};
