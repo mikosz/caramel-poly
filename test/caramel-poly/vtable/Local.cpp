@@ -2,6 +2,8 @@
 
 #include "caramel-poly/compile-time/String.hpp"
 #include "caramel-poly/vtable/MethodSignature.hpp"
+#if 0
+
 #include "caramel-poly/vtable/Local.hpp"
 
 namespace caramel_poly::vtable {
@@ -61,3 +63,5 @@ TEST(StaticTest, InvokesAssignedMethods) {
 }
 
 } // anonymous namespace
+
+#endif
