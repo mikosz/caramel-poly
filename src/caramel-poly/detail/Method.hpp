@@ -32,7 +32,7 @@ private:
 
 	template <class SelfType>
 	constexpr static decltype(auto) erase(SelfType&& arg) {
-		using BareSelfType = std::remove_reference_t<SelfType>;
+		using BareSelfType = std::decay_t<SelfType>;
 
 		if constexpr (std::is_const_v<BareSelfType> && std::is_lvalue_reference_v<SelfType>) {
 			return reinterpret_cast<const Object&>(arg);
@@ -42,6 +42,10 @@ private:
 			return reinterpret_cast<const Object&&>(arg);
 		} else if constexpr (!std::is_const_v<BareSelfType> && std::is_rvalue_reference_v<SelfType>) {
 			return reinterpret_cast<Object&&>(arg);
+		} else if constexpr (std::is_const_v<BareSelfType> && std::is_pointer_v<SelfType>) {
+			return reinterpret_cast<const Object*>(arg);
+		} else if constexpr (!std::is_const_v<BareSelfType> && std::is_pointer_v<SelfType>) {
+			return reinterpret_cast<Object*>(arg);
 		} else {
 			static_assert(false, "incomplete...");
 		}
@@ -49,12 +53,20 @@ private:
 
 	template <class SelfType, class ObjectArg>
 	constexpr static decltype(auto) unerase(ObjectArg&& arg) {
-		using BareObjectArgType = std::remove_reference_t<ObjectArg>;
+		using BareObjectArgType = std::decay_t<ObjectArg>;
 
 		if constexpr (std::is_const_v<BareObjectArgType> && std::is_lvalue_reference_v<ObjectArg>) {
 			return reinterpret_cast<const SelfType&>(arg);
 		} else if constexpr (!std::is_const_v<BareObjectArgType> && std::is_lvalue_reference_v<ObjectArg>) {
 			return reinterpret_cast<SelfType&>(arg);
+		} else if constexpr (std::is_const_v<BareObjectArgType> && std::is_rvalue_reference_v<ObjectArg>) {
+			return reinterpret_cast<const SelfType&&>(arg);
+		} else if constexpr (!std::is_const_v<BareObjectArgType> && std::is_rvalue_reference_v<ObjectArg>) {
+			return reinterpret_cast<SelfType&&>(arg);
+		} else if constexpr (std::is_const_v<BareObjectArgType> && std::is_pointer_v<ObjectArg>) {
+			return reinterpret_cast<const SelfType*>(arg);
+		} else if constexpr (!std::is_const_v<BareObjectArgType> && std::is_pointer_v<ObjectArg>) {
+			return reinterpret_cast<SelfType*>(arg);
 		} else {
 			static_assert(false, "incomplete...");
 		}
