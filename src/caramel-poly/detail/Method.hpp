@@ -38,16 +38,8 @@ private:
 			return reinterpret_cast<const Object&>(arg);
 		} else if constexpr (!std::is_const_v<BareSelfType> && std::is_lvalue_reference_v<SelfType>) {
 			return reinterpret_cast<Object&>(arg);
-		} else if constexpr (std::is_const_v<BareSelfType> && std::is_rvalue_reference_v<SelfType>) {
-			return reinterpret_cast<const Object&&>(arg);
-		} else if constexpr (!std::is_const_v<BareSelfType> && std::is_rvalue_reference_v<SelfType>) {
-			return reinterpret_cast<Object&&>(arg);
-		} else if constexpr (std::is_const_v<BareSelfType> && std::is_pointer_v<SelfType>) {
-			return reinterpret_cast<const Object*>(arg);
-		} else if constexpr (!std::is_const_v<BareSelfType> && std::is_pointer_v<SelfType>) {
-			return reinterpret_cast<Object*>(arg);
 		} else {
-			static_assert(false, "incomplete...");
+			static_assert(false, "Unexpected SelfType. Should be a const or non-const lvalue reference.");
 		}
 	}
 
@@ -59,16 +51,8 @@ private:
 			return reinterpret_cast<const SelfType&>(arg);
 		} else if constexpr (!std::is_const_v<BareObjectArgType> && std::is_lvalue_reference_v<ObjectArg>) {
 			return reinterpret_cast<SelfType&>(arg);
-		} else if constexpr (std::is_const_v<BareObjectArgType> && std::is_rvalue_reference_v<ObjectArg>) {
-			return reinterpret_cast<const SelfType&&>(arg);
-		} else if constexpr (!std::is_const_v<BareObjectArgType> && std::is_rvalue_reference_v<ObjectArg>) {
-			return reinterpret_cast<SelfType&&>(arg);
-		} else if constexpr (std::is_const_v<BareObjectArgType> && std::is_pointer_v<ObjectArg>) {
-			return reinterpret_cast<const SelfType*>(arg);
-		} else if constexpr (!std::is_const_v<BareObjectArgType> && std::is_pointer_v<ObjectArg>) {
-			return reinterpret_cast<SelfType*>(arg);
 		} else {
-			static_assert(false, "incomplete...");
+			static_assert(false, "Unexpected ObjectArg. Should be a const or non-const lvalue reference.");
 		}
 	}
 

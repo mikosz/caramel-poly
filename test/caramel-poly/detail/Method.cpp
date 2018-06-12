@@ -11,39 +11,6 @@ using namespace caramel_poly::detail;
 using namespace caramel_poly::vtable;
 
 struct S {
-	enum {
-		CONSTRUCTED_AT_CALL_SITE,
-		DEFAULT_CONSTRUCTED,
-		COPY_CONSTRUCTED,
-		COPY_ASSIGNED,
-		MOVE_CONSTRUCTED,
-		MOVE_ASSIGNED,
-	} type;
-
-	S() :
-		type(DEFAULT_CONSTRUCTED)
-	{
-	}
-
-	S(const S&) :
-		type(COPY_CONSTRUCTED)
-	{
-	}
-
-	S& operator=(const S&) {
-		type = COPY_ASSIGNED;
-		return *this;
-	}
-
-	S(S&&) :
-		type(MOVE_CONSTRUCTED)
-	{
-	}
-
-	S& operator=(S&&) {
-		type = MOVE_ASSIGNED;
-		return *this;
-	}
 };
 
 TEST(ConceptTest, CallsStoredFunction) {
@@ -91,25 +58,9 @@ TEST(ConceptTest, SelfIsPassedAsExpected) {
 
 			constReferenceMethod.invoke(object, &object);
 		}
-
-		{
-			const auto pointer = [](RegistryObject* self, const RegistryObject* original) {
-					const auto& selfState = self->state();
-					EXPECT_TRUE(selfState.constructed);
-					EXPECT_EQ(self, original);
-				};
-			const auto pointerDCL =
-				DefaultConstructibleLambda<decltype(pointer), void (RegistryObject*, const RegistryObject*)>{};
-			const auto pointerMethod = Method<void (Object*, const RegistryObject*)>(pointerDCL);
-	
-			//pointerMethod.invoke(&object, &object);
-		}
-
-		//const auto pointerToConst = [](const RegistryObject*) {};
-		//const auto pointerToConstDCL =
-		//	DefaultConstructibleLambda<decltype(pointerToConst), void (const RegistryObject*)>{};
-		//const auto pointerToConstMethod = Method<void (const Object*)>(pointerToConstDCL);
 	}
+
+	EXPECT_TRUE(registry.allDestructed());
 }
 
 } // anonymous namespace

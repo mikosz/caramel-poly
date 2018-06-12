@@ -1,6 +1,7 @@
 #ifndef CARAMELPOLY_TEST_CONSTRUCTIONREGISTRY_HPP__
 #define CARAMELPOLY_TEST_CONSTRUCTIONREGISTRY_HPP__
 
+#include <algorithm>
 #include <cassert>
 #include <unordered_map>
 
@@ -75,6 +76,12 @@ public:
 
 	State& get(const Object* object) const {
 		return states_[object];
+	}
+
+	bool allDestructed() const {
+		return std::all_of(states_.begin(), states_.end(), [](const auto& stateEntry) {
+				return stateEntry.second.destructed;
+			});
 	}
 
 private:
