@@ -18,12 +18,12 @@ struct Methods<
 			ConceptEntry<HeadNameString, HeadSignature>,
 			TailEntries...
 			>
-		> /*: Methods<Concept<TailEntries...>>*/ {
+		> : Methods<Concept<TailEntries...>> {
 public:
 
 	template <class ConceptMap>
 	constexpr Methods(ConceptMap conceptMap) :
-		//Parent(conceptMap),
+		Parent(conceptMap),
 		method_(conceptMap.get(HeadNameString{}))
 	{
 	}
@@ -32,18 +32,18 @@ public:
 	constexpr auto operator[]([[maybe_unused]] NameString name) const {
 		if constexpr (NameString{} == HeadNameString{}) {
 			return method_;
-		//} else {
-		//	return Parent::operator[](name);
+		} else {
+			return Parent::operator[](name);
 		}
 	}
 
 private:
 
-	//using Parent = Methods<Concept<TailEntries...>>;
+	using Parent = Methods<Concept<TailEntries...>>;
 
-	using Concept = Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...>;
+	using This = Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...>;
 
-	using MappingSignature = typename decltype(Concept{}.methodSignature(HeadNameString{}))::MappingSignature;
+	using MappingSignature = typename decltype(This{}.methodSignature(HeadNameString{}))::MappingSignature;
 
 	caramel_poly::detail::Method<MappingSignature> method_;
 

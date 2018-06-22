@@ -11,31 +11,36 @@ using namespace caramel_poly;
 using namespace caramel_poly::vtable;
 
 struct S {
+	int i = 0;
 };
 
 TEST(StaticTest, InvokesAssignedMethods) {
 	constexpr auto methodReturns1Name = COMPILE_TIME_STRING("MethodReturns1");
-	//constexpr auto methodMultipliesBy2Name = COMPILE_TIME_STRING("MethodMultipliesBy2");
+	constexpr auto methodMultipliesByIName = COMPILE_TIME_STRING("MethodMultipliesByI");
 
 	constexpr auto concept = makeConcept(
-		makeConceptEntry(methodReturns1Name, MethodSignature<int () const>{})/*,
-		makeConceptEntry(methodMultipliesBy2Name, MethodSignature<int (int) const>{})*/
+		makeConceptEntry(methodReturns1Name, MethodSignature<int () const>{}),
+		makeConceptEntry(methodMultipliesByIName, MethodSignature<int (int) const>{})
 		);
 
 	auto returns1Lambda = [](const S&) { return 1; };
+	auto multipliesByILambda = [](const S& s, int i) { return s.i * i; };
 
 	constexpr auto conceptMap = makeConceptMap(
 		makeConceptMapEntry(
 			methodReturns1Name,
 			DefaultConstructibleLambda<decltype(returns1Lambda), int (const S&)>{}
-			)/*,
-		makeConceptMapEntry(methodMultipliesBy2Name, &multipliesBy2)*/
+			),
+		makeConceptMapEntry(
+			methodMultipliesByIName,
+			DefaultConstructibleLambda<decltype(multipliesByILambda), int (const S&, int)>{}
+			)
 		);
 
 	constexpr auto localVtable = makeLocal(concept, conceptMap);
 
 	EXPECT_EQ(localVtable.invoke(methodReturns1Name, S{}), 1);
-	//EXPECT_EQ(localVtable.invoke<int>(methodMultipliesBy2Name, 21), 42);
+	EXPECT_EQ(localVtable.invoke(methodMultipliesByIName, S{ 2 }, 21), 42);
 }
 
 } // anonymous namespace
