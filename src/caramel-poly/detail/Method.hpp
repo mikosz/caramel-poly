@@ -30,19 +30,6 @@ public:
 
 private:
 
-	template <class SelfType>
-	constexpr static decltype(auto) erase(SelfType&& arg) {
-		using BareSelfType = std::decay_t<SelfType>;
-
-		if constexpr (std::is_const_v<BareSelfType> && std::is_lvalue_reference_v<SelfType>) {
-			return reinterpret_cast<const Object&>(arg);
-		} else if constexpr (!std::is_const_v<BareSelfType> && std::is_lvalue_reference_v<SelfType>) {
-			return reinterpret_cast<Object&>(arg);
-		} else {
-			static_assert(false, "Unexpected SelfType. Should be a const or non-const lvalue reference.");
-		}
-	}
-
 	template <class SelfType, class ObjectArg>
 	constexpr static decltype(auto) unerase(ObjectArg&& arg) {
 		using BareObjectArgType = std::decay_t<ObjectArg>;

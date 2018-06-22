@@ -41,9 +41,10 @@ private:
 
 	using Parent = Methods<Concept<TailEntries...>>;
 
-	using This = Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...>;
+	using ConceptType = Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...>;
 
-	using MappingSignature = typename decltype(This{}.methodSignature(HeadNameString{}))::MappingSignature;
+	using MappingSignature =
+		typename decltype(ConceptType{}.methodSignature(HeadNameString{}))::MappingSignature;
 
 	caramel_poly::detail::Method<MappingSignature> method_;
 
