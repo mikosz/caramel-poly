@@ -14,7 +14,7 @@ struct DefaultConstructibleLambda<LambdaType, ReturnType (Args...)> {
 	using Signature = ReturnType (Args...);
 
 	ReturnType operator()(Args... args) const {
-		const auto lambda = detail::EmptyObject<LambdaType>{}.get();
+		const auto lambda = caramel_poly::detail::EmptyObject<LambdaType>{}.get();
 		return lambda(std::forward<Args>(args)...);
 	}
 
@@ -26,7 +26,7 @@ struct DefaultConstructibleLambda<LambdaType, void (Args...)> {
 	using Signature = void (Args...);
 
 	void operator()(Args... args) const {
-		const auto lambda = detail::EmptyObject<LambdaType>{}.get();
+		const auto lambda = caramel_poly::detail::EmptyObject<LambdaType>{}.get();
 		lambda(std::forward<Args>(args)...);
 	}
 

@@ -9,17 +9,16 @@ namespace caramel_poly::vtable {
 
 namespace detail {
 
-template <class SelfType, class ConceptType>
+template <class ConceptType>
 struct Methods;
 
-template <class SelfType, class HeadNameString, class HeadSignature, class... TailEntries>
+template <class HeadNameString, class HeadSignature, class... TailEntries>
 struct Methods<
-		SelfType,
 		Concept<
 			ConceptEntry<HeadNameString, HeadSignature>,
 			TailEntries...
 			>
-		> /*: Methods<SelfType, Concept<TailEntries...>>*/ {
+		> /*: Methods<Concept<TailEntries...>>*/ {
 public:
 
 	template <class ConceptMap>
@@ -40,18 +39,18 @@ public:
 
 private:
 
-	//using Parent = Methods<SelfType, Concept<TailEntries...>>;
+	//using Parent = Methods<Concept<TailEntries...>>;
 
 	using Concept = Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...>;
 
 	using MappingSignature = typename decltype(Concept{}.methodSignature(HeadNameString{}))::MappingSignature;
 
-	caramel_poly::detail::Method<SelfType, MappingSignature> method_;
+	caramel_poly::detail::Method<MappingSignature> method_;
 
 };
 
-template <class SelfType>
-struct Methods<SelfType, Concept<>> {
+template <>
+struct Methods<Concept<>> {
 
 	template <class ConceptMap>
 	constexpr Methods([[maybe_unused]] ConceptMap conceptMap)
@@ -67,7 +66,7 @@ struct Methods<SelfType, Concept<>> {
 
 } // namespace detail
 
-template <class SelfType, class ConceptType>
+template <class ConceptType>
 class Local {
 public:
 
@@ -77,21 +76,21 @@ public:
 	{
 	}
 
-	template <class ReturnType, class NameString, class... Args>
-	ReturnType invoke([[maybe_unused]] NameString name, Args&&... args) const {
+	template <class NameString, class... Args>
+	decltype(auto) invoke([[maybe_unused]] NameString name, Args&&... args) const {
 		/*constexpr */ const auto method = methods_[NameString{}];
-		return method.invoke<ReturnType>(std::forward<Args>(args)...);
+		return method.invoke(std::forward<Args>(args)...);
 	}
 
 private:
 
-	vtable::detail::Methods<SelfType, ConceptType> methods_;
+	vtable::detail::Methods<ConceptType> methods_;
 
 };
 
-template <class SelfType, class Concept, class ConceptMap>
+template <class Concept, class ConceptMap>
 constexpr auto makeLocal([[maybe_unused]] Concept concept, ConceptMap conceptMap) {
-	return Local<SelfType, Concept>{ conceptMap };
+	return Local<Concept>{ conceptMap };
 }
 
 } // namespace caramel_poly::vtable
