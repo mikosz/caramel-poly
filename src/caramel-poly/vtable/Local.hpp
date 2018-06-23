@@ -2,6 +2,7 @@
 #define CARAMELPOLY_VTABLE_LOCAL_HPP__
 
 #include "caramel-poly/detail/Method.hpp"
+#include "caramel-poly/detail/BindSignature.hpp"
 #include "Concept.hpp"
 #include "ConceptMap.hpp"
 
@@ -22,9 +23,17 @@ struct Methods<
 public:
 
 	template <class ConceptMap>
-	constexpr Methods(ConceptMap conceptMap) :
+	constexpr explicit Methods(ConceptMap conceptMap) :
 		Parent(conceptMap),
-		method_(conceptMap.get(HeadNameString{}))
+		method_(
+			DefaultConstructibleLambda<
+				ConceptMap::LambdaType<HeadNameString>,
+				typename caramel_poly::detail::BindSignature<
+					typename decltype(ConceptType{}.methodSignature(HeadNameString{}))::MappingSignature,
+					typename ConceptMap::Self
+					>::Type
+				>
+			)
 	{
 	}
 

@@ -5,49 +5,60 @@
 
 namespace caramel_poly::vtable {
 
-template <class NameString, class MethodType>
+template <class NameString, class LambdaType>
 struct ConceptMapEntry {
 	using Name = NameString;
-	using Method = MethodType;
+	using Lambda = LambdaType;
 };
 
-template <class NameString, class MethodType>
-constexpr auto makeConceptMapEntry([[maybe_unused]] NameString name, [[maybe_unused]] MethodType method) {
-	return ConceptMapEntry<NameString, MethodType>{};
+template <class NameString, class LambdaType>
+constexpr auto makeConceptMapEntry([[maybe_unused]] NameString name, [[maybe_unused]] LambdaType lambda) {
+	return ConceptMapEntry<NameString, LambdaType>{};
 }
 
-template <class... Entries>
+template <class SelfType, class... Entries>
 class ConceptMap;
 
-template <class HeadNameString, class HeadMethod, class... TailEntries>
-class ConceptMap<ConceptMapEntry<HeadNameString, HeadMethod>, TailEntries...> : ConceptMap<TailEntries...> {
+template <class SelfType, class HeadNameString, class HeadLambda, class... TailEntries>
+class ConceptMap<SelfType, ConceptMapEntry<HeadNameString, HeadLambda>, TailEntries...> :
+	ConceptMap<SelfType, TailEntries...>
+{
 public:
 
+	using Self = SelfType;
+
 	template <class NameString>
-	constexpr auto get([[maybe_unused]] NameString name) const {
-		if constexpr (NameString{} == HeadNameString{}) {
-			return HeadMethod{};
-		} else {
-			return ConceptMap<TailEntries...>::get(name);
-		}
-	}
+	struct LambdaType {
+		using Type = typename ConceptMap<SelfType, TailEntries...>::template LambdaType<NameString>::Type;
+	};
+
+	template <>
+	struct LambdaType<HeadNameString> {
+		using Type = ConceptMapEntry<HeadNameString, HeadLambda>;
+	};
 
 };
 
-template <>
-class ConceptMap<> {
+template <class SelfType>
+class ConceptMap<SelfType> {
 public:
 
+	using Self = SelfType;
+
+	struct w00t {
+		using Lambda = void;
+	};
+
 	template <class NameString>
-	constexpr auto get([[maybe_unused]] NameString name) const {
-		static_assert(false, "Provided function name not registered in concept map");
-	}
+	struct LambdaType {
+		using Type = w00t;
+	};
 
 };
 
-template <class... Entries>
+template <class SelfType, class... Entries>
 constexpr auto makeConceptMap(Entries... /*entries*/) {
-	return ConceptMap<Entries...>{};
+	return ConceptMap<SelfType, Entries...>{};
 }
 
 } // namespace caramel_poly::vtable

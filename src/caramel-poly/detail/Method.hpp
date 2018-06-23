@@ -1,5 +1,5 @@
-#ifndef CARAMELPOLY_DETAIL_METHOD__
-#define CARAMELPOLY_DETAIL_METHOD__
+#ifndef CARAMELPOLY_DETAIL_METHOD_HPP__
+#define CARAMELPOLY_DETAIL_METHOD_HPP__
 
 #include <type_traits>
 
@@ -19,7 +19,13 @@ public:
 
 	template <class DefaultConstructibleLambdaType>
 	constexpr Method([[maybe_unused]] DefaultConstructibleLambdaType default_constructible_lambda) :
-		function_(&Uneraser<DefaultConstructibleLambdaType, typename DefaultConstructibleLambdaType::Signature, MappingArgs...>::invoke)
+		function_(
+			&Uneraser<
+				DefaultConstructibleLambdaType,
+				typename DefaultConstructibleLambdaType::Signature,
+				MappingArgs...
+				>::invoke
+			)
 	{
 	}
 
@@ -62,4 +68,4 @@ private:
 
 } // namespace caramel_poly::detail
 
-#endif /* CARAMELPOLY_DETAIL_METHOD__ */
+#endif /* CARAMELPOLY_DETAIL_METHOD_HPP__ */

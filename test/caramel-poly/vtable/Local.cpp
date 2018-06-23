@@ -23,17 +23,14 @@ TEST(StaticTest, InvokesAssignedMethods) {
 		makeConceptEntry(methodMultipliesByIName, MethodSignature<int (int) const>{})
 		);
 
-	auto returns1Lambda = [](const S&) { return 1; };
-	auto multipliesByILambda = [](const S& s, int i) { return s.i * i; };
-
-	constexpr auto conceptMap = makeConceptMap(
+	constexpr auto conceptMap = makeConceptMap<S>(
 		makeConceptMapEntry(
 			methodReturns1Name,
-			DefaultConstructibleLambda<decltype(returns1Lambda), int (const S&)>{}
+			[](const S&) { return 1; }
 			),
 		makeConceptMapEntry(
 			methodMultipliesByIName,
-			DefaultConstructibleLambda<decltype(multipliesByILambda), int (const S&, int)>{}
+			[](const S& s, int i) { return s.i * i; }
 			)
 		);
 
