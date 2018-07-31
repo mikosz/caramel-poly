@@ -19,23 +19,28 @@ constexpr auto makeConceptMapEntry([[maybe_unused]] NameString name, [[maybe_unu
 template <class SelfType, class... Entries>
 class ConceptMap;
 
-template <class SelfType, class HeadNameString, class HeadLambda, class... TailEntries>
-class ConceptMap<SelfType, ConceptMapEntry<HeadNameString, HeadLambda>, TailEntries...> :
+template <class SelfType, class HeadNameStringT, class HeadLambda, class... TailEntries>
+class ConceptMap<SelfType, ConceptMapEntry<HeadNameStringT, HeadLambda>, TailEntries...> :
 	ConceptMap<SelfType, TailEntries...>
 {
+private:
+
+	template <class NameStringT>
+	struct LambdaTypeInternal {
+		using Type = typename ConceptMap<SelfType, TailEntries...>::template LambdaType<NameStringT>;
+	};
+
+	template <>
+	struct LambdaTypeInternal<HeadNameStringT> {
+		using Type = ConceptMapEntry<HeadNameStringT, HeadLambda>;
+	};
+
 public:
 
 	using Self = SelfType;
 
-	template <class NameString>
-	struct LambdaType {
-		using Type = typename ConceptMap<SelfType, TailEntries...>::template LambdaType<NameString>::Type;
-	};
-
-	template <>
-	struct LambdaType<HeadNameString> {
-		using Type = ConceptMapEntry<HeadNameString, HeadLambda>;
-	};
+	template <class NameStringT>
+	using LambdaType = typename LambdaTypeInternal<std::remove_cv_t<NameStringT>>::Type::Lambda;
 
 };
 
@@ -45,13 +50,8 @@ public:
 
 	using Self = SelfType;
 
-	struct w00t {
-		using Lambda = void;
-	};
-
 	template <class NameString>
 	struct LambdaType {
-		using Type = w00t;
 	};
 
 };

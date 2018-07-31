@@ -13,7 +13,7 @@ using namespace caramel_poly::vtable;
 struct S {
 };
 
-TEST(ConceptTest, CallsStoredFunction) {
+TEST(MethodTest, CallsStoredFunction) {
 	const auto returns42 = [](const S&) { return 42; };
 	const auto multipliesBy2 = [](const S&, int i) { return i * 2; };
 	const auto returns42DCL = DefaultConstructibleLambda<decltype(returns42), int(const S&)>{};
@@ -26,7 +26,7 @@ TEST(ConceptTest, CallsStoredFunction) {
 	EXPECT_EQ(multipliesBy2Method.invoke(S{}, 21), 42);
 }
 
-TEST(ConceptTest, SelfIsPassedAsExpected) {
+TEST(MethodTest, SelfIsPassedAsExpected) {
 	using RegistryObject = test::ConstructionRegistry::Object;
 	auto registry = test::ConstructionRegistry{};
 
