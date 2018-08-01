@@ -67,6 +67,9 @@ constexpr auto makeConceptMap(Entries... /*entries*/) {
 	return ConceptMap<SelfType, Entries...>{};
 }
 
+template <class Concept, class SelfType>
+auto const conceptMap = makeConceptMap<SelfType>();
+
 } // namespace caramel_poly::vtable
 
 #endif /* CARAMELPOLY_VTABLE_CONCEPTMAP_HPP__ */
