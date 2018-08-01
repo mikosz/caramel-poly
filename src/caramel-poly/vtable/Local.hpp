@@ -32,7 +32,7 @@ public:
 					typename decltype(ConceptType{}.methodSignature(HeadNameString{}))::MappingSignature,
 					typename ConceptMap::Self
 					>::Type
-				>
+				> {}
 			)
 	{
 	}

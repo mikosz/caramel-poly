@@ -23,11 +23,11 @@ template <class SelfType, class HeadNameStringT, class HeadLambda, class... Tail
 class ConceptMap<SelfType, ConceptMapEntry<HeadNameStringT, HeadLambda>, TailEntries...> :
 	ConceptMap<SelfType, TailEntries...>
 {
-private:
+protected:
 
 	template <class NameStringT>
 	struct LambdaTypeInternal {
-		using Type = typename ConceptMap<SelfType, TailEntries...>::template LambdaType<NameStringT>;
+		using Type = typename ConceptMap<SelfType, TailEntries...>::template LambdaTypeInternal<NameStringT>::Type;
 	};
 
 	template <>
@@ -46,11 +46,17 @@ public:
 
 template <class SelfType>
 class ConceptMap<SelfType> {
+protected:
+
+	template <class NameStringT>
+	struct LambdaTypeInternal {
+	};
+
 public:
 
 	using Self = SelfType;
 
-	template <class NameString>
+	template <class NameStringT>
 	struct LambdaType {
 	};
 
