@@ -14,6 +14,10 @@ public:
 	{
 	}
 
+	void* get() {
+		return data_.get();
+	}
+
 	const void* get() const {
 		return data_.get();
 	}

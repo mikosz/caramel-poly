@@ -3,41 +3,48 @@
 #include "caramel-poly/compile-time/String.hpp"
 #include "caramel-poly/Poly.hpp"
 
-namespace /* anonymous */ {
-
 using namespace caramel_poly;
 
-struct Interface;
+namespace /* anonymous */ {
+
+constexpr auto methodReturns1Name = COMPILE_TIME_STRING("MethodReturns1");
+constexpr auto methodMultipliesByIName = COMPILE_TIME_STRING("MethodMultipliesByI");
+
+struct Interface : decltype(
+	vtable::makeConcept(
+		vtable::makeConceptEntry(methodReturns1Name, vtable::MethodSignature<int () const>{}),
+		vtable::makeConceptEntry(methodMultipliesByIName, vtable::MethodSignature<int (int) const>{})
+		)
+	)
+{
+};
 
 struct S {
 	int i = 0;
 };
 
-constexpr auto methodReturns1Name = COMPILE_TIME_STRING("MethodReturns1");
-constexpr auto methodMultipliesByIName = COMPILE_TIME_STRING("MethodMultipliesByI");
+} // anonymous namespace
+
+constexpr auto lambada1 = [](const S&) { return 1; };
+constexpr auto lambada2 = [](const S& s, int i) { return s.i * i; };
 
 template <>
-const auto caramel_poly::conceptMap<Interface, S> = makeConceptMap<S>(
-		makeConceptMapEntry(
+const auto caramel_poly::vtable::conceptMap<Interface, S> = vtable::makeConceptMap<S>(
+		vtable::makeConceptMapEntry(
 			methodReturns1Name,
-			[](const S&) { return 1; }
+			lambada1
 		),
-		makeConceptMapEntry(
+		vtable::makeConceptMapEntry(
 			methodMultipliesByIName,
-			[](const S& s, int i) { return s.i * i; }
+			lambada2
 		)
 	);
 
+namespace /* anonymous */ {
+
 TEST(StaticTest, InvokesAssignedMethods) {
-	constexpr auto concept = makeConcept(
-		makeConceptEntry(methodReturns1Name, MethodSignature<int () const>{}),
-		makeConceptEntry(methodMultipliesByIName, MethodSignature<int (int) const>{})
-		);
-
-	constexpr auto localVtable = makeLocal(concept, conceptMap);
-
 	auto s = S{ 2 };
-	const auto p = Poly<S>{ std::move(s) };
+	const auto p = Poly<Interface>{ std::move(s) };
 
 	EXPECT_EQ(p.invoke(methodReturns1Name), 1);
 	EXPECT_EQ(p.invoke(methodMultipliesByIName, 21), 42);

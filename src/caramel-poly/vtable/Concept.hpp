@@ -23,6 +23,8 @@ struct Concept;
 template <class HeadNameString, class HeadSignature, class... TailEntries>
 struct Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...> : Concept<TailEntries...> {
 
+	using ConceptType = Concept;
+
 	template <class NameString>
 	constexpr auto methodSignature([[maybe_unused]] NameString nameString) const {
 		if constexpr (NameString{} == HeadNameString{}) {
@@ -36,6 +38,8 @@ struct Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...> : Co
 
 template <>
 struct Concept<> {
+
+	using ConceptType = Concept;
 
 	template <class NameString>
 	constexpr auto methodSignature([[maybe_unused]] NameString nameString) const {

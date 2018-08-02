@@ -18,13 +18,24 @@ public:
 	template <class T>
 	Poly(T&& object) :
 		storage_(std::forward<T>(object)),
-		vtable_(conceptMap<Concept, std::decay_t<object>>)
+		vtable_(vtable::conceptMap<Concept, std::decay_t<T>>)
 	{
 	}
 
 	template <class MethodNameT, class... Args>
-	decltype(auto) invoke(Args&&... args) {
+	decltype(auto) invoke(MethodNameT, Args&&... args) {
+		// TODO: TEMP, do it like dyno does, probably
+		auto& self = *static_cast<vtable::Object*>(storage_.get());
 
+		return vtable_.invoke(MethodNameT{}, self, std::forward<Args>(args)...);
+	}
+
+	template <class MethodNameT, class... Args>
+	decltype(auto) invoke(MethodNameT, Args&&... args) const {
+		// TODO: TEMP, do it like dyno does, probably
+		const auto& self = *static_cast<const vtable::Object*>(storage_.get());
+
+		return vtable_.invoke(MethodNameT{}, self, std::forward<Args>(args)...);
 	}
 
 private:

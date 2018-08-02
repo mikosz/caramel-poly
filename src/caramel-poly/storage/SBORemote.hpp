@@ -35,12 +35,16 @@ public:
 		}
 	}
 
-	const void* get() const {
+	void* get() {
 		if (usingSBO_) {
 			return &data_;
 		} else {
-			return reinterpret_cast<const RemoteStorageType*>(&data_)->get();
+			return reinterpret_cast<RemoteStorageType*>(&data_)->get();
 		}
+	}
+
+	const void* get() const {
+		return const_cast<SBORemote&>(*this).get();
 	}
 
 private:

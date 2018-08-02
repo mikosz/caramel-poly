@@ -22,6 +22,9 @@ struct Methods<
 		> : Methods<Concept<TailEntries...>> {
 public:
 
+	using ConceptType = Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...>;
+	typename decltype(ConceptType{}.methodSignature(HeadNameString{}))::MappingSignature d = 3;
+
 	template <class ConceptMap>
 	constexpr explicit Methods(ConceptMap conceptMap) :
 		Parent(conceptMap),
@@ -50,7 +53,7 @@ private:
 
 	using Parent = Methods<Concept<TailEntries...>>;
 
-	using ConceptType = Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...>;
+	//using ConceptType = Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...>;
 
 	using MappingSignature =
 		typename decltype(ConceptType{}.methodSignature(HeadNameString{}))::MappingSignature;
@@ -94,7 +97,7 @@ public:
 
 private:
 
-	vtable::detail::Methods<ConceptType> methods_;
+	vtable::detail::Methods<typename ConceptType::ConceptType> methods_;
 
 };
 
