@@ -29,7 +29,7 @@ constexpr auto lambada1 = [](const S&) { return 1; };
 constexpr auto lambada2 = [](const S& s, int i) { return s.i * i; };
 
 template <>
-const auto caramel_poly::vtable::conceptMap<Interface, S> = vtable::makeConceptMap<S>(
+const auto vtable::conceptMap<Interface, S> = vtable::makeConceptMap<S>(
 		vtable::makeConceptMapEntry(
 			methodReturns1Name,
 			lambada1

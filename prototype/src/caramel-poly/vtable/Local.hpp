@@ -23,7 +23,6 @@ struct Methods<
 public:
 
 	using ConceptType = Concept<ConceptEntry<HeadNameString, HeadSignature>, TailEntries...>;
-	typename decltype(ConceptType{}.methodSignature(HeadNameString{}))::MappingSignature d = 3;
 
 	template <class ConceptMap>
 	constexpr explicit Methods(ConceptMap conceptMap) :
@@ -100,11 +99,6 @@ private:
 	vtable::detail::Methods<typename ConceptType::ConceptType> methods_;
 
 };
-
-template <class Concept, class ConceptMap>
-constexpr auto makeLocal([[maybe_unused]] Concept concept, ConceptMap conceptMap) {
-	return Local<Concept>{ conceptMap };
-}
 
 } // namespace caramel_poly::vtable
 
