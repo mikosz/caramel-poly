@@ -11,7 +11,6 @@
 #include <type_traits>
 
 #include "caramel-poly/detail/EraserTraits.hpp"
-#include "../../ConstructionRegistry.hpp"
 
 namespace /* anonymous */ {
 

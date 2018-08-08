@@ -23,12 +23,6 @@ struct TransformSignature<R (Args...), F> {
 	using Type = Result (typename F<Args>::Type...);
 };
 
-template <typename R, typename ...Args, template <typename ...> class F>
-struct TransformSignature<R (Args..., ...), F> {
-	using Result = typename F<R>::Type;
-	using Type = Result (typename F<Args>::Type..., ...);
-};
-
 } // namespace caramel_poly::detail
 
 #endif // CARAMELPOLY_DETAIL_TRANSFORMSIGNATURE_HPP
