@@ -1,11 +1,16 @@
+// Copyright Mikolaj Radwan 2018
+// Distributed under the MIT license (See accompanying file LICENSE)
+//
+// This is Louis Dionne's Dyno library adapted to work on Visual Studio 2017 and
+// without Boost, modified to my taste. All credit for the design and delivery goes
+// to Louis. His original implementation may be found here:
+// https://github.com/ldionne/dyno
+
 #ifndef CARAMELPOLY_DETAIL_EMPTYOBJECT_HPP__
 #define CARAMELPOLY_DETAIL_EMPTYOBJECT_HPP__
 
 namespace caramel_poly {
 namespace detail {
-
-// Copied from dyno::detail::empty_object by Louis Dionne
-// @see https://github.com/ldionne/dyno
 
 // Hack to get an instance of an empty type that is not default constructible,
 // while still satisfying the C++ standard. None of this would be necessary if
