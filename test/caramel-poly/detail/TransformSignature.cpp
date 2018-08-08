@@ -34,8 +34,11 @@ struct Metafunction {
 TEST(TransformSignatureTest, AppliesMetafunctionToAllTypesInSignature) {
 	using Signature = int& (char&&, void*);
 	using TransformedSignature = TransformSignature<Signature, Metafunction>::Type;
+	using TransformedResult = TransformSignature<Signature, Metafunction>::Result;
 	using ExpectedTransformedSignature = Converted<int&> (Converted<char&&>, Converted<void*>);
+
 	static_assert(std::is_same_v<TransformedSignature, ExpectedTransformedSignature>);
+	static_assert(std::is_same_v<TransformedResult, Converted<int&>>);
 }
 
 } // anonymous namespace

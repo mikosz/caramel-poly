@@ -6,8 +6,8 @@
 // to Louis. His original implementation may be found here:
 // https://github.com/ldionne/dyno
 
-#ifndef CARAMELPOLY_DETAIL_ERASERTRAITS_HPP
-#define CARAMELPOLY_DETAIL_ERASERTRAITS_HPP
+#ifndef CARAMELPOLY_DETAIL_ERASERTRAITS_HPP__
+#define CARAMELPOLY_DETAIL_ERASERTRAITS_HPP__
 
 #include <type_traits>
 #include <utility>
@@ -214,4 +214,4 @@ struct Unerase<void, const caramel_poly::SelfPlaceholder*, const Actual*> {
 
 } // namespace caramel_poly::detail
 
-#endif // CARAMELPOLY_DETAIL_ERASERTRAITS_HPP
+#endif // CARAMELPOLY_DETAIL_ERASERTRAITS_HPP__

@@ -6,8 +6,8 @@
 // to Louis. His original implementation may be found here:
 // https://github.com/ldionne/dyno
 
-#ifndef CARAMELPOLY_DETAIL_TRANSFORMSIGNATURE_HPP
-#define CARAMELPOLY_DETAIL_TRANSFORMSIGNATURE_HPP
+#ifndef CARAMELPOLY_DETAIL_TRANSFORMSIGNATURE_HPP__
+#define CARAMELPOLY_DETAIL_TRANSFORMSIGNATURE_HPP__
 
 namespace caramel_poly::detail {
 
@@ -25,4 +25,4 @@ struct TransformSignature<R (Args...), F> {
 
 } // namespace caramel_poly::detail
 
-#endif // CARAMELPOLY_DETAIL_TRANSFORMSIGNATURE_HPP
+#endif // CARAMELPOLY_DETAIL_TRANSFORMSIGNATURE_HPP__
