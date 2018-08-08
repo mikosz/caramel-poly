@@ -14,10 +14,10 @@
 
 namespace caramel_poly::detail {
 
-template <typename Eraser>
+template <class Eraser>
 struct ApplyErasePlaceholder {
 
-	template <typename Placeholder>
+	template <class Placeholder>
 	using Type = ErasePlaceholder<Eraser, Placeholder>;
 
 };
@@ -37,7 +37,7 @@ struct ApplyErasePlaceholder {
 // For actually storing an object of this type, one needs to add a pointer
 // qualifier to it.
 
-template <typename Signature, typename Eraser = void>
+template <class Signature, class Eraser = void>
 using EraseSignature = TransformSignature<Signature, ApplyErasePlaceholder<Eraser>::template Type>;
 
 } // namespace caramel_poly::detail
