@@ -10,7 +10,7 @@
 
 #include <type_traits>
 
-#include "caramel-poly/detail/EraseFunction.hpp"
+#include "caramel-poly/detail/BindSignature.hpp"
 
 namespace /* anonymous */ {
 
@@ -18,22 +18,14 @@ using namespace caramel_poly;
 using namespace caramel_poly::detail;
 
 struct S {
-	int i;
 };
 
-TEST(EraseFunctionTest, ErasesPlaceholdersFromLambda) {
-	auto foo = [](const S& s1, S& s2, int i) -> S* {
-			s2.i = s1.i * i;
-			return &s2;
-		};
-	const auto thunk = EraseFunction<const SelfPlaceholder* (const SelfPlaceholder&, SelfPlaceholder&, int)>(foo);
+TEST(EraseFunctionTest, TranslatesPlaceholderSignatureToConcreteSignature) {
+	using Signature = const SelfPlaceholder* (SelfPlaceholder&&, int);
+	using ExpectedBoundSignature = const S* (S&&, int);
+	using BoundSignature = typename BindSignature<Signature, S>::Type;
 
-	auto s1 = S{ 42 };
-	auto s2 = S{};
-	auto* r = (*thunk)(&s1, &s2, 2);
-
-	EXPECT_EQ(s2.i, 84);
-	EXPECT_EQ(r, &s2);
+	static_assert(std::is_same_v<BoundSignature, ExpectedBoundSignature>);
 }
 
 } // anonymous namespace

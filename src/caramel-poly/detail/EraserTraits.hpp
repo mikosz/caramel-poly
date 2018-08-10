@@ -12,11 +12,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace caramel_poly {
-
-struct SelfPlaceholder;
-
-} // namespace caramel_poly
+#include "../SelfPlaceholder.hpp"
 
 namespace caramel_poly::detail {
 
