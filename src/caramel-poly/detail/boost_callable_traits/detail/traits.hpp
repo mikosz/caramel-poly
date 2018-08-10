@@ -9,8 +9,8 @@ Distributed under the Boost Software License, Version 1.0.
 #ifndef BOOST_CLBL_TRTS_DETAIL_TRAITS_HPP
 #define BOOST_CLBL_TRTS_DETAIL_TRAITS_HPP
 
-#include <forward_declarations.hpp>
-#include <utility.hpp>
+#include "forward_declarations.hpp"
+#include "utility.hpp"
 
 namespace boost { namespace callable_traits { namespace detail {
 

@@ -1,7 +1,7 @@
 #ifndef BOOST_CLBL_TRTS_PARAMETER_INDEX_HELPER_HPP
 #define BOOST_CLBL_TRTS_PARAMETER_INDEX_HELPER_HPP
 
-#include <config.hpp>
+#include "config.hpp"
 
 namespace boost { namespace callable_traits { namespace detail {
 

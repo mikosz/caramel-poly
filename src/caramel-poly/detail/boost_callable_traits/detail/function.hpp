@@ -9,11 +9,11 @@ Distributed under the Boost Software License, Version 1.0.
 #ifndef BOOST_CLBL_TRTS_DETAIL_FUNCTION_HPP
 #define BOOST_CLBL_TRTS_DETAIL_FUNCTION_HPP
 
-#include <config.hpp>
-#include <qualifier_flags.hpp>
-#include <forward_declarations.hpp>
-#include <set_function_qualifiers.hpp>
-#include <default_callable_traits.hpp>
+#include "config.hpp"
+#include "qualifier_flags.hpp"
+#include "forward_declarations.hpp"
+#include "set_function_qualifiers.hpp"
+#include "default_callable_traits.hpp"
 
 namespace boost { namespace callable_traits { namespace detail {
 
@@ -22,55 +22,55 @@ struct function : default_callable_traits<T> {};
 
 #undef BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
 #define BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
-#include <unguarded/function.hpp>
+#include "unguarded/function.hpp"
 #undef BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
 
 #ifndef BOOST_CLBL_TRTS_DISABLE_ABOMINABLE_FUNCTIONS
 
 #define BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS const
-#include <unguarded/function.hpp>
+#include "unguarded/function.hpp"
 #undef BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
 
 #define BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS volatile
-#include <unguarded/function.hpp>
+#include "unguarded/function.hpp"
 #undef BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
 
 #define BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS const volatile
-#include <unguarded/function.hpp>
+#include "unguarded/function.hpp"
 #undef BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
 
 #ifndef BOOST_CLBL_TRTS_DISABLE_REFERENCE_QUALIFIERS
 
 #define BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS &
-#include <unguarded/function.hpp>
+#include "unguarded/function.hpp"
 #undef BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
 
 #define BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS &&
-#include <unguarded/function.hpp>
+#include "unguarded/function.hpp"
 #undef BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
 
 #define BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS const &
-#include <unguarded/function.hpp>
+#include "unguarded/function.hpp"
 #undef BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
 
 #define BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS const &&
-#include <unguarded/function.hpp>
+#include "unguarded/function.hpp"
 #undef BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
 
 #define BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS volatile &
-#include <unguarded/function.hpp>
+#include "unguarded/function.hpp"
 #undef BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
 
 #define BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS volatile &&
-#include <unguarded/function.hpp>
+#include "unguarded/function.hpp"
 #undef BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
 
 #define BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS const volatile &
-#include <unguarded/function.hpp>
+#include "unguarded/function.hpp"
 #undef BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
 
 #define BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS const volatile &&
-#include <unguarded/function.hpp>
+#include "unguarded/function.hpp"
 #undef BOOST_CLBL_TRTS_INCLUDE_QUALIFIERS
 
 #endif // #ifndef BOOST_CLBL_TRTS_DISABLE_REFERENCE_QUALIFIERS
@@ -82,8 +82,8 @@ struct function : default_callable_traits<T> {};
 #define BOOST_CLBL_TRTS_VARARGS_CC BOOST_CLBL_TRTS_DEFAULT_VARARGS_CC
 #define BOOST_CLBL_TRTS_CC
 #define BOOST_CLBL_TRTS_ST
-#include <unguarded/function_ptr.hpp>
-#include <unguarded/function_ptr_varargs.hpp>
+#include "unguarded/function_ptr.hpp"
+#include "unguarded/function_ptr_varargs.hpp"
 #undef BOOST_CLBL_TRTS_ST
 #undef BOOST_CLBL_TRTS_CC
 #undef BOOST_CLBL_TRTS_CC_TAG
@@ -95,7 +95,7 @@ struct function : default_callable_traits<T> {};
 #define BOOST_CLBL_TRTS_VARARGS_CC __cdecl
 #define BOOST_CLBL_TRTS_CC __cdecl
 #define BOOST_CLBL_TRTS_ST
-#include <unguarded/function_ptr.hpp>
+#include "unguarded/function_ptr.hpp"
 #undef BOOST_CLBL_TRTS_ST
 #undef BOOST_CLBL_TRTS_CC
 #undef BOOST_CLBL_TRTS_CC_TAG
@@ -107,7 +107,7 @@ struct function : default_callable_traits<T> {};
 #define BOOST_CLBL_TRTS_VARARGS_CC BOOST_CLBL_TRTS_DEFAULT_VARARGS_CC
 #define BOOST_CLBL_TRTS_CC __stdcall
 #define BOOST_CLBL_TRTS_ST
-#include <unguarded/function_ptr.hpp>
+#include "unguarded/function_ptr.hpp"
 #undef BOOST_CLBL_TRTS_ST
 #undef BOOST_CLBL_TRTS_CC
 #undef BOOST_CLBL_TRTS_CC_TAG
@@ -119,7 +119,7 @@ struct function : default_callable_traits<T> {};
 #define BOOST_CLBL_TRTS_VARARGS_CC BOOST_CLBL_TRTS_DEFAULT_VARARGS_CC
 #define BOOST_CLBL_TRTS_CC __fastcall
 #define BOOST_CLBL_TRTS_ST
-#include <unguarded/function_ptr.hpp>
+#include "unguarded/function_ptr.hpp"
 #undef BOOST_CLBL_TRTS_CC
 #undef BOOST_CLBL_TRTS_ST
 #undef BOOST_CLBL_TRTS_CC_TAG
@@ -131,7 +131,7 @@ struct function : default_callable_traits<T> {};
 #define BOOST_CLBL_TRTS_VARARGS_CC BOOST_CLBL_TRTS_DEFAULT_VARARGS_CC
 #define BOOST_CLBL_TRTS_CC
 #define BOOST_CLBL_TRTS_ST pascal
-#include <unguarded/function_ptr.hpp>
+#include "unguarded/function_ptr.hpp"
 #undef BOOST_CLBL_TRTS_CC
 #undef BOOST_CLBL_TRTS_ST
 #undef BOOST_CLBL_TRTS_CC_TAG

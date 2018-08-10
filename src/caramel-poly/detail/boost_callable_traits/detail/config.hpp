@@ -73,11 +73,11 @@ Distributed under the Boost Software License, Version 1.0.
 #endif
 
 #ifndef __cpp_lib_logical_traits
-#  include <polyfills/disjunction.hpp>
+#  include "polyfills/disjunction.hpp"
 #endif //__cpp_lib_logical_traits
 
 #ifndef __cpp_lib_integer_sequence
-#  include <polyfills/make_index_sequence.hpp>
+#  include "polyfills/make_index_sequence.hpp"
 #endif // __cpp_lib_integer_sequence
 
 #if defined(BOOST_CLBL_TRTS_MSVC) && !defined(BOOST_DISABLE_WIN32)

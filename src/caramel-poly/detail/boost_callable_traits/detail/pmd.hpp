@@ -9,11 +9,11 @@ Distributed under the Boost Software License, Version 1.0.
 #ifndef BOOST_CLBL_TRTS_DETAIL_PMD_HPP
 #define BOOST_CLBL_TRTS_DETAIL_PMD_HPP
 
-#include <forward_declarations.hpp>
-#include <function.hpp>
-#include <traits.hpp>
-#include <default_callable_traits.hpp>
-#include <utility.hpp>
+#include "forward_declarations.hpp"
+#include "function.hpp"
+#include "traits.hpp"
+#include "default_callable_traits.hpp"
+#include "utility.hpp"
 
 namespace boost { namespace callable_traits { namespace detail {
 

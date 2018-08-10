@@ -9,11 +9,11 @@ Distributed under the Boost Software License, Version 1.0.
 #ifndef BOOST_CLBL_TRTS_DETAIL_CORE_HPP
 #define BOOST_CLBL_TRTS_DETAIL_CORE_HPP
 
-#include <utility.hpp>
-#include <traits.hpp>
-#include <function_object.hpp>
-#include <function.hpp>
-#include <pmf.hpp>
-#include <pmd.hpp>
+#include "utility.hpp"
+#include "traits.hpp"
+#include "function_object.hpp"
+#include "function.hpp"
+#include "pmf.hpp"
+#include "pmd.hpp"
 
 #endif // #ifndef BOOST_CLBL_TRTS_DETAIL_CORE_HPP

@@ -9,7 +9,7 @@ Distributed under the Boost Software License, Version 1.0.
 #ifndef BOOST_CLBL_TRTS_DETAIL_SET_FUNCTION_QUALIFIERS_HPP
 #define BOOST_CLBL_TRTS_DETAIL_SET_FUNCTION_QUALIFIERS_HPP
 
-#include <qualifier_flags.hpp>
+#include "qualifier_flags.hpp"
 
 #define BOOST_CLBL_TRTS_SET_FUNCTION_QUALIFIERS(QUAL)              \
 template<typename Return, typename... Args>                        \

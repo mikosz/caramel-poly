@@ -9,7 +9,7 @@ Distributed under the Boost Software License, Version 1.0.
 #ifndef BOOST_CLBL_TRTS_SFINAE_ERRORS_HPP
 #define BOOST_CLBL_TRTS_SFINAE_ERRORS_HPP
 
-#include <config.hpp>
+#include "config.hpp"
 
 namespace boost { namespace callable_traits { namespace detail {
 

@@ -62,7 +62,7 @@ struct set_varargs_member_function_qualifiers_t <
 
 #define BOOST_CLBL_TRTS_INCLUDE_TRANSACTION_SAFE
 #define BOOST_CLBL_TRTS_IS_TRANSACTION_SAFE std::false_type
-#include <unguarded/pmf_varargs_3.hpp>
+#include "unguarded/pmf_varargs_3.hpp"
 
 #undef BOOST_CLBL_TRTS_INCLUDE_TRANSACTION_SAFE
 #undef BOOST_CLBL_TRTS_IS_TRANSACTION_SAFE
@@ -71,7 +71,7 @@ struct set_varargs_member_function_qualifiers_t <
 
 #define BOOST_CLBL_TRTS_IS_TRANSACTION_SAFE std::true_type
 #define BOOST_CLBL_TRTS_INCLUDE_TRANSACTION_SAFE transaction_safe
-#include <unguarded/pmf_varargs_3.hpp>
+#include "unguarded/pmf_varargs_3.hpp"
 #endif
 
 #undef BOOST_CLBL_TRTS_INCLUDE_TRANSACTION_SAFE

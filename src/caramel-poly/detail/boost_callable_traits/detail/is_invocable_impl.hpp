@@ -10,9 +10,9 @@ Distributed under the Boost Software License, Version 1.0.
 #ifndef BOOST_CLBL_TRTS_IS_INVOCABLE_IMPL_HPP
 #define BOOST_CLBL_TRTS_IS_INVOCABLE_IMPL_HPP
 
-#include <config.hpp>
-#include <forward_declarations.hpp>
-#include <utility.hpp>
+#include "config.hpp"
+#include "forward_declarations.hpp"
+#include "utility.hpp"
 #include <type_traits>
 #include <utility>
 

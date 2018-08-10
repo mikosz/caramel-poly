@@ -9,9 +9,9 @@ Distributed under the Boost Software License, Version 1.0.
 #ifndef BOOST_CLBL_TRTS_DETAIL_UTILITY_HPP
 #define BOOST_CLBL_TRTS_DETAIL_UTILITY_HPP
 
-#include <config.hpp>
-#include <sfinae_errors.hpp>
-#include <qualifier_flags.hpp>
+#include "config.hpp"
+#include "sfinae_errors.hpp"
+#include "qualifier_flags.hpp"
 
 namespace boost { namespace callable_traits { namespace detail {
 

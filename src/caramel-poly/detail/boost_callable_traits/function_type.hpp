@@ -9,14 +9,14 @@ Distributed under the Boost Software License, Version 1.0.
 #ifndef BOOST_CLBL_TRTS_FUNCTION_TYPE_HPP
 #define BOOST_CLBL_TRTS_FUNCTION_TYPE_HPP
 
-#include <detail/core.hpp>
+#include "detail/core.hpp"
 
 namespace boost { namespace callable_traits {
 
 //[ function_type_hpp
 /*`[section:ref_function_type function_type]
 [heading Header]
-``#include <boost/callable_traits/function_type.hpp>``
+``#include "boost/callable_traits/function_type.hpp"``
 [heading Definition]
 */
 

@@ -1,7 +1,7 @@
 #ifndef BOOST_CLBL_TRTS_DETAIL_FORWARD_DECLARATIONS
 #define BOOST_CLBL_TRTS_DETAIL_FORWARD_DECLARATIONS
-#include <config.hpp>
-#include <default_callable_traits.hpp>
+#include "config.hpp"
+#include "default_callable_traits.hpp"
 
 namespace boost { namespace callable_traits { namespace detail {
 

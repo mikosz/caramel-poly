@@ -9,10 +9,10 @@ Distributed under the Boost Software License, Version 1.0.
 #ifndef BOOST_CLBL_TRTS_DETAIL_FUNCTION_OBJECT_HPP
 #define BOOST_CLBL_TRTS_DETAIL_FUNCTION_OBJECT_HPP
 
-#include <pmf.hpp>
-#include <default_callable_traits.hpp>
-#include <forward_declarations.hpp>
-#include <utility.hpp>
+#include "pmf.hpp"
+#include "default_callable_traits.hpp"
+#include "forward_declarations.hpp"
+#include "utility.hpp"
 
 namespace boost { namespace callable_traits { namespace detail {
 

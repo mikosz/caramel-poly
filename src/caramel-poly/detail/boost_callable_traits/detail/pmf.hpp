@@ -9,11 +9,11 @@ Distributed under the Boost Software License, Version 1.0.
 #ifndef BOOST_CLBL_TRTS_DETAIL_PMF_HPP
 #define BOOST_CLBL_TRTS_DETAIL_PMF_HPP
 
-#include <forward_declarations.hpp>
-#include <set_function_qualifiers.hpp>
-#include <qualifier_flags.hpp>
-#include <default_callable_traits.hpp>
-#include <utility.hpp>
+#include "forward_declarations.hpp"
+#include "set_function_qualifiers.hpp"
+#include "qualifier_flags.hpp"
+#include "default_callable_traits.hpp"
+#include "utility.hpp"
 
 namespace boost { namespace callable_traits { namespace detail {
 
@@ -45,7 +45,7 @@ struct pmf : default_callable_traits<T> {};
 #define BOOST_CLBL_TRTS_CC_TAG dummy
 #define BOOST_CLBL_TRTS_VARARGS_CC BOOST_CLBL_TRTS_DEFAULT_VARARGS_CC
 #define BOOST_CLBL_TRTS_CC
-#include <unguarded/pmf.hpp>
+#include "unguarded/pmf.hpp"
 #undef BOOST_CLBL_TRTS_CC
 #undef BOOST_CLBL_TRTS_CC_TAG
 #undef BOOST_CLBL_TRTS_VARARGS_CC
@@ -53,7 +53,7 @@ struct pmf : default_callable_traits<T> {};
 #define BOOST_CLBL_TRTS_CC_TAG dummy
 #define BOOST_CLBL_TRTS_VARARGS_CC BOOST_CLBL_TRTS_DEFAULT_VARARGS_CC
 #define BOOST_CLBL_TRTS_CC
-#include <unguarded/pmf_varargs.hpp>
+#include "unguarded/pmf_varargs.hpp"
 #undef BOOST_CLBL_TRTS_CC
 #undef BOOST_CLBL_TRTS_CC_TAG
 #undef BOOST_CLBL_TRTS_VARARGS_CC
@@ -62,7 +62,7 @@ struct pmf : default_callable_traits<T> {};
 #define BOOST_CLBL_TRTS_CC_TAG cdecl_tag
 #define BOOST_CLBL_TRTS_VARARGS_CC __cdecl
 #define BOOST_CLBL_TRTS_CC __cdecl
-#include <unguarded/pmf.hpp>
+#include "unguarded/pmf.hpp"
 #undef BOOST_CLBL_TRTS_CC
 #undef BOOST_CLBL_TRTS_CC_TAG
 #undef BOOST_CLBL_TRTS_VARARGS_CC
@@ -74,7 +74,7 @@ struct pmf : default_callable_traits<T> {};
 #define BOOST_CLBL_TRTS_CC_TAG stdcall_tag
 #define BOOST_CLBL_TRTS_VARARGS_CC BOOST_CLBL_TRTS_DEFAULT_VARARGS_CC
 #define BOOST_CLBL_TRTS_CC __stdcall
-#include <unguarded/pmf.hpp>
+#include "unguarded/pmf.hpp"
 #undef BOOST_CLBL_TRTS_CC
 #undef BOOST_CLBL_TRTS_CC_TAG
 #undef BOOST_CLBL_TRTS_VARARGS_CC
@@ -86,7 +86,7 @@ struct pmf : default_callable_traits<T> {};
 #define BOOST_CLBL_TRTS_CC_TAG fastcall_tag
 #define BOOST_CLBL_TRTS_VARARGS_CC BOOST_CLBL_TRTS_DEFAULT_VARARGS_CC
 #define BOOST_CLBL_TRTS_CC __fastcall
-#include <unguarded/pmf.hpp>
+#include "unguarded/pmf.hpp"
 #undef BOOST_CLBL_TRTS_CC
 #undef BOOST_CLBL_TRTS_CC_TAG
 #undef BOOST_CLBL_TRTS_VARARGS_CC

@@ -10,7 +10,7 @@ Distributed under the Boost Software License, Version 1.0.
 #ifndef BOOST_CLBL_TRTS_QUALIFIER_FLAGS_HPP
 #define BOOST_CLBL_TRTS_QUALIFIER_FLAGS_HPP
 
-#include <config.hpp>
+#include "config.hpp"
 
 namespace boost { namespace callable_traits { namespace detail {
     

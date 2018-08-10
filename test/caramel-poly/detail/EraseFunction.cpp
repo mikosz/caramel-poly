@@ -18,10 +18,23 @@ namespace /* anonymous */ {
 using namespace caramel_poly;
 using namespace caramel_poly::detail;
 
-TEST(EraseFunctionTest, ErasesPlaceholdersFromLambda) {
-	auto foo = []() {};
-	auto defaultConstructible = DefaultConstructibleLambda<decltype(foo), void ()>;
+struct S {
+	int i;
+};
 
+TEST(EraseFunctionTest, ErasesPlaceholdersFromLambda) {
+	auto foo = [](const S& s1, S& s2, int i) -> S* {
+			s2.i = s1.i * i;
+			return &s2;
+		};
+	const auto thunk = EraseFunction<const SelfPlaceholder* (const SelfPlaceholder&, SelfPlaceholder&, int)>(foo);
+
+	auto s1 = S{ 42 };
+	auto s2 = S{};
+	auto* r = (*thunk)(&s1, &s2, 2);
+
+	EXPECT_EQ(s2.i, 84);
+	EXPECT_EQ(r, &s2);
 }
 
 } // anonymous namespace
