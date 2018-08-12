@@ -12,138 +12,139 @@
 #include <type_traits>
 #include <utility>
 
-#include "detail/dsl.hpp"
-#include "detail/has_duplicates.hpp"
+#include "detail/CompileTimeMap.hpp"
 
 namespace caramel_poly {
 
-template <typename ...Clauses>
-struct concept;
+template <class... Clauses>
+struct Concept;
 
 namespace detail {
-template <typename Str, typename Fun>
+
+template <class Str, class Fun>
 constexpr boost::hana::basic_tuple<boost::hana::pair<Str, Fun>>
-expand_clauses(boost::hana::pair<Str, Fun> const&)
+expand_clauses(const boost::hana::pair<Str, Fun>&)
 { return {}; }
 
-template <typename ...Clauses>
-constexpr auto expand_clauses(dyno::concept<Clauses...> const&) {
+template <class... Clauses>
+constexpr auto expand_clauses(const Concept<Clauses...>&) {
 	return boost::hana::flatten(
 		boost::hana::make_basic_tuple(detail::expand_clauses(Clauses{})...)
 	);
 }
 
-struct concept_base { };
-} // end namespace detail
+} // namespace detail
 
-  // Returns a sequence containing all the clauses of the given concept and
-  // its derived concepts.
-  //
-  // In the returned sequence, each clause is a pair where the first element
-  // is the name of the clause and the second element is the clause itself
-  // (e.g. a `dyno::function`). The order of clauses is not specified.
-template <typename ...Clauses>
-constexpr auto clauses(dyno::concept<Clauses...> const&) {
+// Returns a sequence containing all the clauses of the given Concept and
+// its derived Concepts.
+//
+// In the returned sequence, each clause is a pair where the first element
+// is the name of the clause and the second element is the clause itself
+// (e.g. a `caramel_poly::function`). The order of clauses is not specified.
+template <class... Clauses>
+constexpr auto clauses(const Concept<Clauses...>&) {
 	auto all = boost::hana::make_basic_tuple(detail::expand_clauses(Clauses{})...);
 	return boost::hana::flatten(all);
 }
 
 // Returns a sequence containing the names associated to all the claused of
-// the given concept, and its derived concepts.
+// the given Concept, and its derived Concepts.
 //
 // The order of the clause names is not specified.
-template <typename ...Clauses>
-constexpr auto clause_names(dyno::concept<Clauses...> const& c) {
-	return boost::hana::transform(dyno::clauses(c), boost::hana::first);
+template <class... Clauses>
+constexpr auto clause_names(const Concept<Clauses...>& c) {
+	return boost::hana::transform(caramel_poly::clauses(c), boost::hana::first);
 }
 
-// Returns a sequence of the concepts refined by the given concept.
+// Returns a sequence of the Concepts refined by the given Concept.
 //
-// Only the concepts that are refined directly by `c` are returned, i.e. we
-// do not get the refined concepts of the refined concepts recursively.
-template <typename ...Clauses>
-constexpr auto refined_concepts(dyno::concept<Clauses...> const&) {
+// Only the Concepts that are refined directly by `c` are returned, i.e. we
+// do not get the refined Concepts of the refined Concepts recursively.
+template <class... Clauses>
+constexpr auto refined_Concepts(const Concept<Clauses...>&) {
 	return boost::hana::filter(boost::hana::make_basic_tuple(Clauses{}...), [](auto t) {
-		constexpr bool IsBase = std::is_base_of<detail::concept_base, decltype(t)>::value;
+		constexpr bool IsBase = std::is_base_of<detail::Concept_base, decltype(t)>::value;
 		return boost::hana::bool_c<IsBase>;
 	});
 }
 
 namespace detail {
-template <typename ...Clauses>
-constexpr auto direct_clauses(dyno::concept<Clauses...> const&) {
+
+template <class... Clauses>
+constexpr auto direct_clauses(const Concept<Clauses...>&) {
 	return boost::hana::filter(boost::hana::make_basic_tuple(Clauses{}...), [](auto t) {
-		constexpr bool IsBase = std::is_base_of<detail::concept_base, decltype(t)>::value;
+		constexpr bool IsBase = std::is_base_of<detail::Concept_base, decltype(t)>::value;
 		return boost::hana::bool_c<!IsBase>;
 	});
 }
 
-template <typename ...Clauses>
-constexpr auto has_duplicate_clause(dyno::concept<Clauses...> const& c) {
+template <class... Clauses>
+constexpr auto has_duplicate_clause(const Concept<Clauses...>& c) {
 	auto direct = detail::direct_clauses(c);
 	return detail::has_duplicates(boost::hana::transform(direct, boost::hana::first));
 }
 
-template <typename ...Clauses>
-constexpr auto is_redefining_base_concept_clause(dyno::concept<Clauses...> const& c) {
-	auto bases = dyno::refined_concepts(c);
+template <class... Clauses>
+constexpr auto is_redefining_base_Concept_clause(const Concept<Clauses...>& c) {
+	auto bases = caramel_poly::refined_Concepts(c);
 	auto base_clause_names = boost::hana::unpack(bases, [](auto ...bases) {
-		auto all = boost::hana::flatten(boost::hana::make_basic_tuple(dyno::clauses(bases)...));
+		auto all = boost::hana::flatten(boost::hana::make_basic_tuple(caramel_poly::clauses(bases)...));
 		return boost::hana::transform(all, boost::hana::first);
 	});
 	return boost::hana::any_of(detail::direct_clauses(c), [=](auto clause) {
 		return boost::hana::contains(base_clause_names, boost::hana::first(clause));
 	});
 }
-} // end namespace detail
 
-  // A `concept` is a collection of clauses and refined concepts representing
-  // requirements for a type to model the concept.
-  //
-  // A concept is created by using `dyno::requires`.
-  //
-  // From a `concept`, one can generate a virtual function table by looking at
-  // the signatures of the functions defined in the concept. In the future, it
-  // would also be possible to do much more, like getting a predicate that checks
-  // whether a type satisfies the concept.
-template <typename ...Clauses>
-struct concept : detail::concept_base {
-	static_assert(!decltype(detail::has_duplicate_clause(std::declval<concept>())){},
-		"dyno::concept: It looks like you have multiple clauses with the same "
-		"name in your concept definition. This is not allowed; each clause must "
+} // namespace detail
+
+// A `Concept` is a collection of clauses and refined Concepts representing
+// requirements for a type to model the Concept.
+//
+// A Concept is created by using `caramel_poly::requires`.
+//
+// From a `Concept`, one can generate a virtual function table by looking at
+// the signatures of the functions defined in the Concept. In the future, it
+// would also be possible to do much more, like getting a predicate that checks
+// whether a type satisfies the Concept.
+template <class... Clauses>
+struct Concept {
+	static_assert(!decltype(detail::has_duplicate_clause(std::declval<Concept>())){},
+		"Concept: It looks like you have multiple clauses with the same "
+		"name in your Concept definition. This is not allowed; each clause must "
 		"have a different name.");
 
-	static_assert(!decltype(detail::is_redefining_base_concept_clause(std::declval<concept>())){},
-		"dyno::concept: It looks like you are redefining a clause that is already "
-		"defined in a base concept. This is not allowed; clauses defined in a "
-		"concept must have a distinct name from clauses defined in base concepts "
+	static_assert(!decltype(detail::is_redefining_base_Concept_clause(std::declval<Concept>())){},
+		"Concept: It looks like you are redefining a clause that is already "
+		"defined in a base Concept. This is not allowed; clauses defined in a "
+		"Concept must have a distinct name from clauses defined in base Concepts "
 		"if there are any.");
 
-	template <typename Name>
+	template <class Name>
 	constexpr auto get_signature(Name name) const {
-		auto clauses = boost::hana::to_map(dyno::clauses(*this));
+		auto clauses = boost::hana::to_map(caramel_poly::clauses(*this));
 		return clauses[name];
 	}
 };
 
-// Creates a `concept` with the given clauses. Note that a clause may be a
-// concept itself, in which case the clauses of that concept are used, and
+// Creates a `Concept` with the given clauses. Note that a clause may be a
+// Concept itself, in which case the clauses of that Concept are used, and
 // that, recursively. For example:
 //
 // ```
-// template <typename Reference>
-// struct Iterator : decltype(dyno::requires(
+// template <class Reference>
+// struct Iterator : decltype(caramel_poly::requires(
 //   Incrementable{},
-//   "dereference"_s = dyno::function<Reference (dyno::T&)>
+//   "dereference"_s = caramel_poly::function<Reference (caramel_poly::T&)>
 //   ...
 // )) { };
 // ```
 //
-// It is recommended to make every concept its own structure (and not just an
-// alias), as above, because that ensures the uniqueness of concepts that have
+// It is recommended to make every Concept its own structure (and not just an
+// alias), as above, because that ensures the uniqueness of Concepts that have
 // the same clauses.
-template <typename ...Clauses>
-constexpr dyno::concept<Clauses...> requires(Clauses ...) {
+template <class... Clauses>
+constexpr Concept<Clauses...> requires(Clauses...) {
 	return {};
 }
 
