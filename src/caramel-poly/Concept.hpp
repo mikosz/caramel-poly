@@ -19,22 +19,6 @@ namespace caramel_poly {
 template <class... Clauses>
 struct Concept;
 
-namespace detail {
-
-template <class Str, class Fun>
-constexpr boost::hana::basic_tuple<boost::hana::pair<Str, Fun>>
-expand_clauses(const boost::hana::pair<Str, Fun>&)
-{ return {}; }
-
-template <class... Clauses>
-constexpr auto expand_clauses(const Concept<Clauses...>&) {
-	return boost::hana::flatten(
-		boost::hana::make_basic_tuple(detail::expand_clauses(Clauses{})...)
-	);
-}
-
-} // namespace detail
-
 // Returns a sequence containing all the clauses of the given Concept and
 // its derived Concepts.
 //
@@ -70,8 +54,11 @@ constexpr auto refined_Concepts(const Concept<Clauses...>&) {
 
 namespace detail {
 
+struct ConceptBase {
+};
+
 template <class... Clauses>
-constexpr auto direct_clauses(const Concept<Clauses...>&) {
+constexpr auto directClauses(const Concept<Clauses...>&) {
 	return boost::hana::filter(boost::hana::make_basic_tuple(Clauses{}...), [](auto t) {
 		constexpr bool IsBase = std::is_base_of<detail::Concept_base, decltype(t)>::value;
 		return boost::hana::bool_c<!IsBase>;
@@ -79,19 +66,19 @@ constexpr auto direct_clauses(const Concept<Clauses...>&) {
 }
 
 template <class... Clauses>
-constexpr auto has_duplicate_clause(const Concept<Clauses...>& c) {
-	auto direct = detail::direct_clauses(c);
+constexpr auto hasDuplicateClause(const Concept<Clauses...>& c) {
+	auto direct = detail::directClauses(c);
 	return detail::has_duplicates(boost::hana::transform(direct, boost::hana::first));
 }
 
 template <class... Clauses>
-constexpr auto is_redefining_base_Concept_clause(const Concept<Clauses...>& c) {
+constexpr auto isRedefiningBaseConceptClause(const Concept<Clauses...>& c) {
 	auto bases = caramel_poly::refined_Concepts(c);
 	auto base_clause_names = boost::hana::unpack(bases, [](auto ...bases) {
 		auto all = boost::hana::flatten(boost::hana::make_basic_tuple(caramel_poly::clauses(bases)...));
 		return boost::hana::transform(all, boost::hana::first);
 	});
-	return boost::hana::any_of(detail::direct_clauses(c), [=](auto clause) {
+	return boost::hana::any_of(detail::directClauses(c), [=](auto clause) {
 		return boost::hana::contains(base_clause_names, boost::hana::first(clause));
 	});
 }
@@ -108,23 +95,27 @@ constexpr auto is_redefining_base_Concept_clause(const Concept<Clauses...>& c) {
 // would also be possible to do much more, like getting a predicate that checks
 // whether a type satisfies the Concept.
 template <class... Clauses>
-struct Concept {
-	static_assert(!decltype(detail::has_duplicate_clause(std::declval<Concept>())){},
+struct Concept : detail::ConceptBase {
+
+	static_assert(
+		!decltype(detail::hasDuplicateClause(std::declval<Concept>())){},
 		"Concept: It looks like you have multiple clauses with the same "
 		"name in your Concept definition. This is not allowed; each clause must "
-		"have a different name.");
+		"have a different name."
+		);
 
-	static_assert(!decltype(detail::is_redefining_base_Concept_clause(std::declval<Concept>())){},
+	static_assert(!decltype(detail::isRedefiningBaseConceptClause(std::declval<Concept>())){},
 		"Concept: It looks like you are redefining a clause that is already "
 		"defined in a base Concept. This is not allowed; clauses defined in a "
 		"Concept must have a distinct name from clauses defined in base Concepts "
 		"if there are any.");
 
 	template <class Name>
-	constexpr auto get_signature(Name name) const {
+	constexpr auto getSignature(Name name) const {
 		auto clauses = boost::hana::to_map(caramel_poly::clauses(*this));
 		return clauses[name];
 	}
+
 };
 
 // Creates a `Concept` with the given clauses. Note that a clause may be a
@@ -135,7 +126,7 @@ struct Concept {
 // template <class Reference>
 // struct Iterator : decltype(caramel_poly::requires(
 //   Incrementable{},
-//   "dereference"_s = caramel_poly::function<Reference (caramel_poly::T&)>
+//   "dereference"_s = caramel_poly::function<Reference (caramel_poly::SelfPlaceholder&)>
 //   ...
 // )) { };
 // ```
