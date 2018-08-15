@@ -9,7 +9,7 @@
 namespace caramel_poly::detail {
 
 template <class FirstT, class SecondT>
-class ConstexprPair<Head, Tail...> {
+class ConstexprPair {
 public:
 
 	using First = FirstT;
@@ -27,6 +27,13 @@ public:
 
 };
 
+template <class First, class Second>
+constexpr auto makeConstexprPair(First, Second) {
+	return ConstexprPair<First, Second>{};
+}
+
+constexpr auto first = [](auto p) { return p.first(); };
+constexpr auto second = [](auto p) { return p.second(); };
 
 } // namespace caramel_poly::detail
 

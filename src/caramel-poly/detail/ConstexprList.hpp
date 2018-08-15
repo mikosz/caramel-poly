@@ -35,6 +35,11 @@ public:
 
 };
 
+template <class... Entries>
+constexpr auto makeConstexprList(Entries...) {
+	return ConstexprList<Entries...>{};
+}
+
 template <class NewHead, class... Entries>
 constexpr auto prepend(ConstexprList<Entries...>, NewHead) {
 	return ConstexprList<NewHead, Entries...>{};
@@ -43,11 +48,6 @@ constexpr auto prepend(ConstexprList<Entries...>, NewHead) {
 template <class... LhsEntries, class... RhsEntries>
 constexpr auto concatenate(ConstexprList<LhsEntries...>, ConstexprList<RhsEntries...>) {
 	return ConstexprList<LhsEntries..., RhsEntries...>{};
-}
-
-template <class... Entries>
-constexpr auto makeConstexprList(Entries...) {
-	return ConstexprList<Entries...>{};
 }
 
 template <class Predicate, class Head, class... Tail>
@@ -81,6 +81,15 @@ constexpr bool contains(ConstexprList<Head, Tail...> c, Needle n) {
 
 template <class Needle>
 constexpr bool contains(ConstexprList<>, Needle) {
+	return false;
+}
+
+template <class Head, class... Tail>
+constexpr bool hasDuplicates(ConstexprList<Head, Tail...> c) {
+	return contains(c.tail(), c.head()) || hasDuplicates(c.tail());
+}
+
+constexpr bool hasDuplicates(ConstexprList<>) {
 	return false;
 }
 

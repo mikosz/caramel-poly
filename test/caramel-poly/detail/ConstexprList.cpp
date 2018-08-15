@@ -66,6 +66,14 @@ TEST(ConstexprListTest, ContainsReturnsTrueIfListContainsElement) {
 	static_assert(!contains(oneTwoThree, S<4>{}));
 }
 
+TEST(ConstexprListTest, HasDuplicatesReturnsTrueIfListContainsDuplicates) {
+	constexpr auto withoutDuplicates = ConstexprList<S<1>, S<2>, S<3>>{};
+	static_assert(!hasDuplicates(withoutDuplicates));
+	static_assert(hasDuplicates(concatenate(withoutDuplicates, ConstexprList<S<1>>{})));
+	static_assert(hasDuplicates(concatenate(withoutDuplicates, ConstexprList<S<2>>{})));
+	static_assert(hasDuplicates(concatenate(withoutDuplicates, ConstexprList<S<3>>{})));
+}
+
 TEST(ConstexprListTest, AnyOfReturnsTrueIfElementsSatisfyingPredicateExists) {
 	constexpr auto oneTwoThree = makeConstexprList(S<1>{}, S<2>{}, S<3>{});
 

@@ -13,6 +13,9 @@
 #include <utility>
 
 #include "detail/ConstexprList.hpp"
+#include "detail/ConstexprPair.hpp"
+#include "ConstexprString.hpp"
+#include "Method.hpp"
 
 namespace caramel_poly {
 
@@ -21,20 +24,18 @@ struct Concept;
 
 namespace detail {
 
+struct ConceptBase {
+};
+
 template <class Name, class Signature>
 constexpr auto expandClauses(const ConstexprPair<Name, Signature>&) {
-	return {};
+	return ConstexprPair<Name, Signature>{};
 }
 
 template <typename... Clauses>
 constexpr auto expandClauses(const Concept<Clauses...>&) {
 	return flatten(makeConstexprList(expandClauses(Clauses{})...));
 }
-
-struct ConceptBase {
-};
-
-} // namespace detail
 
 // Returns a sequence containing all the clauses of the given Concept and
 // its derived Concepts.
@@ -44,8 +45,7 @@ struct ConceptBase {
 // (e.g. a `caramel_poly::function`). The order of clauses is not specified.
 template <class... Clauses>
 constexpr auto clauses(const Concept<Clauses...>&) {
-	auto all = boost::hana::make_basic_tuple(detail::expand_clauses(Clauses{})...);
-	return boost::hana::flatten(all);
+	return makeConstexprList(detail::expandClauses(Clauses{})...);
 }
 
 // Returns a sequence containing the names associated to all the claused of
@@ -53,48 +53,40 @@ constexpr auto clauses(const Concept<Clauses...>&) {
 //
 // The order of the clause names is not specified.
 template <class... Clauses>
-constexpr auto clause_names(const Concept<Clauses...>& c) {
-	return boost::hana::transform(caramel_poly::clauses(c), boost::hana::first);
+constexpr auto clauseNames(const Concept<Clauses...>& c) {
+	return transform(clauses(c), detail::first);
 }
 
-// Returns a sequence of the Concepts refined by the given Concept.
+// Returns a sequence of the Concepts refined (extended) by the given Concept.
 //
 // Only the Concepts that are refined directly by `c` are returned, i.e. we
 // do not get the refined Concepts of the refined Concepts recursively.
 template <class... Clauses>
-constexpr auto refined_Concepts(const Concept<Clauses...>&) {
-	return boost::hana::filter(boost::hana::make_basic_tuple(Clauses{}...), [](auto t) {
-		constexpr bool IsBase = std::is_base_of<detail::Concept_base, decltype(t)>::value;
-		return boost::hana::bool_c<IsBase>;
-	});
+constexpr auto refinedConcepts(const Concept<Clauses...>&) {
+	return filter(detail::makeConstexprList(Clauses{}...), [](auto t) {
+			return std::is_base_of_v<detail::ConceptBase, decltype(t)>;
+		});
 }
-
-namespace detail {
 
 template <class... Clauses>
 constexpr auto directClauses(const Concept<Clauses...>&) {
-	return boost::hana::filter(boost::hana::make_basic_tuple(Clauses{}...), [](auto t) {
-		constexpr bool IsBase = std::is_base_of<detail::Concept_base, decltype(t)>::value;
-		return boost::hana::bool_c<!IsBase>;
-	});
+	return filter(detail::makeConstexprList(Clauses{}...), [](auto t) {
+			return !std::is_base_of_v<detail::ConceptBase, decltype(t)>;
+		});
 }
 
 template <class... Clauses>
 constexpr auto hasDuplicateClause(const Concept<Clauses...>& c) {
-	auto direct = detail::directClauses(c);
-	return detail::has_duplicates(boost::hana::transform(direct, boost::hana::first));
+	return hasDuplicates(clauseNames(c));
 }
 
 template <class... Clauses>
 constexpr auto isRedefiningBaseConceptClause(const Concept<Clauses...>& c) {
-	auto bases = caramel_poly::refined_Concepts(c);
-	auto base_clause_names = boost::hana::unpack(bases, [](auto ...bases) {
-		auto all = boost::hana::flatten(boost::hana::make_basic_tuple(caramel_poly::clauses(bases)...));
-		return boost::hana::transform(all, boost::hana::first);
-	});
-	return boost::hana::any_of(detail::directClauses(c), [=](auto clause) {
-		return boost::hana::contains(base_clause_names, boost::hana::first(clause));
-	});
+	auto bases = refinedConcepts(c);
+	auto baseClauseNames = transform(flatten(bases), detail::first);
+	return anyOf(directClauses(c), [baseClauseNames](auto clause) {
+			return contains(baseClauseNames, detail::first(clause));
+		});
 }
 
 } // namespace detail
@@ -118,17 +110,19 @@ struct Concept : detail::ConceptBase {
 		"have a different name."
 		);
 
-	static_assert(!decltype(detail::isRedefiningBaseConceptClause(std::declval<Concept>())){},
+	static_assert(
+		!decltype(detail::isRedefiningBaseConceptClause(std::declval<Concept>())){},
 		"Concept: It looks like you are redefining a clause that is already "
 		"defined in a base Concept. This is not allowed; clauses defined in a "
 		"Concept must have a distinct name from clauses defined in base Concepts "
-		"if there are any.");
+		"if there are any."
+		);
 
-	template <class Name>
-	constexpr auto getSignature(Name name) const {
-		auto clauses = boost::hana::to_map(caramel_poly::clauses(*this));
-		return clauses[name];
-	}
+	//template <class Name>
+	//constexpr auto getSignature(Name name) const {
+	//	auto clauses = boost::hana::to_map(caramel_poly::clauses(*this));
+	//	return clauses[name];
+	//}
 
 };
 
