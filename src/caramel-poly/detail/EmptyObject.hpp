@@ -31,11 +31,11 @@ template <typename T>
 class EmptyObject {
 public:
 
-	static_assert(std::is_standard_layout<T>{},
+	static_assert(std::is_standard_layout_v<T>,
 		"This trick won't work if `T` is not standard layout, because that's "
 		"required for `T2` below to be standard layout.");
 
-	static_assert(std::is_empty<T>{},
+	static_assert(std::is_empty_v<T>,
 		"This trick won't work if `T` is not empty, because that's required for "
 		"`T1` and `T2` below to be layout-compatible (and also to make sure `T` "
 		"is trivially destructible.");

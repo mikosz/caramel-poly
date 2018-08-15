@@ -12,12 +12,29 @@
 #include <type_traits>
 #include <utility>
 
-#include "detail/CompileTimeMap.hpp"
+#include "detail/ConstexprList.hpp"
 
 namespace caramel_poly {
 
 template <class... Clauses>
 struct Concept;
+
+namespace detail {
+
+template <class Name, class Signature>
+constexpr auto expandClauses(const ConstexprPair<Name, Signature>&) {
+	return {};
+}
+
+template <typename... Clauses>
+constexpr auto expandClauses(const Concept<Clauses...>&) {
+	return flatten(makeConstexprList(expandClauses(Clauses{})...));
+}
+
+struct ConceptBase {
+};
+
+} // namespace detail
 
 // Returns a sequence containing all the clauses of the given Concept and
 // its derived Concepts.
@@ -53,9 +70,6 @@ constexpr auto refined_Concepts(const Concept<Clauses...>&) {
 }
 
 namespace detail {
-
-struct ConceptBase {
-};
 
 template <class... Clauses>
 constexpr auto directClauses(const Concept<Clauses...>&) {

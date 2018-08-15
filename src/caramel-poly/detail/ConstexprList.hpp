@@ -40,6 +40,11 @@ constexpr auto prepend(ConstexprList<Entries...>, NewHead) {
 	return ConstexprList<NewHead, Entries...>{};
 }
 
+template <class... LhsEntries, class... RhsEntries>
+constexpr auto concatenate(ConstexprList<LhsEntries...>, ConstexprList<RhsEntries...>) {
+	return ConstexprList<LhsEntries..., RhsEntries...>{};
+}
+
 template <class... Entries>
 constexpr auto makeConstexprList(Entries...) {
 	return ConstexprList<Entries...>{};
@@ -87,6 +92,34 @@ constexpr auto anyOf(ConstexprList<Head, Tail...> c, Predicate p) {
 template <class Predicate>
 constexpr auto anyOf(ConstexprList<>, Predicate) {
 	return false;
+}
+
+template <class T>
+struct FlattennedConstexprList;
+
+template <class Head, class... Tail>
+struct FlattennedConstexprList<ConstexprList<Head, Tail...>> {
+	using Type = decltype(prepend(typename FlattennedConstexprList<ConstexprList<Tail...>>::Type{}, Head{}));
+};
+
+template <class... HeadEntries, class... TailEntries>
+struct FlattennedConstexprList<ConstexprList<ConstexprList<HeadEntries...>, TailEntries...>> {
+	using Type = decltype(
+		concatenate(
+			typename FlattennedConstexprList<ConstexprList<HeadEntries...>>::Type{},
+			typename FlattennedConstexprList<ConstexprList<TailEntries...>>::Type{}
+			)
+		);
+};
+
+template <>
+struct FlattennedConstexprList<ConstexprList<>> {
+	using Type = ConstexprList<>;
+};
+
+template <class... Entries>
+constexpr auto flatten(ConstexprList<Entries...> c) {
+	return typename FlattennedConstexprList<decltype(c)>::Type{};
 }
 
 } // namespace caramel_poly::detail
