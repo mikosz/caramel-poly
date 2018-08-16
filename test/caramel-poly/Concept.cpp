@@ -12,15 +12,36 @@ namespace /* anonymous */ {
 using namespace caramel_poly;
 
 TEST(ConceptTest, RequiresConstructsAConcept) {
+	const auto fooName = CONSTEXPR_STRING("foo");
+	const auto barName = CONSTEXPR_STRING("bar");
+	const auto bazName = CONSTEXPR_STRING("baz");
+
 	const auto parent = requires(
-		detail::makeConstexprPair(CONSTEXPR_STRING("foo"), method<void (int)>)
+		detail::makeConstexprPair(fooName, method<void (int)>)
 		);
 
 	const auto concept = requires(
 		parent,
-		detail::makeConstexprPair(CONSTEXPR_STRING("bar"), method<void ()>),
-		detail::makeConstexprPair(CONSTEXPR_STRING("baz"), method<void (int)>)
+		detail::makeConstexprPair(barName, method<float () const>),
+		detail::makeConstexprPair(bazName, method<std::string (double) &&>)
 		);
+
+	static_assert(std::is_same_v<
+		typename decltype(concept.getSignature(fooName))::Signature,
+		void (int)
+		>);
+	static_assert(std::is_same_v<
+		typename decltype(concept.getSignature(barName))::Signature,
+		float () const
+		>);
+	static_assert(std::is_same_v<
+		typename decltype(concept.getSignature(bazName))::Signature,
+		std::string (double) &&
+		>);
+
+	// Does not and should not compile
+	//const auto bzzName = CONSTEXPR_STRING("bzz");
+	//concept.getSignature(bzzName);
 }
 
 } // anonymous namespace

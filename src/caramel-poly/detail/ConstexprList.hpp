@@ -51,6 +51,20 @@ constexpr auto concatenate(ConstexprList<LhsEntries...>, ConstexprList<RhsEntrie
 }
 
 template <class Predicate, class Head, class... Tail>
+constexpr auto find([[maybe_unused]] ConstexprList<Head, Tail...> c, Predicate p) {
+	if constexpr (p(Head{})) {
+		return Head{};
+	} else {
+		return find(c.tail(), p);
+	}
+}
+
+template <class Predicate>
+constexpr auto find(ConstexprList<>, Predicate) {
+	static_assert(false, "Element not found");
+}
+
+template <class Predicate, class Head, class... Tail>
 constexpr auto filter(ConstexprList<Head, Tail...> c, Predicate p) {
 	if constexpr (p(Head{})) {
 		return prepend(filter(c.tail(), p), Head{});

@@ -77,7 +77,7 @@ constexpr auto isRedefiningBaseConceptClause(const Concept<Clauses...>& c) {
 	auto baseClauses = flatten(transform(bases, [](const auto c) { return clauses(c); }));
 	auto baseClauseNames = transform(baseClauses, detail::first);
 	return anyOf(directClauses(c), [baseClauseNames](auto clause) {
-			return contains(baseClauseNames, detail::first(clause));
+			return contains(baseClauseNames, clause.first());
 		});
 }
 
@@ -95,26 +95,18 @@ constexpr auto isRedefiningBaseConceptClause(const Concept<Clauses...>& c) {
 template <class... Clauses>
 struct Concept : detail::ConceptBase {
 
-	static_assert(
-		!decltype(detail::hasDuplicateClause(std::declval<Concept>())){},
-		"Concept: It looks like you have multiple clauses with the same "
-		"name in your Concept definition. This is not allowed; each clause must "
-		"have a different name."
-		);
+	constexpr Concept() = default;
 
-	static_assert(
-		!decltype(detail::isRedefiningBaseConceptClause(std::declval<Concept>())){},
-		"Concept: It looks like you are redefining a clause that is already "
-		"defined in a base Concept. This is not allowed; clauses defined in a "
-		"Concept must have a distinct name from clauses defined in base Concepts "
-		"if there are any."
-		);
-
-	//template <class Name>
-	//constexpr auto getSignature(Name name) const {
-	//	auto clauses = boost::hana::to_map(caramel_poly::clauses(*this));
-	//	return clauses[name];
-	//}
+	template <class Name>
+	constexpr auto getSignature(Name) const {
+		constexpr auto found = anyOf(clauses(Concept{}), [](auto clause) { return clause.first() == Name{}; });
+		if constexpr (found) {
+			constexpr auto clause = find(clauses(Concept{}), [](auto clause) { return clause.first() == Name{}; });
+			return clause.second();
+		} else {
+			static_assert(false, "Function not found");
+		}
+	}
 
 };
 
@@ -136,6 +128,21 @@ struct Concept : detail::ConceptBase {
 // the same clauses.
 template <class... Clauses>
 constexpr Concept<Clauses...> requires(Clauses...) {
+	static_assert(
+		!detail::hasDuplicateClause(Concept<Clauses...>{}),
+		"Concept: It looks like you have multiple clauses with the same "
+		"name in your Concept definition. This is not allowed; each clause must "
+		"have a different name."
+		);
+
+	static_assert(
+		!detail::isRedefiningBaseConceptClause(Concept<Clauses...>{}),
+		"Concept: It looks like you are redefining a clause that is already "
+		"defined in a base Concept. This is not allowed; clauses defined in a "
+		"Concept must have a distinct name from clauses defined in base Concepts "
+		"if there are any."
+		);
+
 	return {};
 }
 

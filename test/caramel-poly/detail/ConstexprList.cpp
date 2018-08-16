@@ -42,6 +42,15 @@ TEST(ConstexprListTest, ConcatenateMergesTwoLists) {
 	static_assert(std::is_same_v<std::decay_t<decltype(oneTwoThreeFour)>, ConstexprList<S<1>, S<2>, S<3>, S<4>>>);
 }
 
+TEST(ConstexprListTest, FindReturnsMatchingElement) {
+	constexpr auto oneTwoThree = ConstexprList<S<1>, S<2>, S<3>>{};
+	static_assert(find(oneTwoThree, [](auto e) { return e == S<1>{}; }) == S<1>{});
+	static_assert(find(oneTwoThree, [](auto e) { return e == S<2>{}; }) == S<2>{});
+	static_assert(find(oneTwoThree, [](auto e) { return e == S<3>{}; }) == S<3>{});
+	// Should not (and does not) compile
+	// static_assert(find(oneTwoThree, [](auto e) { return e == S<4>{}; }) == S<4>{});
+}
+
 TEST(ConstexprListTest, FilterGetsElementsSatisfyingPredicate) {
 	constexpr auto oneTwoThreeFour = makeConstexprList(S<1>{}, S<2>{}, S<3>{}, S<4>{});
 	constexpr auto twoFour = filter(oneTwoThreeFour, [](auto s) {
