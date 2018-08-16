@@ -12,9 +12,9 @@ namespace /* anonymous */ {
 using namespace caramel_poly;
 
 TEST(ConceptTest, RequiresConstructsAConcept) {
-	const auto fooName = CONSTEXPR_STRING("foo");
-	const auto barName = CONSTEXPR_STRING("bar");
-	const auto bazName = CONSTEXPR_STRING("baz");
+	const auto fooName = METHOD_NAME("foo");
+	const auto barName = METHOD_NAME("bar");
+	const auto bazName = METHOD_NAME("baz");
 
 	const auto parent = requires(
 		detail::makeConstexprPair(fooName, method<void (int)>)
