@@ -45,16 +45,7 @@ constexpr auto expandClauses(const Concept<Clauses...>&) {
 // (e.g. a `caramel_poly::function`). The order of clauses is not specified.
 template <class... Clauses>
 constexpr auto clauses(const Concept<Clauses...>&) {
-	return makeConstexprList(detail::expandClauses(Clauses{})...);
-}
-
-// Returns a sequence containing the names associated to all the claused of
-// the given Concept, and its derived Concepts.
-//
-// The order of the clause names is not specified.
-template <class... Clauses>
-constexpr auto clauseNames(const Concept<Clauses...>& c) {
-	return transform(clauses(c), detail::first);
+	return flatten(makeConstexprList(detail::expandClauses(Clauses{})...));
 }
 
 // Returns a sequence of the Concepts refined (extended) by the given Concept.
@@ -77,13 +68,14 @@ constexpr auto directClauses(const Concept<Clauses...>&) {
 
 template <class... Clauses>
 constexpr auto hasDuplicateClause(const Concept<Clauses...>& c) {
-	return hasDuplicates(clauseNames(c));
+	return hasDuplicates(transform(directClauses(c), detail::first));
 }
 
 template <class... Clauses>
 constexpr auto isRedefiningBaseConceptClause(const Concept<Clauses...>& c) {
 	auto bases = refinedConcepts(c);
-	auto baseClauseNames = transform(flatten(bases), detail::first);
+	auto baseClauses = flatten(transform(bases, [](const auto c) { return clauses(c); }));
+	auto baseClauseNames = transform(baseClauses, detail::first);
 	return anyOf(directClauses(c), [baseClauseNames](auto clause) {
 			return contains(baseClauseNames, detail::first(clause));
 		});

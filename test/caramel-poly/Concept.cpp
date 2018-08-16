@@ -12,11 +12,15 @@ namespace /* anonymous */ {
 using namespace caramel_poly;
 
 TEST(ConceptTest, RequiresConstructsAConcept) {
-	const auto concept = requires(
-		detail::makeConstexprPair(CONSTEXPR_STRING("foo"), method<void ()>),
-		detail::makeConstexprPair(CONSTEXPR_STRING("bar"), method<void ()>)
+	const auto parent = requires(
+		detail::makeConstexprPair(CONSTEXPR_STRING("foo"), method<void (int)>)
 		);
-	switching bar to foo doesn't fail compilation, so something's wrong, need tests for redefine and has duplicates
+
+	const auto concept = requires(
+		parent,
+		detail::makeConstexprPair(CONSTEXPR_STRING("bar"), method<void ()>),
+		detail::makeConstexprPair(CONSTEXPR_STRING("baz"), method<void (int)>)
+		);
 }
 
 } // anonymous namespace
