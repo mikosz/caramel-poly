@@ -14,7 +14,6 @@
 
 #include "detail/ConstexprList.hpp"
 #include "detail/ConstexprPair.hpp"
-#include "Method.hpp"
 #include "dsl.hpp"
 
 namespace caramel_poly {

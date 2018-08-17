@@ -15,6 +15,9 @@ public:
 	using First = FirstT;
 	using Second = SecondT;
 
+	constexpr ConstexprPair(First, Second) {
+	}
+
 	constexpr ConstexprPair() = default;
 
 	constexpr First first() const {

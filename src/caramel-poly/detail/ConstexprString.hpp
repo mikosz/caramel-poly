@@ -15,7 +15,7 @@
 namespace caramel_poly::detail {
 
 template <char... CHARS>
-class ConstexprString final {
+class ConstexprString {
 public:
 
 	constexpr ConstexprString() = default;
@@ -73,6 +73,7 @@ constexpr decltype(auto) prepare(S s) {
 			}                                                               \
         };                                                                  \
         return tmp{};                                                       \
-    }()))
+    }()))                                                                   \
+/**/
 
 #endif /* CARAMELPOLY_DETAIL_CONSTEXPRSTRING_HPP__ */

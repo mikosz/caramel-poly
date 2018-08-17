@@ -9,6 +9,8 @@
 #ifndef CARAMELPOLY_DSL_HPP__
 #define CARAMELPOLY_DSL_HPP__
 
+#include "detail/ConstexprList.hpp"
+#include "detail/ConstexprString.hpp"
 #include "SelfPlaceholder.hpp"
 
 namespace caramel_poly {
@@ -82,74 +84,91 @@ constexpr auto operator!=(Method<Sig1> m1, Method<Sig2> m2) {
 namespace detail {
 
 template <class Name, class... Args>
-struct delayed_call {
-	boost::hana::tuple<Args...> args;
+class DelayedCall {
+public:
 
-	// All the constructors are private so that only `dyno::string` can
+	ConstexprList<Args...> args;
+
+	// All the constructors are private so that only `caramel_poly::MethodName` can
 	// construct an instance of this. The intent is that we can only
 	// manipulate temporaries of this type.
+
 private:
-	template <char... c> friend struct string;
+
+	template <char... CHARS>
+	friend struct MethodName;
 
 	template <class... T>
-	constexpr delayed_call(T&&... t) : args{std::forward<T>(t)...} { }
-	delayed_call(delayed_call const&) = default;
-	delayed_call(delayed_call&&) = default;
+	constexpr DelayedCall(T&&... t) :
+		args(std::forward<T>(t)...)
+	{
+	}
+
+	DelayedCall(const DelayedCall&) = default;
+	DelayedCall(DelayedCall&&) = default;
+
 };
 
-template <char... c>
-struct string : boost::hana::string<c...> {
+template <char... CHARS>
+struct MethodName : ConstexprString<CHARS...> {
+
 	template <class Function>
-	constexpr boost::hana::pair<string, Function>
-	operator=(Function f) const {
-		static_assert(std::is_empty<Function>{},
-			"Only stateless function objects can be used to define vtables");
-		return {{}, f};
+	constexpr ConstexprPair<MethodName, Function> operator=(Function f) const {
+		static_assert(
+			std::is_empty_v<Function>,
+			"Only stateless function objects can be used to define vtables"
+			);
+		return { {}, f };
 	}
 
 	template <class... Args>
 	constexpr auto operator()(Args&&... args) const {
-		return detail::delayed_call<string, Args&&...>{std::forward<Args>(args)...};
+		return DelayedCall<MethodName, Args&&...>{ std::forward<Args>(args)... };
 	}
 
-	using hana_tag = class boost::hana::tag_of<boost::hana::string<c...>>::type;
 };
 
 template <class S, std::size_t... N>
-constexpr detail::string<S::get()[N]...> prepare_string_impl(std::index_sequence<N...>)
-{ return {}; }
+constexpr MethodName<S::get()[N]...> prepareStringImpl(std::index_sequence<N...>) {
+	return {};
+}
 
 template <class S>
-constexpr auto prepare_string(S) {
-	return detail::prepare_string_impl<S>(std::make_index_sequence<S::size()>{});
+constexpr auto prepareString(S) {
+	return prepareStringImpl<S>(std::make_index_sequence<S::size()>{});
 }
 
 } // namespace detail
+
+#ifdef CARAMEL_POLY_ENABLE_STRING_USER_LITERAL
 
 inline namespace literals {
 
 // Creates a compile-time string that can be used as the left-hand-side when
 // defining clauses or filling concept maps.
-template <class CharT, CharT... c>
-constexpr auto operator""_s() { return detail::string<c...>{}; }
+template <class CharT, CharT... CHARS>
+constexpr auto operator""_s() {
+	return detail::MethodName<CHARS...>{};
+}
 
 } // namespace literals
 
-// Creates a Dyno compile-time string without requiring the use of a
-// user-defined literal.
+#endif /* CARAMEL_POLY_ENABLE_STRING_USER_LITERAL */
+
+// Creates a MethodName without requiring the use of a user-defined literal.
 //
 // The user-defined literal is non-standard as of C++17, and it requires
 // brining the literal in scope (through a using declaration or such),
 // which is not always convenient or possible.
-#define DYNO_STRING(s)													  \
-  (::dyno::detail::prepare_string([]{									   \
-	  struct tmp {														  \
-		  /* exclude null terminator in size() */						   \
-		  static constexpr std::size_t size() { return sizeof(s) - 1; }	 \
-		  static constexpr char const* get() { return s; }				  \
-	  };																	\
-	  return tmp{};														 \
-  }()))																	 \
+#define METHOD_NAME(s)                                                   \
+  (::caramel_poly::detail::prepareString([]{                             \
+	  struct tmp {                                                       \
+		  /* exclude null terminator in size() */                        \
+		  static constexpr std::size_t size() { return sizeof(s) - 1; }  \
+		  static constexpr char const* get() { return s; }               \
+	  };                                                                 \
+	  return tmp{};                                                      \
+  }()))                                                                  \
 /**/
 
 } // namespace caramel_poly

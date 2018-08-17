@@ -17,30 +17,34 @@ TEST(ConceptTest, RequiresConstructsAConcept) {
 	const auto bazName = METHOD_NAME("baz");
 
 	const auto parent = requires(
-		detail::makeConstexprPair(fooName, method<void (int)>)
+		METHOD_NAME("foo") = method<void (int)>
 		);
 
 	const auto concept = requires(
 		parent,
-		detail::makeConstexprPair(barName, method<float () const>),
-		detail::makeConstexprPair(bazName, method<std::string (double) &&>)
+		// Should not compile with error stating that the concept redefines a parent's method
+		//METHOD_NAME("foo") = method<void (int)>,
+		METHOD_NAME("bar") = method<float () const>,
+		// Should not compile with error stating that the concept has a duplicate method
+		//METHOD_NAME("bar") = method<void (int)>,
+		METHOD_NAME("baz") = method<std::string (double) &&>
 		);
 
 	static_assert(std::is_same_v<
-		typename decltype(concept.getSignature(fooName))::Signature,
-		void (int)
+		decltype(concept.getSignature(fooName))::Type,
+		void (SelfPlaceholder&, int)
 		>);
 	static_assert(std::is_same_v<
-		typename decltype(concept.getSignature(barName))::Signature,
-		float () const
+		decltype(concept.getSignature(barName))::Type,
+		float (const SelfPlaceholder&)
 		>);
 	static_assert(std::is_same_v<
-		typename decltype(concept.getSignature(bazName))::Signature,
-		std::string (double) &&
+		decltype(concept.getSignature(bazName))::Type,
+		std::string (SelfPlaceholder&&, double)
 		>);
 
-	// Does not and should not compile
-	//const auto bzzName = CONSTEXPR_STRING("bzz");
+	// Should not compile with error stating that function was not found
+	//const auto bzzName = METHOD_NAME("bzz");
 	//concept.getSignature(bzzName);
 }
 
