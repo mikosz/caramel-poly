@@ -71,4 +71,47 @@ TEST(ConstexprMap, InsertAddsEntryIfKeyDoesntExist) {
 		);
 }
 
+TEST(ConstexprMap, InsertAllAddsEntriesFromList) {
+	constexpr auto oneTwo = makeConstexprMap(
+		makeConstexprPair(S<1>{}, T<1>{}),
+		makeConstexprPair(S<2>{}, T<2>{})
+		);
+	constexpr auto twoThree = makeConstexprList(
+		makeConstexprPair(S<2>{}, T<2>{}),
+		makeConstexprPair(S<3>{}, T<3>{})
+		);
+	constexpr auto oneTwoThree = oneTwo.insertAll(twoThree);
+	static_assert(
+		std::is_same_v<
+			std::decay_t<decltype(oneTwoThree)>,
+			ConstexprMap<
+				ConstexprPair<S<3>, T<3>>,
+				ConstexprPair<S<1>, T<1>>,
+				ConstexprPair<S<2>, T<2>>
+				>
+			>
+		);
+}
+
+TEST(ConstexprMap, UnionCreatesAMapContainingKeysFromBothMapsLhsValuesHavePriority) {
+	constexpr auto oneTwoThree = makeConstexprMap(
+		makeConstexprPair(S<1>{}, T<1>{}),
+		makeConstexprPair(S<2>{}, T<2>{}),
+		makeConstexprPair(S<3>{}, T<3>{})
+		);
+	constexpr auto twoFour = makeConstexprMap(
+		makeConstexprPair(S<2>{}, T<123>{}),
+		makeConstexprPair(S<4>{}, T<4>{})
+		);
+	constexpr auto expected = makeConstexprMap(
+		makeConstexprPair(S<4>{}, T<4>{}),
+		makeConstexprPair(S<1>{}, T<1>{}),
+		makeConstexprPair(S<2>{}, T<2>{}),
+		makeConstexprPair(S<3>{}, T<3>{})
+		);
+	constexpr auto got = mapUnion(oneTwoThree, twoFour);
+
+	static_assert(std::is_same_v<decltype(got), decltype(expected)>);
+}
+
 } // anonymous namespace

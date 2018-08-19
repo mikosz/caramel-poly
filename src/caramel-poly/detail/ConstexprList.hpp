@@ -88,6 +88,11 @@ constexpr auto transform(ConstexprList<>, Transformer) {
 	return ConstexprList<>{};
 }
 
+template <class... Entries>
+constexpr bool empty(ConstexprList<Entries...>) {
+	return sizeof...(Entries) == 0;
+}
+
 template <class Needle, class Head, class... Tail>
 constexpr bool contains(ConstexprList<Head, Tail...> c, Needle n) {
 	return c.head() == n || contains(c.tail(), n);

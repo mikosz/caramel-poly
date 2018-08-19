@@ -75,6 +75,13 @@ TEST(ConstexprListTest, ContainsReturnsTrueIfListContainsElement) {
 	static_assert(!contains(oneTwoThree, S<4>{}));
 }
 
+TEST(ConstexprListTest, EmptyReturnsTrueIfListIsEmpty) {
+	constexpr auto nothing = makeConstexprList();
+	static_assert(empty(nothing));
+	constexpr auto oneTwoThree = makeConstexprList(S<1>{}, S<2>{}, S<3>{});
+	static_assert(!empty(oneTwoThree));
+}
+
 TEST(ConstexprListTest, HasDuplicatesReturnsTrueIfListContainsDuplicates) {
 	constexpr auto withoutDuplicates = ConstexprList<S<1>, S<2>, S<3>>{};
 	static_assert(!hasDuplicates(withoutDuplicates));

@@ -18,6 +18,8 @@ template <class... Keys, class... Values>
 class ConstexprMap<ConstexprPair<Keys, Values>...> {
 public:
 
+	using Entries = ConstexprList<ConstexprPair<Keys, Values>...>;
+
 	constexpr ConstexprMap() = default;
 
 	template <class Key>
@@ -44,9 +46,22 @@ public:
 		}
 	}
 
-private:
+	template <class Key, class Value>
+	constexpr auto insert(ConstexprPair<Key, Value> p) const {
+		return insert(p.first(), p.second());
+	}
 
-	using Entries = ConstexprList<ConstexprPair<Keys, Values>...>;
+	template <class... OtherEntries>
+	constexpr auto insertAll(ConstexprList<OtherEntries...>) const {
+		if constexpr (empty(ConstexprMap<OtherEntries...>::Entries{})) {
+			return ConstexprMap{};
+		} else {
+			return ConstexprMap{}
+				.insert(ConstexprList<OtherEntries...>{}.head())
+				.insertAll(ConstexprList<OtherEntries...>{}.tail())
+				;
+		}
+	}
 
 };
 
@@ -55,13 +70,9 @@ constexpr auto makeConstexprMap(ConstexprPair<Keys, Values>...) {
 	return ConstexprMap<ConstexprPair<Keys, Values>...>{};
 }
 
-template <class... LhsKeys, class... LhsValues, class... RhsKeys, class... RhsValues>
-constexpr auto mapUnion(
-	ConstexprMap<ConstexprPair<LhsKeys, LhsValues>...> lhs,
-	ConstexprMap<ConstexprPair<RhsKeys, RhsValues>...> rhs
-	)
-{
-	bababababa
+template <class... LhsEntries, class... RhsEntries>
+constexpr auto mapUnion(ConstexprMap<LhsEntries...>, ConstexprMap<RhsEntries...>) {
+	return ConstexprMap<LhsEntries...>{}.insertAll(ConstexprMap<RhsEntries...>::Entries{});
 }
 
 } // namespace caramel_poly::detail
