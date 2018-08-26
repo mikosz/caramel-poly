@@ -47,6 +47,15 @@ constexpr auto clauses(const Concept<Clauses...>&) {
 	return flatten(makeConstexprList(detail::expandClauses(Clauses{})...));
 }
 
+// Returns a sequence containing the names associated to all the claused of
+// the given concept, and its derived concepts.
+//
+// The order of the clause names is not specified.
+template <class... Clauses>
+constexpr auto clauseNames(const Concept<Clauses...>& c) {
+	return transform(clauses(c), detail::first);
+}
+
 // Returns a sequence of the Concepts refined (extended) by the given Concept.
 //
 // Only the Concepts that are refined directly by `c` are returned, i.e. we

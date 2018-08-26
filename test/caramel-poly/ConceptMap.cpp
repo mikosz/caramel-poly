@@ -35,21 +35,30 @@ struct S {
 
 } // anonymous namespace
 
+const auto f = [](const S& s) { return s.i; };
+
 template <class T>
 const auto caramel_poly::defaultConceptMap<Interface, T> = makeConceptMap(
-	//fooName = [](const S& s) { return s.i; },
-	//barName = [](const S& s, int i) { return s.i * i; }
+	METHOD_NAME("foo") = [](const S& s) { return s.i; },
+	METHOD_NAME("bar") = [](const S& s, int i) { return s.i * i; }
 	);
 
-//template <>
-//const auto caramel_poly::conceptMap<Interface, S> = makeConceptMap(
-	//bazName = [](S& s, double d) { s.i = static_cast<int>(d); }
-	//);
+template <class T>
+const auto caramel_poly::conceptMap<Interface, T, std::enable_if_t<std::is_same_v<T, S>>> = makeConceptMap(
+	METHOD_NAME("baz") = [](S& s, double d) { s.i = static_cast<int>(d); }
+	);
 
 namespace /* anonymous */ {
 
 TEST(ConceptMapTest, StoredFunctionsAreCallable) {
-	constexpr auto complete = completeConceptMap<Interface, S>(conceptMap<Interface, S>);
+	auto s = S{ 3 };
+
+	const auto complete = completeConceptMap<Interface, S>(conceptMap<Interface, S>);
+	
+	EXPECT_EQ(complete[fooName](s), 3);
+	EXPECT_EQ(complete[barName](s, 2), 6);
+	complete[bazName](s, 12.3);
+	EXPECT_EQ(s.i, 12);
 }
 
 } // anonymous namespace

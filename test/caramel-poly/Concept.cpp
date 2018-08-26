@@ -46,6 +46,12 @@ TEST(ConceptTest, RequiresConstructsAConcept) {
 	// Should not compile with error stating that function was not found
 	//const auto bzzName = METHOD_NAME("bzz");
 	//concept.getSignature(bzzName);
+
+	constexpr auto names = detail::clauseNames(concept);
+	static_assert(std::is_same_v<
+		std::decay_t<decltype(names)>,
+		decltype(detail::makeConstexprList(fooName, barName, bazName))
+		>);
 }
 
 } // anonymous namespace

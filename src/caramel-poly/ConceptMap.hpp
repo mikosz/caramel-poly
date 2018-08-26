@@ -55,7 +55,7 @@ private:
 			Name,
 			detail::DefaultConstructibleLambda<
 				Function,
-				class detail::BindSignature<
+				typename detail::BindSignature<
 					typename decltype(Concept{}.getSignature(Name{}))::Type, T
 					>::Type
 				>
@@ -112,11 +112,14 @@ namespace detail {
 template <class Concept, class T, class Map>
 constexpr auto completeConceptMapImpl(Map map) {
 	// 1. Bring in the functions provided in the default concept map.
-	auto withDefaults = mapUnion(map, caramel_poly::defaultConceptMap<Concept, T>);
+	auto withDefaults = mapUnion(
+		makeConstexprMap(map),
+		makeConstexprMap(caramel_poly::defaultConceptMap<Concept, T>)
+		);
 
 	// 2. For each refined concept, recursively complete the concept map for
 	//		that Concept and merge that into the current concept map.
-	auto refined = caramel_poly::refinedConcepts(Concept{});
+	auto refined = caramel_poly::detail::refinedConcepts(Concept{});
 	auto merged = foldLeft(withDefaults, refined, [](auto m, auto c) {
 			using C = decltype(c);
 			auto completed = detail::completeConceptMapImpl<C, T>(caramel_poly::conceptMap<C, T>);
@@ -129,7 +132,7 @@ constexpr auto completeConceptMapImpl(Map map) {
 // Turns a constexpr map into a concept map.
 template <class Concept, class T, class Map>
 constexpr auto toConceptMap(Map) {
-	return unpack(Map::Entries, [](auto... m) {
+	return unpack(Map{}, [](auto... m) {
 			return caramel_poly::ConceptMap<Concept, T, decltype(m)...>{};
 		});
 }
@@ -138,7 +141,7 @@ constexpr auto toConceptMap(Map) {
 // the given `Concept`, is missing any functions.
 template <class Concept, class T, class Map>
 constexpr auto conceptMapIsComplete = isSubset(
-	caramel_poly::clauseNames(Concept{}),
+	caramel_poly::detail::clauseNames(Concept{}),
 	keys(Map{})
 	);
 
@@ -231,11 +234,10 @@ template <class Concept, class T, class Map>
 constexpr auto completeConceptMap(Map map) {
 	auto completeMap = detail::completeConceptMapImpl<Concept, T>(map);
 	auto asConceptMap = detail::toConceptMap<Concept, T>(completeMap);
-	constexpr auto isComplete = detail::conceptMapIsComplete<Concept, T, decltype(complete_map)>;
-	if constexpr (isComplete) {
-		return asConceptMap;
-	} else {
-		auto required = caramel_poly::clauseNames(Concept{});
+	
+	constexpr auto isComplete = detail::conceptMapIsComplete<Concept, T, decltype(completeMap)>;
+	if constexpr (!isComplete) {
+		auto required = caramel_poly::detail::clauseNames(Concept{});
 		auto declared = keys(completeMap);
 		auto missing = difference(required, declared);
 		diagnostic::INCOMPLETE_CONCEPT_MAP<
@@ -247,6 +249,8 @@ constexpr auto completeConceptMap(Map map) {
 			diagnostic::________________EXACT_TYPE_OF_YOUR_CONCEPT_MAP<decltype(asConceptMap)>
 		>();
 	}
+
+	return asConceptMap;
 }
 
 } // end namespace caramel_poly

@@ -15,7 +15,8 @@ template <class... Entries>
 class ConstexprMap;
 
 template <class... Keys, class... Values>
-class ConstexprMap<ConstexprPair<Keys, Values>...> {
+class ConstexprMap<ConstexprPair<Keys, Values>...> : public ConstexprList<ConstexprPair<Keys, Values>...>
+{
 public:
 
 	using Entries = ConstexprList<ConstexprPair<Keys, Values>...>;
@@ -47,8 +48,12 @@ public:
 	}
 
 	template <class Key, class Value>
-	constexpr auto insert(ConstexprPair<Key, Value> p) const {
-		return insert(p.first(), p.second());
+	constexpr auto insert(ConstexprPair<Key, Value>) const {
+		if constexpr (ConstexprMap{}.contains(Key{})) {
+			return ConstexprMap{};
+		} else {
+			return makeConstexprMap(ConstexprPair<Key, Value>{}, ConstexprPair<Keys, Values>{}...);
+		}
 	}
 
 	template <class... OtherEntries>
@@ -67,6 +72,11 @@ public:
 
 template <class... Keys, class... Values>
 constexpr auto makeConstexprMap(ConstexprPair<Keys, Values>...) {
+	return ConstexprMap<ConstexprPair<Keys, Values>...>{};
+}
+
+template <class... Keys, class... Values>
+constexpr auto makeConstexprMap(ConstexprList<ConstexprPair<Keys, Values>...>) {
 	return ConstexprMap<ConstexprPair<Keys, Values>...>{};
 }
 
