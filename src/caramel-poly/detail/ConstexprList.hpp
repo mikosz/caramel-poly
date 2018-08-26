@@ -78,6 +78,16 @@ constexpr auto filter(ConstexprList<>, Predicate) {
 	return ConstexprList<>{};
 }
 
+template <class Function, class Head, class... Tail>
+constexpr void forEach(ConstexprList<Head, Tail...> l, Function f) {
+	f(l.head());
+	forEach(l.tail(), f);
+}
+
+template <class Function>
+constexpr void forEach(ConstexprList<>, Function) {
+}
+
 template <class Transformer, class Head, class... Tail>
 constexpr auto transform(ConstexprList<Head, Tail...> c, Transformer t) {
 	return prepend(transform(c.tail(), t), t(c.head()));
