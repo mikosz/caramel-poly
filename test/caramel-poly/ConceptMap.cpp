@@ -37,21 +37,19 @@ struct S {
 
 template <class T>
 const auto caramel_poly::defaultConceptMap<Interface, T> = makeConceptMap(
-	METHOD_NAME("foo") = [](const S& s) { return s.i; },
-	METHOD_NAME("bar") = [](const S& s, int i) { return s.i * i; },
-	METHOD_NAME("baz") = [](S& s, double d) { s.i = static_cast<int>(d); }
+	//fooName = [](const S& s) { return s.i; },
+	//barName = [](const S& s, int i) { return s.i * i; }
 	);
+
+//template <>
+//const auto caramel_poly::conceptMap<Interface, S> = makeConceptMap(
+	//bazName = [](S& s, double d) { s.i = static_cast<int>(d); }
+	//);
 
 namespace /* anonymous */ {
 
 TEST(ConceptMapTest, StoredFunctionsAreCallable) {
-	auto s = S{ 42 };
-
-	EXPECT_EQ((defaultConceptMap<Interface, S>[fooName](s)), 42);
-	//EXPECT_EQ(conceptMap<Interface, S>[barName](s, 2), 84);
-	//
-	//conceptMap<Interface, S>[bazName](s, 3.14);
-	//EXPECT_EQ(s.i, 3);
+	constexpr auto complete = completeConceptMap<Interface, S>(conceptMap<Interface, S>);
 }
 
 } // anonymous namespace

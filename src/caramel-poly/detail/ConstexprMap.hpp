@@ -75,6 +75,11 @@ constexpr auto mapUnion(ConstexprMap<LhsEntries...>, ConstexprMap<RhsEntries...>
 	return ConstexprMap<LhsEntries...>{}.insertAll(ConstexprMap<RhsEntries...>::Entries{});
 }
 
+template <class... Keys, class... Values>
+constexpr auto keys(ConstexprMap<ConstexprPair<Keys, Values>...>) {
+	return ConstexprList<Keys...>{};
+}
+
 } // namespace caramel_poly::detail
 
 #endif /* CARAMELPOLY_DETAIL_CONSTEXPRMAP_HPP__ */

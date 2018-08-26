@@ -99,6 +99,13 @@ TEST(ConstexprListTest, AnyOfReturnsTrueIfElementsSatisfyingPredicateExists) {
 	static_assert(!anyOf(oneTwoThree, [](auto s) { return s.value == 4; }));
 }
 
+TEST(ConstexprListTest, AllOfReturnsTrueIfNoElementNotSatisfyingPredicateExists) {
+	constexpr auto oneTwoThree = makeConstexprList(S<1>{}, S<2>{}, S<3>{});
+
+	static_assert(allOf(oneTwoThree, [](auto s) { return s.value < 4; }));
+	static_assert(!allOf(oneTwoThree, [](auto s) { return s.value < 3; }));
+}
+
 TEST(ConstexprListTest, FlattenCreatesAFlatList) {
 	constexpr auto nested =
 		ConstexprList<
@@ -110,6 +117,48 @@ TEST(ConstexprListTest, FlattenCreatesAFlatList) {
 			S<5>
 		>{};
 	static_assert(std::is_same_v<std::decay_t<decltype(flatten(nested))>, ConstexprList<S<1>, S<2>, S<3>, S<4>, S<5>>>);
+}
+
+TEST(ConstexprListTest, FoldLeftCallsFunctorFoldingLeft) {
+	constexpr auto l = makeConstexprList(S<1>{}, S<2>{}, S<3>{});
+	constexpr auto v =
+		foldLeft(l, [](auto lhs, auto rhs) { return S<decltype(lhs)::value * 10 + decltype(rhs)::value>{}; });
+	static_assert(std::is_same_v<std::decay_t<decltype(v)>, S<123>>);
+}
+
+TEST(ConstexprListTest, FoldLeftReturnsHeadIfListHasSingleElement) {
+	constexpr auto l = makeConstexprList(S<1>{});
+	constexpr auto v = foldLeft(l, []() {});
+	static_assert(std::is_same_v<std::decay_t<decltype(v)>, S<1>>);
+
+	// Should fail with message "Can't fold an empty list"
+	//foldLeft(ConstexprList<>{}, []() {});
+}
+
+TEST(ConstexprListTest, UnpackCallsFunctionPassingAllElements) {
+	constexpr auto l = makeConstexprList(S<1>{}, S<2>{}, S<3>{});
+	constexpr auto r = unpack(l, [](S<1>, S<2>, S<3>) { return 42; });
+	static_assert(r == 42);
+}
+
+TEST(ConstexprListTest, IsSubsetReturnsTrueIfRhsContainsAllElementsOfLhs) {
+	constexpr auto sub = makeConstexprList(S<1>{}, S<2>{}, S<3>{});
+	constexpr auto super = makeConstexprList(S<3>{}, S<1>{}, S<2>{}, S<4>{});
+
+	static_assert(isSubset(sub, sub));
+	static_assert(isSubset(sub, super));
+	static_assert(!isSubset(super, sub));
+}
+
+TEST(ConstexprListTest, DifferenceReturnsLhsMinusRhs) {
+	constexpr auto lhs = makeConstexprList(S<1>{}, S<2>{}, S<6>{}, S<3>{}, S<5>{});
+	constexpr auto rhs = makeConstexprList(S<3>{}, S<1>{}, S<2>{}, S<4>{});
+	constexpr auto d = difference(lhs, rhs);
+
+	static_assert(std::is_same_v<
+		std::decay_t<decltype(d)>,
+		ConstexprList<S<5>, S<6>>
+		>);
 }
 
 } // anonymous namespace

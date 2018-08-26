@@ -122,6 +122,11 @@ constexpr auto anyOf(ConstexprList<>, Predicate) {
 	return false;
 }
 
+template <class Predicate, class... Entries>
+constexpr auto allOf(ConstexprList<Entries...> l, Predicate p) {
+	return !anyOf(l, [p](auto e) { return !p(e); });
+}
+
 template <class T>
 struct FlattennedConstexprList;
 
@@ -148,6 +153,50 @@ struct FlattennedConstexprList<ConstexprList<>> {
 template <class... Entries>
 constexpr auto flatten(ConstexprList<Entries...> c) {
 	return typename FlattennedConstexprList<decltype(c)>::Type{};
+}
+
+template <class State, class Foldable, class Function>
+constexpr auto foldLeft(State state, Foldable foldable, [[maybe_unused]] Function f) {
+	if constexpr (empty(Foldable{})) {
+		return state;
+	} else {
+		return foldLeft(f(state, foldable.head()), foldable.tail(), f);
+	}
+}
+
+template <class Foldable, class Function>
+constexpr auto foldLeft(Foldable foldable, [[maybe_unused]] Function f) {
+	if constexpr (empty(Foldable{})) {
+		static_assert(false, "Can't fold an empty list");
+	} else if constexpr (empty(Foldable{}.tail())) {
+		return foldable.head();
+	} else {
+		return foldLeft(foldable.head(), foldable.tail(), f);
+	}
+}
+
+template <class F, class... Entries>
+constexpr auto unpack(ConstexprList<Entries...>, F f) {
+	return f(Entries{}...);
+}
+
+template <class... LhsEntries, class... RhsEntries>
+constexpr auto isSubset(ConstexprList<LhsEntries...> l, ConstexprList<RhsEntries...> of) {
+	return allOf(l, [of](auto e) { return contains(of, e); });
+}
+
+template <class... LhsEntries, class... RhsEntries>
+constexpr auto difference(ConstexprList<LhsEntries...> lhs, ConstexprList<RhsEntries...> rhs) {
+	return foldLeft(
+		ConstexprList<>{},
+		lhs,
+		[rhs](auto d, auto e) {
+				if constexpr (contains(decltype(rhs){}, decltype(e){})) {
+					return d;
+				} else {
+					return prepend(d, e);
+				}
+			});
 }
 
 } // namespace caramel_poly::detail

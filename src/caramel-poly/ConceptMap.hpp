@@ -6,7 +6,7 @@
 
 #include "detail/DefaultConstructibleLambda.hpp"
 #include "detail/ConstexprPair.hpp"
-#include "detail/ConstexprList.hpp"
+#include "detail/ConstexprMap.hpp"
 #include "detail/BindSignature.hpp"
 #include "concept.hpp"
 #include "dsl.hpp"
@@ -21,15 +21,15 @@ namespace caramel_poly {
 // Note that everything in the concept map is known statically. Specifically,
 // the types of the functions in the concept map are known statically, and
 // e.g. lambdas will be stored as-is (not as function pointers).
-template <typename Concept, typename T, typename... Mappings>
+template <class Concept, class T, class... Mappings>
 struct ConceptMap;
 
-template <typename Concept, typename T, typename... Name, typename... Function>
+template <class Concept, class T, class... Name, class... Function>
 struct ConceptMap<Concept, T, detail::ConstexprPair<Name, Function>...> {
 	
 	constexpr ConceptMap() = default;
 
-	template <typename NameArg>
+	template <class NameArg>
 	constexpr auto operator[](NameArg) const {
 		constexpr bool isKnown = anyOf(Functions{}, [](auto e) { return e.first() == NameArg{}; });
 		if constexpr (isKnown) {
@@ -50,13 +50,13 @@ struct ConceptMap<Concept, T, detail::ConstexprPair<Name, Function>...> {
 
 private:
 
-	using Functions = detail::ConstexprList<
+	using Functions = detail::ConstexprMap<
 		detail::ConstexprPair<
 			Name,
 			detail::DefaultConstructibleLambda<
 				Function,
-				typename detail::BindSignature<
-					typename decltype(Concept{}.get_signature(Name{}))::Type, T
+				class detail::BindSignature<
+					typename decltype(Concept{}.getSignature(Name{}))::Type, T
 					>::Type
 				>
 			>...
@@ -72,7 +72,7 @@ private:
 //
 // Note that a concept map created with this function can be incomplete. Before
 // being used, it must be completed using `caramel_poly::completeConceptMap`.
-template <typename... Name, typename... Function>
+template <class... Name, class... Function>
 constexpr auto makeConceptMap(detail::ConstexprPair<Name, Function>... mappings) {
 	auto map = detail::makeConstexprList(mappings...);
 	auto keys = transform(map, [](auto e) { return e.first(); });
@@ -94,7 +94,7 @@ constexpr auto makeConceptMap(detail::ConstexprPair<Name, Function>... mappings)
 // will be used when no custom concept map is specified. The third parameter
 // can be used to define a default concept map for a family of type, by using
 // `std::enable_if`.
-template <typename Concept, typename T, typename = void>
+template <class Concept, class T, class = void>
 auto const defaultConceptMap = makeConceptMap();
 
 // Customization point for users to define their models of concepts.
@@ -102,47 +102,47 @@ auto const defaultConceptMap = makeConceptMap();
 // This can be specialized by clients to provide concept maps for the concepts
 // and types they wish. The third parameter can be used to define a concept
 // map for a family of type, by using `std::enable_if`.
-template <typename Concept, typename T, typename = void>
+template <class Concept, class T, class = void>
 auto const conceptMap = makeConceptMap();
 
 namespace detail {
 
 // Takes a constexpr map, and completes it by interpreting it as a concept map
 // for fulfilling the given `Concept` for the given type `T`.
-template <typename Concept, typename T, typename Map>
+template <class Concept, class T, class Map>
 constexpr auto completeConceptMapImpl(Map map) {
 	// 1. Bring in the functions provided in the default concept map.
-	auto withDefaults = boost::hana::union_(caramel_poly::default_concept_map<Concept, T>, map);
+	auto withDefaults = mapUnion(map, caramel_poly::defaultConceptMap<Concept, T>);
 
 	// 2. For each refined concept, recursively complete the concept map for
 	//		that Concept and merge that into the current concept map.
-	auto refined = caramel_poly::refined_concepts(Concept{});
-	auto merged = boost::hana::fold_left(refined, with_defaults, [](auto m, auto c) {
-		using C = decltype(c);
-		auto completed = detail::completeConceptMapImpl<C, T>(caramel_poly::concept_map<C, T>);
-		return boost::hana::union_(completed, m);
-	});
+	auto refined = caramel_poly::refinedConcepts(Concept{});
+	auto merged = foldLeft(withDefaults, refined, [](auto m, auto c) {
+			using C = decltype(c);
+			auto completed = detail::completeConceptMapImpl<C, T>(caramel_poly::conceptMap<C, T>);
+			return mapUnion(completed, m);
+		});
 
 	return merged;
 }
 
-// Turns a Hana map into a concept map.
-template <typename Concept, typename T, typename Map>
-constexpr auto to_concept_map(Map map) {
-	return boost::hana::unpack(map, [](auto... m) {
-		return caramel_poly::ConceptMap<Concept, T, decltype(m)...>{};
-	});
+// Turns a constexpr map into a concept map.
+template <class Concept, class T, class Map>
+constexpr auto toConceptMap(Map) {
+	return unpack(Map::Entries, [](auto... m) {
+			return caramel_poly::ConceptMap<Concept, T, decltype(m)...>{};
+		});
 }
 
-// Returns whether a Hana map, when interpreted as a concept map for fulfilling
+// Returns whether a constexpr map, when interpreted as a concept map for fulfilling
 // the given `Concept`, is missing any functions.
-template <typename Concept, typename T, typename Map>
-struct concept_map_is_complete : decltype(boost::hana::is_subset(
-	caramel_poly::clause_names(Concept{}),
-	boost::hana::keys(std::declval<Map>())
-)) { };
+template <class Concept, class T, class Map>
+constexpr auto conceptMapIsComplete = isSubset(
+	caramel_poly::clauseNames(Concept{}),
+	keys(Map{})
+	);
 
-} // end namespace detail
+} // namespace detail
 
 // Returns whether the type `T` models the given `Concept`.
 //
@@ -151,37 +151,38 @@ struct concept_map_is_complete : decltype(boost::hana::is_subset(
 // ```
 // static_assert(caramel_poly::models<Drawable, my_polygon>);
 // ```
-template <typename Concept, typename T>
-constexpr auto models = detail::concept_map_is_complete<
-	Concept, T,
-	decltype(detail::completeConceptMapImpl<Concept, T>(
-		caramel_poly::concept_map<Concept, T>
-	))
->{};
+template <class Concept, class T>
+constexpr auto models = detail::conceptMapIsComplete<
+	Concept,
+	T,
+	decltype(detail::completeConceptMapImpl<Concept, T>(caramel_poly::conceptMap<Concept, T>))
+	>;
 
 namespace diagnostic {
-	template <typename... > struct ________________THE_CONCEPT_IS;
-	template <typename... > struct ________________YOUR_MODEL_IS;
-	template <typename... > struct ________________FUNCTIONS_MISSING_FROM_YOUR_CONCEPT_MAP;
-	template <typename... > struct ________________FUNCTIONS_DECLARED_IN_YOUR_CONCEPT_MAP;
-	template <typename... > struct ________________FUNCTIONS_REQUIRED_BY_THE_CONCEPT;
-	template <typename... > struct ________________EXACT_TYPE_OF_YOUR_CONCEPT_MAP;
+	template <class...> struct ________________THE_CONCEPT_IS;
+	template <class...> struct ________________YOUR_MODEL_IS;
+	template <class...> struct ________________FUNCTIONS_MISSING_FROM_YOUR_CONCEPT_MAP;
+	template <class...> struct ________________FUNCTIONS_DECLARED_IN_YOUR_CONCEPT_MAP;
+	template <class...> struct ________________FUNCTIONS_REQUIRED_BY_THE_CONCEPT;
+	template <class...> struct ________________EXACT_TYPE_OF_YOUR_CONCEPT_MAP;
 
-	template <typename... , bool concept_map_is_complete = false>
+	template <class..., bool IS_COMPLETE = false>
 	constexpr void INCOMPLETE_CONCEPT_MAP() {
-		static_assert(concept_map_is_complete,
-			"caramel_poly::concept_map: Incomplete definition of your concept map. Despite "
+		static_assert(
+			IS_COMPLETE,
+			"caramel_poly::conceptMap: Incomplete definition of your concept map. Despite "
 			"looking at the default concept map for this concept and the concept "
 			"maps for all the concepts this concept refines, I can't find definitions "
 			"for all the functions that the concept requires. Please make sure you did "
 			"not forget to define a function in your concept map, and otherwise make "
 			"sure the proper default concept maps are kicking in. You can find information "
 			"to help you debug this error in the compiler error message, probably in "
-			"the instantiation of the INCOMPLETE_CONCEPT_MAP<.....> function. Good luck!");
+			"the instantiation of the INCOMPLETE_CONCEPT_MAP<.....> function. Good luck!"
+			);
 	}
-} // end namespace diagnostic
+} // namespace diagnostic
 
-// Turns a Hana map into a fully cooked concept map ready for consumption
+// Turns a constexpr map into a fully cooked concept map ready for consumption
 // by a vtable.
 //
 // The concept maps for all the concepts that `Concept` refines are merged with
@@ -199,16 +200,16 @@ namespace diagnostic {
 // struct Foo { };
 //
 // template <>
-// auto const caramel_poly::concept_map<A, Foo> = caramel_poly::make_concept_map(
+// auto const caramel_poly::conceptMap<A, Foo> = caramel_poly::makeConceptMap(
 //	 "f"_s = [](Foo&) { }
 // );
 //
 // template <>
-// auto const caramel_poly::concept_map<B, Foo> = caramel_poly::make_concept_map(
+// auto const caramel_poly::conceptMap<B, Foo> = caramel_poly::makeConceptMap(
 //	 "g"_s = [](Foo&) { return 0; }
 // );
 //
-// auto complete = caramel_poly::complete_concept_map<B, Foo>(caramel_poly::concept_map<B, Foo>);
+// auto complete = caramel_poly::completeConceptMap<B, Foo>(caramel_poly::conceptMap<B, Foo>);
 // // `f` is automatically pulled from `concept<A, Foo>`
 // ```
 //
@@ -226,24 +227,24 @@ namespace diagnostic {
 // Also, after looking at the whole refinement tree, including the default
 // concept maps, it is an error if any function required by the concept can't
 // be resolved.
-template <typename Concept, typename T, typename Map>
-constexpr auto complete_concept_map(Map map) {
-	auto complete_map = detail::completeConceptMapImpl<Concept, T>(map);
-	auto as_concept_map = detail::to_concept_map<Concept, T>(complete_map);
-	constexpr auto is_complete = detail::concept_map_is_complete<Concept, T, decltype(complete_map)>{};
-	if constexpr (is_complete) {
-		return as_concept_map;
+template <class Concept, class T, class Map>
+constexpr auto completeConceptMap(Map map) {
+	auto completeMap = detail::completeConceptMapImpl<Concept, T>(map);
+	auto asConceptMap = detail::toConceptMap<Concept, T>(completeMap);
+	constexpr auto isComplete = detail::conceptMapIsComplete<Concept, T, decltype(complete_map)>;
+	if constexpr (isComplete) {
+		return asConceptMap;
 	} else {
-		auto required = boost::hana::to_set(caramel_poly::clause_names(Concept{}));
-		auto declared = boost::hana::to_set(boost::hana::keys(complete_map));
-		auto missing = boost::hana::difference(required, declared);
+		auto required = caramel_poly::clauseNames(Concept{});
+		auto declared = keys(completeMap);
+		auto missing = difference(required, declared);
 		diagnostic::INCOMPLETE_CONCEPT_MAP<
 			diagnostic::________________THE_CONCEPT_IS<Concept>,
 			diagnostic::________________YOUR_MODEL_IS<T>,
 			diagnostic::________________FUNCTIONS_MISSING_FROM_YOUR_CONCEPT_MAP<decltype(missing)>,
 			diagnostic::________________FUNCTIONS_DECLARED_IN_YOUR_CONCEPT_MAP<decltype(declared)>,
 			diagnostic::________________FUNCTIONS_REQUIRED_BY_THE_CONCEPT<decltype(required)>,
-			diagnostic::________________EXACT_TYPE_OF_YOUR_CONCEPT_MAP<decltype(as_concept_map)>
+			diagnostic::________________EXACT_TYPE_OF_YOUR_CONCEPT_MAP<decltype(asConceptMap)>
 		>();
 	}
 }

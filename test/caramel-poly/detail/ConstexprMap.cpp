@@ -114,4 +114,18 @@ TEST(ConstexprMap, UnionCreatesAMapContainingKeysFromBothMapsLhsValuesHavePriori
 	static_assert(std::is_same_v<decltype(got), decltype(expected)>);
 }
 
+TEST(ConstexprMap, KeysReturnsAListOfAllKeys) {
+	constexpr auto oneTwoThree = makeConstexprMap(
+		makeConstexprPair(S<1>{}, T<1>{}),
+		makeConstexprPair(S<2>{}, T<2>{}),
+		makeConstexprPair(S<3>{}, T<3>{})
+		);
+	constexpr auto oneTwoThreeKeys = ConstexprList<S<1>, S<2>, S<3>>{};
+
+	static_assert(std::is_same_v<
+		std::decay_t<decltype(keys(oneTwoThree))>,
+		std::decay_t<decltype(oneTwoThreeKeys)>
+		>);
+}
+
 } // anonymous namespace
