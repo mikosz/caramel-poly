@@ -17,6 +17,7 @@
 #include "detail/ConstexprMap.hpp"
 #include "detail/ConstexprPair.hpp"
 #include "Concept.hpp"
+#include "ConceptMap.hpp"
 
 namespace caramel_poly {
 
@@ -66,7 +67,7 @@ struct LocalVTable<detail::ConstexprPair<Name, Clause>...> {
 		vtbl_(detail::makeConstexprMap(
 			detail::makeConstexprPair(
 				Name{},
-				detail::eraseFunction<typename Clause::Type>(map[Name{}])
+				detail::EraseFunction<typename Clause::Type>(map[Name{}])
 				)...
 			)
 		)
@@ -75,12 +76,12 @@ struct LocalVTable<detail::ConstexprPair<Name, Clause>...> {
 
 	template <class OtherName>
 	constexpr auto contains(OtherName name) const {
-		return contains(vtbl_, name);
+		return vtbl_.contains(name);
 	}
 
 	template <class OtherName>
 	constexpr auto operator[](OtherName name) const {
-		constexpr auto containsFunction = contains(name);
+		constexpr auto containsFunction = FunctionMap{}.contains(OtherName{});
 		if constexpr (containsFunction) {
 			return vtbl_[name];
 		} else {
@@ -108,12 +109,14 @@ struct LocalVTable<detail::ConstexprPair<Name, Clause>...> {
 
 private:
 
-	detail::ConstexprMap<
+	using FunctionMap = detail::ConstexprMap<
 		detail::ConstexprPair<
 			Name,
-			typename detail::eraseSignature<typename Clause::Type>::Type*
+			typename detail::EraseSignature<typename Clause::Type>::Type*
 			>...
-		> vtbl_;
+		>;
+
+	FunctionMap vtbl_;
 
 };
 

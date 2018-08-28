@@ -8,24 +8,65 @@
 
 namespace caramel_poly::detail {
 
+template <class FirstT, class SecondT, class = void>
+class ConstexprPairStorage;
+
 template <class FirstT, class SecondT>
-class ConstexprPair {
+class ConstexprPairStorage<FirstT, SecondT, std::enable_if_t<std::is_empty_v<FirstT> && std::is_empty_v<SecondT>>> {
+public:
+
+	constexpr ConstexprPairStorage() = default;
+
+	constexpr ConstexprPairStorage(First, Second)
+	{
+	}
+
+	constexpr FirstT first() const {
+		return FirstT{};
+	}
+
+	constexpr SecondT second() const {
+		return SecondT{};
+	}
+
+};
+
+template <class FirstT, class SecondT>
+class ConstexprPairStorage<FirstT, SecondT, std::enable_if_t<std::is_empty_v<FirstT> && !std::is_empty_v<SecondT>>> {
+public:
+
+	constexpr ConstexprPairStorage() = default;
+
+	constexpr ConstexprPairStorage(First, Second)
+	{
+	}
+
+	constexpr FirstT first() const {
+		return FirstT{};
+	}
+
+	constexpr SecondT second() const {
+		return second_;
+	}
+
+private:
+
+	SecondT second_;
+
+};
+
+template <class FirstT, class SecondT>
+class ConstexprPair : public ConstexprPairStorage<FirstT, SecondT> {
 public:
 
 	using First = FirstT;
 	using Second = SecondT;
 
-	constexpr ConstexprPair(First, Second) {
-	}
-
 	constexpr ConstexprPair() = default;
 
-	constexpr First first() const {
-		return First{};
-	}
-
-	constexpr Second second() const {
-		return Second{};
+	constexpr ConstexprPair(First f, Second s) :
+		ConstexprPairStorage<FirstT, SecondT>(std::move(f), std::move(s))
+	{
 	}
 
 };

@@ -51,10 +51,20 @@ const auto caramel_poly::conceptMap<Interface, T, std::enable_if_t<std::is_same_
 namespace /* anonymous */ {
 
 TEST(VTableTest, StoredFunctionsAreAccessible) {
-	const auto complete = completeConceptMap<Interface, S>(conceptMap<Interface, S>);
-	const auto vtable = LocalVTable(complete);
+	auto s = S{ 3 };
 
-	static_assert(sizeof(vtable) == 3 * sizeof(void*));
+	const auto complete = completeConceptMap<Interface, S>(conceptMap<Interface, S>);
+	const auto vtable = LocalVTable<
+		detail::ConstexprPair<std::decay_t<decltype(fooName)>, decltype(Interface{}.getSignature(fooName)) > ,
+		detail::ConstexprPair<std::decay_t<decltype(barName)>, decltype(Interface{}.getSignature(barName)) > ,
+		detail::ConstexprPair<std::decay_t<decltype(bazName)>, decltype(Interface{}.getSignature(bazName))>
+		>(complete);
+
+	EXPECT_TRUE(vtable.contains(fooName));
+	auto* fooPtr = vtable[fooName];
+	(*fooPtr)(&s);
+
+	EXPECT_EQ(sizeof(vtable), 3 * sizeof(void*));
 }
 
 } // anonymous namespace
