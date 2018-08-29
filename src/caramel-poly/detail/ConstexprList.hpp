@@ -8,21 +8,64 @@
 
 namespace caramel_poly::detail {
 
+template <class T, class P, class = void>
+struct ListStorage;
+
+template <class T, class P>
+struct ListStorage<T, P, std::enable_if_t<std::is_empty_v<T>>> : P {
+
+	constexpr ListStorage() = default;
+
+	constexpr ListStorage(T, P p) :
+		P(std::move(p))
+	{
+	}
+
+	constexpr T data() const {
+		return T{};
+	}
+
+};
+
+template <class T, class P>
+struct ListStorage<T, P, std::enable_if_t<!std::is_empty_v<T>>> : P {
+
+	T data_;
+
+	constexpr ListStorage() = default;
+
+	constexpr ListStorage(T t, P p) :
+		P(std::move(p)),
+		data_(std::move(t))
+	{
+	}
+
+	constexpr T data() const {
+		return data_;
+	}
+
+};
+
 template <class... Tail>
 class ConstexprList;
 
 template <class Head, class... Tail>
-class ConstexprList<Head, Tail...> {
+class ConstexprList<Head, Tail...> : /* private */ ListStorage<Head, ConstexprList<Tail...>> {
 public:
 
 	constexpr ConstexprList() = default;
 
-	constexpr auto head() const {
-		return Head{};
+	constexpr ConstexprList(Head h, Tail... t) :
+		ListStorage<Head, ConstexprList<Tail...>>(std::move(h), std::move(t))
+	{
 	}
 
-	constexpr auto tail() const {
-		return ConstexprList<Tail...>{};
+	constexpr auto head() const {
+		return ListStorage<Head, Tail...>::data();
+	}
+
+	constexpr decltype(auto) tail() const {
+		return static_cast<const ConstexprList<Tail...>&>(*this);
 	}
 
 };
