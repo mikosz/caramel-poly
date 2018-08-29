@@ -23,10 +23,10 @@ TEST(ConstexprPairTest, PairOfTwoEmptiesIsEmpty) {
 }
 
 TEST(ConstexprPairTest, PairWhereSecondNonemptyHasSecond) {
-	auto p = ConstexprPair<Empty, NonEmpty>{ Empty{}, NonEmpty{ 3 } };
+	constexpr auto p = ConstexprPair<Empty, NonEmpty>{ Empty{}, NonEmpty{ 3 } };
 	static_assert(sizeof(p) == sizeof(NonEmpty));
 	
-	EXPECT_EQ(p.second().i, 3);
+	static_assert(p.second().i == 3);
 }
 
 } // anonymous namespace

@@ -17,7 +17,7 @@ public:
 
 	constexpr ConstexprPairStorage() = default;
 
-	constexpr ConstexprPairStorage(First, Second)
+	constexpr ConstexprPairStorage(FirstT, SecondT)
 	{
 	}
 
@@ -37,7 +37,8 @@ public:
 
 	constexpr ConstexprPairStorage() = default;
 
-	constexpr ConstexprPairStorage(First, Second)
+	constexpr ConstexprPairStorage(FirstT, SecondT s) :
+		second_(std::move(s))
 	{
 	}
 

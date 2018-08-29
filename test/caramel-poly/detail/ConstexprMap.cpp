@@ -19,15 +19,19 @@ struct S {
 	constexpr S() = default;
 };
 
+template <int i, int j>
+constexpr bool operator==(S<i>, S<j>) {
+	return i == j;
+}
+
 template <int i>
 struct T {
 	static constexpr auto value = i;
 };
 
-template <int i, int j>
-constexpr bool operator==(S<i>, S<j>) {
-	return i == j;
-}
+struct V {
+	int i;
+};
 
 TEST(ConstexprMap, ContainsReturnsTrueIfMapHasKey) {
 	constexpr auto map = makeConstexprMap(
@@ -42,7 +46,7 @@ TEST(ConstexprMap, ContainsReturnsTrueIfMapHasKey) {
 	static_assert(!map.contains(S<4>{}));
 }
 
-TEST(ConstexprMap, IndexOperatorAccessesStoredValue) {
+TEST(ConstexprMap, IndexOperatorAccessesStoredEmptyValue) {
 	constexpr auto map = makeConstexprMap(
 		makeConstexprPair(S<1>{}, T<1>{}),
 		makeConstexprPair(S<2>{}, T<2>{}),
@@ -52,6 +56,20 @@ TEST(ConstexprMap, IndexOperatorAccessesStoredValue) {
 	static_assert(std::is_same_v<decltype(map[S<1>{}]), T<1>>);
 	static_assert(std::is_same_v<decltype(map[S<2>{}]), T<2>>);
 	static_assert(std::is_same_v<decltype(map[S<3>{}]), T<3>>);
+	// Should not compile
+	//map[S<4>{}];
+}
+
+TEST(ConstexprMap, IndexOperatorAccessesStoredNonemptyValue) {
+	constexpr auto map = makeConstexprMap(
+		makeConstexprPair(S<1>{}, V{ 1 }),
+		makeConstexprPair(S<2>{}, V{ 2 }),
+		makeConstexprPair(S<3>{}, V{ 3 })
+		);
+
+	EXPECT_EQ(map[S<1>{}].i, 1);
+	EXPECT_EQ(map[S<2>{}].i, 2);
+	EXPECT_EQ(map[S<3>{}].i, 3);
 	// Should not compile
 	//map[S<4>{}];
 }

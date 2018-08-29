@@ -23,6 +23,9 @@ public:
 
 	constexpr ConstexprMap() = default;
 
+	template <class... HeadKey, class... HeadValue, 
+	constexpr ConstexprMap()
+
 	template <class Key>
 	constexpr bool contains(Key) const {
 		return anyOf(Entries{}, [](auto e) { return e.first() == Key{}; });
@@ -71,8 +74,8 @@ public:
 };
 
 template <class... Keys, class... Values>
-constexpr auto makeConstexprMap(ConstexprPair<Keys, Values>...) {
-	return ConstexprMap<ConstexprPair<Keys, Values>...>{};
+constexpr auto makeConstexprMap(ConstexprPair<Keys, Values>... p) {
+	return ConstexprMap<ConstexprPair<Keys, Values>...>{ p... };
 }
 
 template <class... Keys, class... Values>

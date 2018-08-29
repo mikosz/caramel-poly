@@ -35,8 +35,6 @@ struct S {
 
 } // anonymous namespace
 
-const auto f = [](const S& s) { return s.i; };
-
 template <class T>
 const auto caramel_poly::defaultConceptMap<Interface, T> = makeConceptMap(
 	METHOD_NAME("foo") = [](const S& s) { return s.i; },
