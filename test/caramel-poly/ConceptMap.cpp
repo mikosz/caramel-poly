@@ -2,7 +2,7 @@
 // Distributed under the MIT license (See accompanying file LICENSE)
 
 #include <gtest/gtest.h>
-
+#if 0 
 #include <type_traits>
 
 #include "caramel-poly/ConceptMap.hpp"
@@ -60,3 +60,4 @@ TEST(ConceptMapTest, StoredFunctionsAreCallable) {
 }
 
 } // anonymous namespace
+#endif

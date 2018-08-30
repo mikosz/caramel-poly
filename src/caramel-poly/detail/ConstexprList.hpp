@@ -16,8 +16,9 @@ struct ListStorage<T, P, std::enable_if_t<std::is_empty_v<T>>> : P {
 
 	constexpr ListStorage() = default;
 
-	constexpr ListStorage(T, P p) :
-		P(std::move(p))
+	template <class... ParentArgs>
+	constexpr ListStorage(T, ParentArgs... parentArgs) :
+		P(std::move(parentArgs)...)
 	{
 	}
 
@@ -34,9 +35,16 @@ struct ListStorage<T, P, std::enable_if_t<!std::is_empty_v<T>>> : P {
 
 	constexpr ListStorage() = default;
 
-	constexpr ListStorage(T t, P p) :
-		P(std::move(p)),
-		data_(std::move(t))
+	template <class... ParentArgs>
+	constexpr ListStorage(T data, ParentArgs... parentArgs) :
+		P(std::move(parentArgs)...),
+		data_(std::move(data))
+	{
+	}
+
+	constexpr ListStorage(T data, const P& parent) :
+		P(parent),
+		data_(std::move(data))
 	{
 	}
 
@@ -56,17 +64,26 @@ public:
 	constexpr ConstexprList() = default;
 
 	constexpr ConstexprList(Head h, Tail... t) :
-		ListStorage<Head, ConstexprList<Tail...>>(std::move(h), std::move(t))
+		Parent(std::move(h), std::move(t)...)
+	{
+	}
+
+	constexpr ConstexprList(Head h, const ConstexprList<Tail...>& t) :
+		Parent(std::move(h), t)
 	{
 	}
 
 	constexpr auto head() const {
-		return ListStorage<Head, Tail...>::data();
+		return Parent::data();
 	}
 
 	constexpr decltype(auto) tail() const {
 		return static_cast<const ConstexprList<Tail...>&>(*this);
 	}
+
+private:
+
+	using Parent = ListStorage<Head, ConstexprList<Tail...>>;
 
 };
 
@@ -79,24 +96,35 @@ public:
 };
 
 template <class... Entries>
-constexpr auto makeConstexprList(Entries...) {
-	return ConstexprList<Entries...>{};
+constexpr auto makeConstexprList(Entries... e) {
+	return ConstexprList<Entries...>{ std::move(e)... };
+}
+
+template <class... Entries>
+constexpr bool empty(ConstexprList<Entries...>) {
+	return sizeof...(Entries) == 0;
 }
 
 template <class NewHead, class... Entries>
-constexpr auto prepend(ConstexprList<Entries...>, NewHead) {
-	return ConstexprList<NewHead, Entries...>{};
+constexpr auto prepend(const ConstexprList<Entries...>& l, NewHead h) {
+	return ConstexprList<NewHead, Entries...>{ std::move(h), l };
 }
 
-template <class... LhsEntries, class... RhsEntries>
-constexpr auto concatenate(ConstexprList<LhsEntries...>, ConstexprList<RhsEntries...>) {
-	return ConstexprList<LhsEntries..., RhsEntries...>{};
+template <class LhsHead, class... LhsTail, class... RhsEntries>
+constexpr auto concatenate(ConstexprList<LhsHead, LhsTail...> lhs, ConstexprList<RhsEntries...> rhs) {
+	return prepend(concatenate(lhs.tail(), rhs), lhs.head());
+}
+
+template <class... RhsEntries>
+constexpr auto concatenate(ConstexprList<>, ConstexprList<RhsEntries...> rhs) {
+	return rhs;
 }
 
 template <class Predicate, class Head, class... Tail>
 constexpr auto find([[maybe_unused]] ConstexprList<Head, Tail...> c, Predicate p) {
-	if constexpr (p(Head{})) {
-		return Head{};
+	const auto found = p(c.head());
+	if constexpr (found) {
+		return c.head();
 	} else {
 		return find(c.tail(), p);
 	}
@@ -139,11 +167,6 @@ constexpr auto transform(ConstexprList<Head, Tail...> c, Transformer t) {
 template <class Transformer>
 constexpr auto transform(ConstexprList<>, Transformer) {
 	return ConstexprList<>{};
-}
-
-template <class... Entries>
-constexpr bool empty(ConstexprList<Entries...>) {
-	return sizeof...(Entries) == 0;
 }
 
 template <class Needle, class Head, class... Tail>

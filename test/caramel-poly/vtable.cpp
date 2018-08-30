@@ -3,6 +3,8 @@
 
 #include <gtest/gtest.h>
 
+#if 0
+
 #include <type_traits>
 
 #include "caramel-poly/vtable.hpp"
@@ -66,3 +68,4 @@ TEST(VTableTest, StoredFunctionsAreAccessible) {
 }
 
 } // anonymous namespace
+#endif

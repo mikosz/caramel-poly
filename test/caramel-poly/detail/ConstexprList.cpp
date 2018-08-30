@@ -27,28 +27,81 @@ constexpr bool operator==(S<i>, S<j>) {
 	return i == j;
 }
 
+TEST(ConstexprListTest, ListOfEmptyElementsHasSize1) {
+	constexpr auto oneTwoThree = makeConstexprList(S<1>{}, S<2>{}, S<3>{});
+	static_assert(sizeof(oneTwoThree) == 1);
+}
+
+TEST(ConstexprListTest, ListOfUnemptyElementsHasSizeOfSumOfElements) {
+	// This may not be true in cases where elements are of different sizes, due
+	// to padding, but this is fine for our needs
+	constexpr auto oneTwoThree = makeConstexprList(1.0f, 2.0f, 3.0f);
+	static_assert(sizeof(oneTwoThree) == 3 * sizeof(float));
+}
+
 TEST(ConstexprListTest, PrependPutsElementsInFront) {
-	constexpr auto oneTwoThree = prepend(prepend(prepend(ConstexprList<>{}, S<3>{}), S<2>{}), S<1>{});
-	static_assert(std::is_same_v<std::decay_t<decltype(oneTwoThree)>, ConstexprList<S<1>, S<2>, S<3>>>);
+	constexpr auto oneTwoThreeEmpty = prepend(prepend(prepend(ConstexprList<>{}, S<3>{}), S<2>{}), S<1>{});
+	static_assert(std::is_same_v<std::decay_t<decltype(oneTwoThreeEmpty)>, ConstexprList<S<1>, S<2>, S<3>>>);
+
+	constexpr auto oneTwoThreeNonempty = prepend(prepend(prepend(ConstexprList<>{}, 1), 2.0), '3');
+	static_assert(
+		std::is_same_v<
+			std::decay_t<decltype(oneTwoThreeNonempty)>,
+			ConstexprList<char, double, int>>
+			);
+	static_assert(oneTwoThreeNonempty.head() == '3');
+	static_assert(oneTwoThreeNonempty.tail().head() == 2.0);
+	static_assert(oneTwoThreeNonempty.tail().tail().head() == 1);
 }
 
 TEST(ConstexprListTest, MakeConstexprListInsertsAllElements) {
-	constexpr auto oneTwoThreeOne = makeConstexprList(S<1>{}, S<2>{}, S<3>{}, S<1>{});
-	static_assert(std::is_same_v<std::decay_t<decltype(oneTwoThreeOne)>, ConstexprList<S<1>, S<2>, S<3>, S<1>>>);
+	constexpr auto oneTwoThreeOneEmpty = makeConstexprList(S<1>{}, S<2>{}, S<3>{}, S<1>{});
+	static_assert(
+		std::is_same_v<
+			std::decay_t<decltype(oneTwoThreeOneEmpty)>,
+			ConstexprList<S<1>, S<2>, S<3>, S<1>>
+			>
+		);
+
+	constexpr auto oneTwoThreeNonempty = makeConstexprList(1, 2.0, '3');
+	static_assert(
+		std::is_same_v<
+		std::decay_t<decltype(oneTwoThreeNonempty)>,
+		ConstexprList<int, double, char>>
+		);
+	static_assert(oneTwoThreeNonempty.head() == 1);
+	static_assert(oneTwoThreeNonempty.tail().head() == 2.0);
+	static_assert(oneTwoThreeNonempty.tail().tail().head() == '3');
 }
 
 TEST(ConstexprListTest, ConcatenateMergesTwoLists) {
-	constexpr auto oneTwoThreeFour = concatenate(ConstexprList<S<1>, S<2>>{}, ConstexprList<S<3>, S<4>>{});
-	static_assert(std::is_same_v<std::decay_t<decltype(oneTwoThreeFour)>, ConstexprList<S<1>, S<2>, S<3>, S<4>>>);
+	constexpr auto oneTwoThreeFourEmpty =
+		concatenate(ConstexprList<S<1>, S<2>>{}, ConstexprList<S<3>, S<4>>{});
+	static_assert(
+		std::is_same_v<
+			std::decay_t<decltype(oneTwoThreeFourEmpty)>,
+			ConstexprList<S<1>, S<2>, S<3>, S<4>>
+			>
+		);
+
+	constexpr auto oneTwoThreeFourNonempty =
+		concatenate(makeConstexprList(1, 2), makeConstexprList(3.0, 4.0));
+	static_assert(oneTwoThreeFourNonempty.head() == 1);
+	static_assert(oneTwoThreeFourNonempty.tail().head() == 2);
+	static_assert(oneTwoThreeFourNonempty.tail().tail().head() == 3.0);
+	static_assert(oneTwoThreeFourNonempty.tail().tail().tail().head() == 4.0);
 }
 
 TEST(ConstexprListTest, FindReturnsMatchingElement) {
-	constexpr auto oneTwoThree = ConstexprList<S<1>, S<2>, S<3>>{};
-	static_assert(find(oneTwoThree, [](auto e) { return e == S<1>{}; }) == S<1>{});
-	static_assert(find(oneTwoThree, [](auto e) { return e == S<2>{}; }) == S<2>{});
-	static_assert(find(oneTwoThree, [](auto e) { return e == S<3>{}; }) == S<3>{});
-	// Should not (and does not) compile
-	// static_assert(find(oneTwoThree, [](auto e) { return e == S<4>{}; }) == S<4>{});
+	constexpr auto oneTwoThreeEmpty = ConstexprList<S<1>, S<2>, S<3>>{};
+	static_assert(find(oneTwoThreeEmpty, [](auto e) { return e == S<1>{}; }) == S<1>{});
+	static_assert(find(oneTwoThreeEmpty, [](auto e) { return e == S<2>{}; }) == S<2>{});
+	static_assert(find(oneTwoThreeEmpty, [](auto e) { return e == S<3>{}; }) == S<3>{});
+	// Should not (and does not) compile with "Element not found" error
+	// find(oneTwoThreeEmpty, [](auto e) { return e == S<4>{}; });
+
+	constexpr auto oneTwoThreeNonempty = makeConstexprList(1, 2.0, 3.0f);
+	find(oneTwoThreeNonempty, [](auto e) { return static_cast<int>(e) == 1; });
 }
 
 TEST(ConstexprListTest, FilterGetsElementsSatisfyingPredicate) {

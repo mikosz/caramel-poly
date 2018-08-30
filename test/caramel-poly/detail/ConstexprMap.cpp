@@ -1,6 +1,8 @@
 // Copyright Mikolaj Radwan 2018
 // Distributed under the MIT license (See accompanying file LICENSE)
 
+#if 0
+
 #include <gtest/gtest.h>
 
 #include <type_traits>
@@ -147,3 +149,4 @@ TEST(ConstexprMap, KeysReturnsAListOfAllKeys) {
 }
 
 } // anonymous namespace
+#endif
