@@ -73,8 +73,8 @@ public:
 };
 
 template <class First, class Second>
-constexpr auto makeConstexprPair(First, Second) {
-	return ConstexprPair<First, Second>{};
+constexpr auto makeConstexprPair(First f, Second s) {
+	return ConstexprPair<First, Second>{ std::move(f), std::move(s) };
 }
 
 constexpr auto first = [](auto p) { return p.first(); };

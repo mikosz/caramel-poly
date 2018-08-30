@@ -23,19 +23,25 @@ public:
 
 	constexpr ConstexprMap() = default;
 
-	template <class... HeadKey, class... HeadValue, 
-	constexpr ConstexprMap()
+	template <class... Entries>
+	constexpr ConstexprMap(Entries... entries) :
+		ConstexprList<ConstexprPair<Keys, Values>...>(std::move(entries)...)
+	{
+	}
 
 	template <class Key>
 	constexpr bool contains(Key) const {
-		return anyOf(Entries{}, [](auto e) { return e.first() == Key{}; });
+		return anyOf(static_cast<const Parent&>(*this), [](auto e) { return e.first() == Key{}; });
 	}
 
 	template <class Key>
 	constexpr auto operator[](Key) const {
 		constexpr auto hasEntry = ConstexprMap{}.contains(Key{});
 		if constexpr (hasEntry) {
-			return find(Entries{}, [](auto e) { return e.first() == Key{}; }).second();
+			return find(
+				static_cast<const Parent&>(*this),
+				[](auto e) { return e.first() == Key{}; }
+				).second();
 		} else {
 			static_assert(hasEntry, "Map doesn't contain key");
 		}
@@ -71,11 +77,15 @@ public:
 		}
 	}
 
+private:
+
+	using Parent = ConstexprList<ConstexprPair<Keys, Values>...>;
+
 };
 
 template <class... Keys, class... Values>
 constexpr auto makeConstexprMap(ConstexprPair<Keys, Values>... p) {
-	return ConstexprMap<ConstexprPair<Keys, Values>...>{ p... };
+	return ConstexprMap<ConstexprPair<Keys, Values>...>{ std::move(p)... };
 }
 
 template <class... Keys, class... Values>
