@@ -98,18 +98,29 @@ TEST(ConstexprListTest, FindReturnsMatchingElement) {
 	static_assert(find(oneTwoThreeEmpty, [](auto e) { return e == S<2>{}; }) == S<2>{});
 	static_assert(find(oneTwoThreeEmpty, [](auto e) { return e == S<3>{}; }) == S<3>{});
 	// Should not (and does not) compile with "Element not found" error
-	// find(oneTwoThreeEmpty, [](auto e) { return e == S<4>{}; });
+	//find(oneTwoThreeEmpty, [](auto e) { return e == S<4>{}; });
 
 	constexpr auto oneTwoThreeNonempty = makeConstexprList(1, 2.0, 3.0f);
-	find(oneTwoThreeNonempty, [](auto e) { return static_cast<int>(e) == 1; });
+	static_assert(find(oneTwoThreeNonempty, [](auto e) { return std::is_same_v<decltype(e), int>; }) == 1);
+	static_assert(find(oneTwoThreeNonempty, [](auto e) { return std::is_same_v<decltype(e), double>; }) == 2.0);
+	static_assert(find(oneTwoThreeNonempty, [](auto e) { return std::is_same_v<decltype(e), float>; }) == 3.0f);
+	// Should not (and does not) compile with "Element not found" error
+	//find(oneTwoThreeNonempty, [](auto e) { return std::is_same_v<decltype(e), char>; });
 }
 
 TEST(ConstexprListTest, FilterGetsElementsSatisfyingPredicate) {
-	constexpr auto oneTwoThreeFour = makeConstexprList(S<1>{}, S<2>{}, S<3>{}, S<4>{});
-	constexpr auto twoFour = filter(oneTwoThreeFour, [](auto s) {
+	constexpr auto oneTwoThreeFourEmpty = makeConstexprList(S<1>{}, S<2>{}, S<3>{}, S<4>{});
+	constexpr auto twoFour = filter(oneTwoThreeFourEmpty, [](auto s) {
 			return s.value % 2 == 0;
 		});
 	static_assert(std::is_same_v<std::decay_t<decltype(twoFour)>, ConstexprList<S<2>, S<4>>>);
+
+	constexpr auto oneTwoThreeFourNonempty = makeConstexprList(1, 2.0, 3.0f);
+	constexpr auto twoThree = filter(oneTwoThreeFourNonempty, [](auto s) {
+			return std::is_floating_point_v<decltype(s)>;
+		});
+	static_assert(twoThree.head() == 2.0);
+	static_assert(twoThree.tail().head() == 3.0f);
 }
 
 TEST(ConstexprListTest, TransformReturnsListWithTransformedElements) {

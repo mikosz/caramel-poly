@@ -120,32 +120,31 @@ constexpr auto concatenate(ConstexprList<>, ConstexprList<RhsEntries...> rhs) {
 	return rhs;
 }
 
-template <class Predicate, class Head, class... Tail>
-constexpr auto find([[maybe_unused]] ConstexprList<Head, Tail...> c, Predicate p) {
-	const auto found = p(c.head());
-	if constexpr (found) {
+template <class Head, class... Tail, class MetaPredicate>
+constexpr auto find([[maybe_unused]] ConstexprList<Head, Tail...> c, MetaPredicate p) {
+	if constexpr (p(Head{})) {
 		return c.head();
 	} else {
 		return find(c.tail(), p);
 	}
 }
 
-template <class Predicate>
-constexpr auto find(ConstexprList<>, Predicate) {
+template <class MetaPredicate>
+constexpr auto find(ConstexprList<>, MetaPredicate) {
 	static_assert(false, "Element not found");
 }
 
-template <class Predicate, class Head, class... Tail>
-constexpr auto filter(ConstexprList<Head, Tail...> c, Predicate p) {
+template <class Head, class... Tail, class MetaPredicate>
+constexpr auto filter(ConstexprList<Head, Tail...> c, MetaPredicate p) {
 	if constexpr (p(Head{})) {
-		return prepend(filter(c.tail(), p), Head{});
+		return prepend(filter(c.tail(), p), c.head());
 	} else {
 		return filter(c.tail(), p);
 	}
 }
 
-template <class Predicate>
-constexpr auto filter(ConstexprList<>, Predicate) {
+template <class MetaPredicate>
+constexpr auto filter(ConstexprList<>, MetaPredicate) {
 	return ConstexprList<>{};
 }
 
