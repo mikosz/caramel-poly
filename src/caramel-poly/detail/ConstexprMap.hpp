@@ -66,15 +66,19 @@ public:
 	}
 
 	template <class... OtherEntries>
-	constexpr auto insertAll(ConstexprList<OtherEntries...>) const {
+	constexpr auto insertAll([[maybe_unused]] ConstexprList<OtherEntries...> other) const {
 		if constexpr (empty(ConstexprMap<OtherEntries...>::Entries{})) {
 			return ConstexprMap{};
 		} else {
 			return ConstexprMap{}
-				.insert(ConstexprList<OtherEntries...>{}.head())
-				.insertAll(ConstexprList<OtherEntries...>{}.tail())
+				.insert(other.head())
+				.insertAll(other.tail())
 				;
 		}
+	}
+
+	constexpr auto entries() const {
+		return static_cast<const Parent&>(*this);
 	}
 
 private:

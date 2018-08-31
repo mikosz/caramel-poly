@@ -33,6 +33,26 @@ struct V {
 	int i;
 };
 
+TEST(ConstexprMap, MapOfEmptyElementsHasSize1) {
+	constexpr auto oneTwoThreeEmpty = makeConstexprMap(
+		makeConstexprPair(S<1>{}, T<1>{}),
+		makeConstexprPair(S<2>{}, T<2>{}),
+		makeConstexprPair(S<3>{}, T<3>{})
+		);
+	static_assert(sizeof(oneTwoThreeEmpty) == 1);
+}
+
+TEST(ConstexprMap, MapOfNonemptyElementsHasSizeOfSumOfElements) {
+	// This may not be true in cases where elements are of different sizes, due
+	// to padding, but this is fine for our needs
+	constexpr auto oneTwoThreeNonempty = makeConstexprMap(
+		makeConstexprPair(S<1>{}, 1.0f),
+		makeConstexprPair(S<2>{}, 2.0f),
+		makeConstexprPair(S<3>{}, 3.0f)
+		);
+	static_assert(sizeof(oneTwoThreeNonempty) == 3 * sizeof(float));
+}
+
 TEST(ConstexprMap, ContainsReturnsTrueIfMapHasKey) {
 	constexpr auto map = makeConstexprMap(
 		makeConstexprPair(S<1>{}, T<1>{}),
@@ -90,18 +110,18 @@ TEST(ConstexprMap, InsertAddsEntryIfKeyDoesntExist) {
 }
 
 TEST(ConstexprMap, InsertAllAddsEntriesFromList) {
-	constexpr auto oneTwo = makeConstexprMap(
+	constexpr auto oneTwoEmpty = makeConstexprMap(
 		makeConstexprPair(S<1>{}, T<1>{}),
 		makeConstexprPair(S<2>{}, T<2>{})
 		);
-	constexpr auto twoThree = makeConstexprList(
+	constexpr auto twoThreeEmpty = makeConstexprList(
 		makeConstexprPair(S<2>{}, T<2>{}),
 		makeConstexprPair(S<3>{}, T<3>{})
 		);
-	constexpr auto oneTwoThree = oneTwo.insertAll(twoThree);
+	constexpr auto oneTwoThreeEmpty = oneTwoEmpty.insertAll(twoThreeEmpty);
 	static_assert(
 		std::is_same_v<
-			std::decay_t<decltype(oneTwoThree)>,
+			std::decay_t<decltype(oneTwoThreeEmpty)>,
 			ConstexprMap<
 				ConstexprPair<S<3>, T<3>>,
 				ConstexprPair<S<1>, T<1>>,
@@ -109,6 +129,22 @@ TEST(ConstexprMap, InsertAllAddsEntriesFromList) {
 				>
 			>
 		);
+
+	constexpr auto oneTwoNonempty = makeConstexprMap(
+		makeConstexprPair(S<1>{}, 1),
+		makeConstexprPair(S<2>{}, 2.0)
+		);
+	constexpr auto twoThreeNonempty = makeConstexprList(
+		makeConstexprPair(S<2>{}, '2'),
+		makeConstexprPair(S<3>{}, '3')
+		);
+	constexpr auto oneTwoThreeNonempty = oneTwoNonempty.insertAll(twoThreeNonempty);
+	//static_assert(oneTwoThreeNonempty[S<1>{}] == 1);
+	//static_assert(oneTwoThreeNonempty[S<2>{}] == 2.0);
+	//static_assert(oneTwoThreeNonempty[S<3>{}] == '3');
+	EXPECT_EQ(oneTwoThreeNonempty[S<1>{}] , 1);
+	EXPECT_EQ(oneTwoThreeNonempty[S<2>{}] , 2.0);
+	EXPECT_EQ(oneTwoThreeNonempty[S<3>{}] , '3');
 }
 
 TEST(ConstexprMap, UnionCreatesAMapContainingKeysFromBothMapsLhsValuesHavePriority) {
