@@ -3,8 +3,6 @@
 
 #include <gtest/gtest.h>
 
-#if 0
-
 #include <type_traits>
 
 #include "caramel-poly/vtable.hpp"
@@ -60,12 +58,13 @@ TEST(VTableTest, StoredFunctionsAreAccessible) {
 		detail::ConstexprPair<std::decay_t<decltype(bazName)>, decltype(Interface{}.getSignature(bazName))>
 		>(complete);
 
-	EXPECT_TRUE(vtable.contains(fooName));
-	auto* fooPtr = vtable[fooName];
-	(*fooPtr)(&s);
-
 	EXPECT_EQ(sizeof(vtable), 3 * sizeof(void*));
+
+	EXPECT_TRUE(vtable.contains(fooName));
+	EXPECT_EQ((*vtable[fooName])(&s), 3);
+	EXPECT_EQ((*vtable[barName])(&s, 2), 6);
+	(*vtable[bazName])(&s, 42.12);
+	EXPECT_EQ(s.i, 42);
 }
 
 } // anonymous namespace
-#endif
