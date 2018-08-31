@@ -29,6 +29,11 @@ public:
 	{
 	}
 
+	constexpr ConstexprMap(ConstexprList<ConstexprPair<Keys, Values>...> entries) :
+		ConstexprList<ConstexprPair<Keys, Values>...>(std::move(entries))
+	{
+	}
+
 	template <class Key>
 	constexpr bool contains(Key) const {
 		return anyOf(static_cast<const Parent&>(*this), [](auto e) { return e.first() == Key{}; });
@@ -48,30 +53,28 @@ public:
 	}
 
 	template <class Key, class Value>
-	constexpr auto insert(Key, Value) const {
-		if constexpr (ConstexprMap{}.contains(Key{})) {
-			return ConstexprMap{};
-		} else {
-			return makeConstexprMap(ConstexprPair<Key, Value>{}, ConstexprPair<Keys, Values>{}...);
-		}
+	constexpr auto insert(Key k, Value v) const {
+		return insert(makeConstexprPair(std::move(k), std::move(v)));
 	}
 
 	template <class Key, class Value>
-	constexpr auto insert(ConstexprPair<Key, Value>) const {
+	constexpr auto insert([[maybe_unused]] ConstexprPair<Key, Value> p) const {
 		if constexpr (ConstexprMap{}.contains(Key{})) {
-			return ConstexprMap{};
+			return *this;
 		} else {
-			return makeConstexprMap(ConstexprPair<Key, Value>{}, ConstexprPair<Keys, Values>{}...);
+			return ConstexprMap<ConstexprPair<Key, Value>, ConstexprPair<Keys, Values>...>{
+				prepend(entries(), std::move(p))
+				};
 		}
 	}
 
 	template <class... OtherEntries>
 	constexpr auto insertAll([[maybe_unused]] ConstexprList<OtherEntries...> other) const {
 		if constexpr (empty(ConstexprMap<OtherEntries...>::Entries{})) {
-			return ConstexprMap{};
+			return *this;
 		} else {
-			return ConstexprMap{}
-				.insert(other.head())
+			return
+				insert(other.head())
 				.insertAll(other.tail())
 				;
 		}
@@ -93,13 +96,13 @@ constexpr auto makeConstexprMap(ConstexprPair<Keys, Values>... p) {
 }
 
 template <class... Keys, class... Values>
-constexpr auto makeConstexprMap(ConstexprList<ConstexprPair<Keys, Values>...>) {
-	return ConstexprMap<ConstexprPair<Keys, Values>...>{};
+constexpr auto makeConstexprMap(ConstexprList<ConstexprPair<Keys, Values>...> e) {
+	return ConstexprMap<ConstexprPair<Keys, Values>...>{ std::move(e) };
 }
 
 template <class... LhsEntries, class... RhsEntries>
-constexpr auto mapUnion(ConstexprMap<LhsEntries...>, ConstexprMap<RhsEntries...>) {
-	return ConstexprMap<LhsEntries...>{}.insertAll(ConstexprMap<RhsEntries...>::Entries{});
+constexpr auto mapUnion(ConstexprMap<LhsEntries...> lhs, ConstexprMap<RhsEntries...> rhs) {
+	return lhs.insertAll(rhs.entries());
 }
 
 template <class... Keys, class... Values>

@@ -95,18 +95,29 @@ TEST(ConstexprMap, IndexOperatorAccessesStoredNonemptyValue) {
 }
 
 TEST(ConstexprMap, InsertAddsEntryIfKeyDoesntExist) {
-	constexpr auto empty = makeConstexprMap();
-	constexpr auto one = empty.insert(S<1>{}, T<1>{});
-	static_assert(std::is_same_v<std::decay_t<decltype(one)>, ConstexprMap<ConstexprPair<S<1>, T<1>>>>);
-	constexpr auto stillOne = one.insert(S<1>{}, T<2>{});
-	static_assert(std::is_same_v<decltype(stillOne), decltype(one)>);
-	constexpr auto oneTwo = one.insert(S<2>{}, T<2>{});
-	static_assert(
-		std::is_same_v<
-			std::decay_t<decltype(oneTwo)>,
-			ConstexprMap<ConstexprPair<S<2>, T<2>>, ConstexprPair<S<1>, T<1>>>
-			>
-		);
+	{
+		constexpr auto empty = makeConstexprMap();
+		constexpr auto one = empty.insert(S<1>{}, T<1>{});
+		static_assert(std::is_same_v<std::decay_t<decltype(one)>, ConstexprMap<ConstexprPair<S<1>, T<1>>>>);
+		constexpr auto stillOne = one.insert(S<1>{}, T<2>{});
+		static_assert(std::is_same_v<decltype(stillOne), decltype(one)>);
+		constexpr auto oneTwo = one.insert(S<2>{}, T<2>{});
+		static_assert(
+			std::is_same_v<
+				std::decay_t<decltype(oneTwo)>,
+				ConstexprMap<ConstexprPair<S<2>, T<2>>, ConstexprPair<S<1>, T<1>>>
+				>
+			);
+	}
+
+	{
+		constexpr auto empty = makeConstexprMap();
+		constexpr auto one = empty.insert(S<1>{}, V{ 1 });
+		constexpr auto stillOne = one.insert(S<1>{}, V{ 2 });
+		constexpr auto oneTwo = one.insert(S<2>{}, V{ 2 });
+		static_assert(oneTwo[S<1>{}].i == 1);
+		static_assert(oneTwo[S<2>{}].i == 2);
+	}
 }
 
 TEST(ConstexprMap, InsertAllAddsEntriesFromList) {
@@ -139,33 +150,50 @@ TEST(ConstexprMap, InsertAllAddsEntriesFromList) {
 		makeConstexprPair(S<3>{}, '3')
 		);
 	constexpr auto oneTwoThreeNonempty = oneTwoNonempty.insertAll(twoThreeNonempty);
-	//static_assert(oneTwoThreeNonempty[S<1>{}] == 1);
-	//static_assert(oneTwoThreeNonempty[S<2>{}] == 2.0);
-	//static_assert(oneTwoThreeNonempty[S<3>{}] == '3');
-	EXPECT_EQ(oneTwoThreeNonempty[S<1>{}] , 1);
-	EXPECT_EQ(oneTwoThreeNonempty[S<2>{}] , 2.0);
-	EXPECT_EQ(oneTwoThreeNonempty[S<3>{}] , '3');
+	static_assert(oneTwoThreeNonempty[S<1>{}] == 1);
+	static_assert(oneTwoThreeNonempty[S<2>{}] == 2.0);
+	static_assert(oneTwoThreeNonempty[S<3>{}] == '3');
 }
 
 TEST(ConstexprMap, UnionCreatesAMapContainingKeysFromBothMapsLhsValuesHavePriority) {
-	constexpr auto oneTwoThree = makeConstexprMap(
-		makeConstexprPair(S<1>{}, T<1>{}),
-		makeConstexprPair(S<2>{}, T<2>{}),
-		makeConstexprPair(S<3>{}, T<3>{})
-		);
-	constexpr auto twoFour = makeConstexprMap(
-		makeConstexprPair(S<2>{}, T<123>{}),
-		makeConstexprPair(S<4>{}, T<4>{})
-		);
-	constexpr auto expected = makeConstexprMap(
-		makeConstexprPair(S<4>{}, T<4>{}),
-		makeConstexprPair(S<1>{}, T<1>{}),
-		makeConstexprPair(S<2>{}, T<2>{}),
-		makeConstexprPair(S<3>{}, T<3>{})
-		);
-	constexpr auto got = mapUnion(oneTwoThree, twoFour);
+	{
+		constexpr auto oneTwoThree = makeConstexprMap(
+			makeConstexprPair(S<1>{}, T<1>{}),
+			makeConstexprPair(S<2>{}, T<2>{}),
+			makeConstexprPair(S<3>{}, T<3>{})
+			);
+		constexpr auto twoFour = makeConstexprMap(
+			makeConstexprPair(S<2>{}, T<123>{}),
+			makeConstexprPair(S<4>{}, T<4>{})
+			);
+		constexpr auto expected = makeConstexprMap(
+			makeConstexprPair(S<4>{}, T<4>{}),
+			makeConstexprPair(S<1>{}, T<1>{}),
+			makeConstexprPair(S<2>{}, T<2>{}),
+			makeConstexprPair(S<3>{}, T<3>{})
+			);
+		constexpr auto got = mapUnion(oneTwoThree, twoFour);
 
-	static_assert(std::is_same_v<decltype(got), decltype(expected)>);
+		static_assert(std::is_same_v<decltype(got), decltype(expected)>);
+	}
+
+	{
+		constexpr auto oneTwoThree = makeConstexprMap(
+			makeConstexprPair(S<1>{}, 1),
+			makeConstexprPair(S<2>{}, 2),
+			makeConstexprPair(S<3>{}, 3)
+			);
+		constexpr auto twoFour = makeConstexprMap(
+			makeConstexprPair(S<2>{}, 123),
+			makeConstexprPair(S<4>{}, 4)
+			);
+		constexpr auto got = mapUnion(oneTwoThree, twoFour);
+
+		static_assert(got[S<1>{}] == 1);
+		static_assert(got[S<2>{}] == 2);
+		static_assert(got[S<3>{}] == 3);
+		static_assert(got[S<4>{}] == 4);
+	}
 }
 
 TEST(ConstexprMap, KeysReturnsAListOfAllKeys) {
