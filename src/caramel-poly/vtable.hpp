@@ -62,15 +62,18 @@ struct LocalVTable;
 template <class... Name, class... Clause>
 struct LocalVTable<detail::ConstexprPair<Name, Clause>...> {
 	
+	constexpr LocalVTable() = default;
+
 	template <class ConceptMap>
 	constexpr explicit LocalVTable([[maybe_unused]] ConceptMap map) :
-		vtbl_(detail::makeConstexprMap(
-			detail::makeConstexprPair(
-				Name{},
-				detail::EraseFunction<typename Clause::Type>(map[Name{}])
-				)...
-			)
-		)
+		vtbl_{
+			detail::makeConstexprMap(
+				detail::makeConstexprPair(
+					Name{},
+					detail::EraseFunction<typename Clause::Type>(map[Name{}])
+					)...
+				)
+			}
 	{
 	}
 
@@ -120,21 +123,25 @@ private:
 
 };
 
-#if 0
-
 namespace detail {
+
 template <class VTable, class ConceptMap>
-static VTable const static_vtable{ConceptMap{}};
-}
+static const VTable STATIC_VTABLE{ ConceptMap{} };
+
+} // namespace detail
 
 // Class implementing a vtable whose storage is held remotely. This is
 // basically a pointer to a static instance of the specified `VTable`.
 template <class VTable>
-struct remote_vtable {
+struct RemoteVTable {
+
+	constexpr RemoteVTable() = default;
+
 	template <class ConceptMap>
-	constexpr explicit remote_vtable(ConceptMap)
-		: vptr_{&detail::static_vtable<VTable, ConceptMap>}
-	{ }
+	constexpr explicit RemoteVTable(ConceptMap) :
+		vptr_{&detail::STATIC_VTABLE<VTable, ConceptMap>}
+	{
+	}
 
 	template <class Name>
 	constexpr auto operator[](Name name) const {
@@ -142,17 +149,19 @@ struct remote_vtable {
 	}
 
 	template <class Name>
-	constexpr auto contains(Name name) const {
-		return vptr_->contains(name);
+	constexpr auto contains(Name) const {
+		return VTable{}.contains(Name{});
 	}
 
-	friend void swap(remote_vtable& a, remote_vtable& b) {
+	friend void swap(RemoteVTable& a, RemoteVTable& b) {
 		using std::swap;
 		swap(a.vptr_, b.vptr_);
 	}
 
 private:
-	VTable const* vptr_;
+
+	const VTable* vptr_;
+
 };
 
 // Class implementing a vtable that joins two other vtables.
@@ -162,11 +171,16 @@ private:
 // function is contained in both vtables, since this is most likely a
 // programming error.
 template <class First, class Second>
-struct joined_vtable {
+struct JoinedVTable {
+
+	constexpr JoinedVTable() = default;
+
 	template <class ConceptMap>
-	constexpr explicit joined_vtable(ConceptMap map)
-		: first_{map}, second_{map}
-	{ }
+	constexpr explicit JoinedVTable(ConceptMap map) :
+		first_{map},
+		second_{map}
+	{
+	}
 
 	template <class Name>
 	constexpr auto contains(Name name) const {
@@ -175,40 +189,42 @@ struct joined_vtable {
 
 	template <class Name>
 	constexpr auto operator[](Name name) const {
-		auto first_contains_function = first_.contains(name);
-		auto second_contains_function = second_.contains(name);
+		constexpr auto inFirst = First{}.contains(Name{});
+		constexpr auto inSecond = Second{}.contains(Name{});
 
-		if constexpr (first_contains_function && second_contains_function) {
-			static_assert(!first_contains_function || !second_contains_function,
-				"caramel_poly::joined_vtable::operator[]: Request for a virtual function that is "
+		if constexpr (inFirst && inSecond) {
+			static_assert(!inFirst || !inSecond,
+				"caramel_poly::JoinedVTable::operator[]: Request for a virtual function that is "
 				"contained in both vtables of a joined vtable. Since this is most likely "
 				"a programming error, this is not allowed. You can find the contents of "
 				"the vtable and the function you were trying to access in the compiler "
 				"error message, probably in the following format: "
-				"`joined_vtable<VTABLE 1, VTABLE 2>::operator[]<FUNCTION NAME>`");
-
-		} else if constexpr (!first_contains_function && !second_contains_function) {
-			static_assert(first_contains_function || second_contains_function,
-				"caramel_poly::joined_vtable::operator[]: Request for a virtual function that is "
+				"`JoinedVTable<VTABLE 1, VTABLE 2>::operator[]<FUNCTION NAME>`");
+		} else if constexpr (!inFirst && !inSecond) {
+			static_assert(inFirst || inSecond,
+				"caramel_poly::JoinedVTable::operator[]: Request for a virtual function that is "
 				"not present in any of the joined vtables. Make sure you meant to look "
 				"this function up, and otherwise check whether the two sub-vtables look "
 				"as expected. You can find the contents of the joined vtables and the "
 				"function you were trying to access in the compiler error message, "
 				"probably in the following format: "
-				"`joined_vtable<VTABLE 1, VTABLE 2>::operator[]<FUNCTION NAME>`");
-
-		} else if constexpr (first_contains_function) {
+				"`JoinedVTable<VTABLE 1, VTABLE 2>::operator[]<FUNCTION NAME>`");
+		} else if constexpr (inFirst) {
 			return first_[name];
-
 		} else {
 			return second_[name];
 		}
 	}
 
 private:
+
 	First first_;
+
 	Second second_;
+
 };
+
+#if 0
 
 //////////////////////////////////////////////////////////////////////////////
 // Selectors
@@ -302,7 +318,7 @@ struct remote {
 
 	template <class Concept, class Functions>
 	static constexpr auto create(Concept, Functions functions) {
-		return boost::hana::template_<caramel_poly::remote_vtable>(
+		return boost::hana::template_<caramel_poly::RemoteVTable>(
 			caramel_poly::local<Selector>::create(Concept{}, functions)
 			);
 	}
@@ -337,7 +353,7 @@ constexpr auto generate_vtable(Policies policies) {
 			return boost::hana::make_pair(remaining, new_vtable);
 		} else {
 			auto new_vtable = boost::hana::basic_type<
-				caramel_poly::joined_vtable<
+				caramel_poly::JoinedVTable<
 				class decltype(vtable)::type,
 				class decltype(policy.create(Concept{}, matched))::type
 				>
