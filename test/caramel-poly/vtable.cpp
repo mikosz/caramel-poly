@@ -127,6 +127,8 @@ TEST(VTableTest, OnlySelectsListedFunctions) {
 	using Selector = Only<decltype(fooName), decltype(bazName)>;
 	using Selected = decltype(Selector{}(All{}));
 
+	static_assert(detail::isValidSelector<Selector>);
+
 	static_assert(std::is_same_v<Selected::First, detail::ConstexprList<std::decay_t<decltype(barName)>>>);
 	static_assert(
 		std::is_same_v<
@@ -145,6 +147,8 @@ TEST(VTableTest, ExceptSelectsListedFunctions) {
 	using All = detail::ConstexprList<decltype(fooName), decltype(barName), decltype(bazName)>;
 	using Selector = Except<decltype(barName)>;
 	using Selected = decltype(Selector{}(All{}));
+
+	static_assert(detail::isValidSelector<Selector>);
 
 	static_assert(std::is_same_v<Selected::First, detail::ConstexprList<std::decay_t<decltype(barName)>>>);
 	static_assert(
@@ -165,7 +169,20 @@ TEST(VTableTest, EverythingSelectsAllFunctions) {
 	using Selector = Everything;
 	using Selected = decltype(Selector{}(All{}));
 
+	static_assert(detail::isValidSelector<Selector>);
+
 	static_assert(std::is_same_v<Selected::Second, All>);
+}
+
+TEST(VTableTest, LocalVTableGenerationTest) {
+	auto s = S{ 3 };
+
+	const auto complete = completeConceptMap<Interface, S>(conceptMap<Interface, S>);
+
+	using Generated = VTable<Local<Everything>>;
+	using vtable = Generated::Type<Interface>{complete};
+
+	EXPECT_EQ((*vtable[fooName])(s, 42), 42);
 }
 
 } // anonymous namespace

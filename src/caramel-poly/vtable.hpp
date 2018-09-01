@@ -259,51 +259,45 @@ struct Everything {
 
 using EverythingElse = Everything;
 
-#if 0
-
 namespace detail {
 
 template <class T>
-struct is_valid_selector : boost::hana::false_ {};
+constexpr auto isValidSelector = false;
 
 template <class... Methods>
-struct is_valid_selector<caramel_poly::only<Methods...>>
-	: boost::hana::true_
-{ };
+constexpr auto isValidSelector<caramel_poly::Only<Methods...>> = true;
 
 template <class... Methods>
-struct is_valid_selector<caramel_poly::except<Methods...>>
-	: boost::hana::true_
-{ };
+constexpr auto isValidSelector<caramel_poly::Except<Methods...>> = true;
 
 template <>
-struct is_valid_selector<caramel_poly::everything>
-	: boost::hana::true_
-{ };
+constexpr auto isValidSelector<caramel_poly::Everything> = true;
 
 } // namespace detail
 
 //////////////////////////////////////////////////////////////////////////////
 // Vtable policies
 template <class Selector>
-struct local {
-	static_assert(detail::is_valid_selector<Selector>::value,
-		"caramel_poly::local: Provided invalid selector. Valid selectors are "
-		"'caramel_poly::only<METHODS...>', 'caramel_poly::except<METHODS...>', "
-		"'caramel_poly::everything', and 'caramel_poly::everything_else'.");
+struct Local {
+	static_assert(detail::isValidSelector<Selector>,
+		"caramel_poly::Local: Provided invalid selector. Valid selectors are "
+		"'caramel_poly::Only<METHODS...>', 'caramel_poly::Except<METHODS...>', "
+		"'caramel_poly::Everything', and 'caramel_poly::Everything_else'.");
 
 	template <class Concept, class Functions>
 	static constexpr auto create(Concept, Functions functions) {
-		return boost::hana::unpack(functions, [](auto ...f) {
+		return unpack(functions, [](auto... f) {
 			using VTable = caramel_poly::LocalVTable<
-				boost::hana::pair<decltype(f), decltype(Concept{}.get_signature(f))>...
-			>;
-			return boost::hana::basic_type<VTable>{};
+				ConstexprPair<decltype(f), decltype(Concept{}.getSignature(f))>...
+				>;
+			return VTable{};
 		});
 	}
 
 	Selector selector;
 };
+
+#if 0
 
 template <class Selector>
 struct remote {
@@ -322,48 +316,53 @@ struct remote {
 	Selector selector;
 };
 
+#endif
+
 namespace detail {
+
 // Returns whether a vtable is empty, such that we can completely skip it
 // when composing policies below.
 template <class VTable>
-struct is_empty_vtable : boost::hana::false_ { };
+constexpr auto isEmptyVTable = false;
 
 template <>
-struct is_empty_vtable<caramel_poly::LocalVTable<>> : boost::hana::true_ { };
-} // end namespace detail
+constexpr auto isEmptyVTable<caramel_poly::LocalVTable<>> = true;
+
+} // namespace detail
 
 template <class Concept, class Policies>
-constexpr auto generate_vtable(Policies policies) {
-	auto functions = boost::hana::to_set(caramel_poly::clause_names(Concept{}));
-	auto state = boost::hana::make_pair(functions, boost::hana::basic_type<caramel_poly::LocalVTable<>>{});
-	auto result = boost::hana::fold_left(policies, state, [](auto state, auto policy) {
-		auto functions = boost::hana::first(state);
-		auto vtable = boost::hana::second(state);
+constexpr auto generateVTable(Policies policies) {
+	auto functions = caramel_poly::detail::clauseNames(Concept{});
+	auto state = makeConstexprPair(functions, caramel_poly::LocalVTable<>{});
+	auto result = foldLeft(policies, state, [](auto state, auto policy) {
+		auto functions = state.first();
+		auto vtable = state.second();
 
-		auto selector_split = policy.selector(functions);
-		auto remaining = boost::hana::first(selector_split);
-		auto matched = boost::hana::second(selector_split);
+		state.second().foo();
 
-		if constexpr (detail::is_empty_vtable<class decltype(vtable)::type>{}) {
-			auto new_vtable = decltype(policy.create(Concept{}, matched)){};
-			return boost::hana::make_pair(remaining, new_vtable);
+		auto selectorSplit = policy.selector(functions);
+		auto remaining = selectorSplit.first();
+		auto matched = selectorSplit.second();
+
+		if constexpr (detail::isEmptyVTable<decltype(vtable)::Type>) {
+			auto newVTable = decltype(policy.create(Concept{}, matched)){};
+			return makeConstexprPair(remaining, newVTable);
 		} else {
-			auto new_vtable = boost::hana::basic_type<
-				caramel_poly::JoinedVTable<
-				class decltype(vtable)::type,
-				class decltype(policy.create(Concept{}, matched))::type
+			auto newVTable = caramel_poly::JoinedVTable<
+				decltype(vtable)::Type,
+				decltype(policy.create(Concept{}, matched))::Type
 				>
-			>{};
-			return boost::hana::make_pair(remaining, new_vtable);
+				>{};
+			return makeConstexprPair(remaining, newVTable);
 		}
 	});
 
-	constexpr bool all_functions_were_taken = decltype(boost::hana::length(boost::hana::first(result)))::value == 0;
-	static_assert(all_functions_were_taken,
-		"caramel_poly::vtable: The policies specified in the vtable did not fully cover all "
+	constexpr bool allFunctionsWereTaken = empty(result.first());
+	static_assert(allFunctionsWereTaken,
+		"caramel_poly::VTable: The policies specified in the vtable did not fully cover all "
 		"the functions provided by the concept. Some functions were not mapped to "
 		"any vtable, which is an error");
-	return boost::hana::second(result);
+	return result.second();
 }
 
 // Policy-based interface for defining vtables.
@@ -419,14 +418,14 @@ constexpr auto generate_vtable(Policies policies) {
 //    Equivalent to `caramel_poly::everything`, but prettier to read when other
 //    policies are used before it.
 template <class... Policies>
-struct vtable {
-	template <class Concept>
-	using apply = class decltype(
-		caramel_poly::generate_vtable<Concept>(boost::hana::basic_tuple<Policies...>{})
-		)::type;
-};
+struct VTable {
 
-#endif
+	template <class Concept>
+	using Type = typename decltype(
+		caramel_poly::generateVTable<Concept>(detail::ConstexprList<Policies...>{})
+			)::Type;
+
+};
 
 } // namespace caramel_poly
 
