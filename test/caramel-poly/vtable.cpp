@@ -122,4 +122,50 @@ TEST(VTableTest, JoinedVTableStoredFunctionsAreAccessible) {
 	// vtable[bzzName];
 }
 
+TEST(VTableTest, OnlySelectsListedFunctions) {
+	using All = detail::ConstexprList<decltype(fooName), decltype(barName), decltype(bazName)>;
+	using Selector = Only<decltype(fooName), decltype(bazName)>;
+	using Selected = decltype(Selector{}(All{}));
+
+	static_assert(std::is_same_v<Selected::First, detail::ConstexprList<std::decay_t<decltype(barName)>>>);
+	static_assert(
+		std::is_same_v<
+			Selected::Second,
+			detail::ConstexprList<std::decay_t<decltype(fooName)>, std::decay_t<decltype(bazName)>>
+			>
+		);
+
+	// Should not compile with error "Some functions specified in this selector are not part of
+	// the concept to which the selector was applied"
+	// using NotASubsetSelector = Only<decltype(fooName), decltype(bzzName)>;
+	// using NotASubsetSelected = decltype(NotASubsetSelector{}(All{}));
+}
+
+TEST(VTableTest, ExceptSelectsListedFunctions) {
+	using All = detail::ConstexprList<decltype(fooName), decltype(barName), decltype(bazName)>;
+	using Selector = Except<decltype(barName)>;
+	using Selected = decltype(Selector{}(All{}));
+
+	static_assert(std::is_same_v<Selected::First, detail::ConstexprList<std::decay_t<decltype(barName)>>>);
+	static_assert(
+		std::is_same_v<
+			Selected::Second,
+			detail::ConstexprList<std::decay_t<decltype(bazName)>, std::decay_t<decltype(fooName)>>
+			>
+		);
+
+	// Should not compile with error "Some functions specified in this selector are not part of
+	// the concept to which the selector was applied"
+	// using NotASubsetSelector = Except<decltype(fooName), decltype(bzzName)>;
+	// using NotASubsetSelected = decltype(NotASubsetSelector{}(All{}));
+}
+
+TEST(VTableTest, EverythingSelectsAllFunctions) {
+	using All = detail::ConstexprList<decltype(fooName), decltype(barName), decltype(bazName)>;
+	using Selector = Everything;
+	using Selected = decltype(Selector{}(All{}));
+
+	static_assert(std::is_same_v<Selected::Second, All>);
+}
+
 } // anonymous namespace

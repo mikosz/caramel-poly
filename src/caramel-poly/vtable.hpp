@@ -224,52 +224,47 @@ private:
 
 };
 
-#if 0
-
 //////////////////////////////////////////////////////////////////////////////
 // Selectors
 template <class... Functions>
-struct only {
+struct Only {
 	template <class All>
 	constexpr auto operator()(All all) const {
-		auto matched = boost::hana::make_set(Functions{}...);
-		static_assert(decltype(boost::hana::is_subset(matched, all))::value,
-			"caramel_poly::only: Some functions specified in this selector are not part of "
+		auto matched = makeConstexprList(Functions{}...);
+		static_assert(isSubset(decltype(matched){}, All{}),
+			"caramel_poly::Only: Some functions specified in this selector are not part of "
 			"the concept to which the selector was applied.");
-		return boost::hana::make_pair(
-			boost::hana::difference(all, matched),
-			matched
-		);
+		return makeConstexprPair(difference(all, matched), matched);
 	}
 };
 
 template <class... Functions>
-struct except {
+struct Except {
 	template <class All>
 	constexpr auto operator()(All all) const {
-		auto not_matched = boost::hana::make_set(Functions{}...);
-		static_assert(decltype(boost::hana::is_subset(not_matched, all))::value,
-			"caramel_poly::except: Some functions specified in this selector are not part of "
+		auto notMatched = makeConstexprList(Functions{}...);
+		static_assert(isSubset(decltype(notMatched){}, All{}),
+			"caramel_poly::Except: Some functions specified in this selector are not part of "
 			"the concept to which the selector was applied.");
-		return boost::hana::make_pair(
-			not_matched,
-			boost::hana::difference(all, not_matched)
-		);
+		return makeConstexprPair(notMatched, difference(all, notMatched));
 	}
 };
 
-struct everything {
+struct Everything {
 	template <class All>
 	constexpr auto operator()(All all) const {
-		return boost::hana::make_pair(boost::hana::make_set(), all);
+		return makeConstexprPair(detail::makeConstexprList(), all);
 	}
 };
 
-using everything_else = everything;
+using EverythingElse = Everything;
+
+#if 0
 
 namespace detail {
+
 template <class T>
-struct is_valid_selector : boost::hana::false_ { };
+struct is_valid_selector : boost::hana::false_ {};
 
 template <class... Methods>
 struct is_valid_selector<caramel_poly::only<Methods...>>
@@ -285,10 +280,11 @@ template <>
 struct is_valid_selector<caramel_poly::everything>
 	: boost::hana::true_
 { };
-} // end namespace detail
 
-  //////////////////////////////////////////////////////////////////////////////
-  // Vtable policies
+} // namespace detail
+
+//////////////////////////////////////////////////////////////////////////////
+// Vtable policies
 template <class Selector>
 struct local {
 	static_assert(detail::is_valid_selector<Selector>::value,
