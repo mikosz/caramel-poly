@@ -170,19 +170,46 @@ TEST(VTableTest, EverythingSelectsAllFunctions) {
 	using Selected = decltype(Selector{}(All{}));
 
 	static_assert(detail::isValidSelector<Selector>);
-
 	static_assert(std::is_same_v<Selected::Second, All>);
 }
 
 TEST(VTableTest, LocalVTableGenerationTest) {
+	using All = detail::ConstexprList<decltype(fooName), decltype(barName), decltype(bazName)>;
+	using Selector = Everything;
+	using Selected = decltype(Selector{}(All{}));
+
+	static_assert(detail::isValidSelector<Selector>);
+	static_assert(std::is_same_v<Selected::Second, All>);
+
 	auto s = S{ 3 };
 
 	const auto complete = completeConceptMap<Interface, S>(conceptMap<Interface, S>);
 
 	using Generated = VTable<Local<Everything>>;
-	using vtable = Generated::Type<Interface>{complete};
+	const auto vtable = Generated::Type<Interface>{complete};
 
-	EXPECT_EQ((*vtable[fooName])(s, 42), 42);
+	static_assert(sizeof(vtable, 3 * sizeof(void*)));
+
+	EXPECT_EQ((*vtable[fooName])(&s), 3);
+	EXPECT_EQ((*vtable[barName])(&s, 2), 6);
+	(*vtable[bazName])(&s, 5.5);
+	EXPECT_EQ(s.i, 5);
+}
+
+TEST(VTableTest, SplitVTableGenerationTest) {
+	auto s = S{ 3 };
+
+	const auto complete = completeConceptMap<Interface, S>(conceptMap<Interface, S>);
+
+	using Generated = VTable<Local<Only<decltype(fooName)>>, Remote<EverythingElse>>;
+	const auto vtable = Generated::Type<Interface>{complete};
+
+	static_assert(sizeof(vtable, 2 * sizeof(void*)));
+
+	EXPECT_EQ((*vtable[fooName])(&s), 3);
+	EXPECT_EQ((*vtable[barName])(&s, 2), 6);
+	(*vtable[bazName])(&s, 5.5);
+	EXPECT_EQ(s.i, 5);
 }
 
 } // anonymous namespace

@@ -288,7 +288,7 @@ struct Local {
 	static constexpr auto create(Concept, Functions functions) {
 		return unpack(functions, [](auto... f) {
 			using VTable = caramel_poly::LocalVTable<
-				ConstexprPair<decltype(f), decltype(Concept{}.getSignature(f))>...
+				detail::ConstexprPair<decltype(f), decltype(Concept{}.getSignature(f))>...
 				>;
 			return VTable{};
 		});
@@ -297,26 +297,27 @@ struct Local {
 	Selector selector;
 };
 
-#if 0
-
 template <class Selector>
-struct remote {
-	static_assert(detail::is_valid_selector<Selector>::value,
-		"caramel_poly::remote: Provided invalid selector. Valid selectors are "
-		"'caramel_poly::only<METHODS...>', 'caramel_poly::except<METHODS...>', "
-		"'caramel_poly::everything', and 'caramel_poly::everything_else'.");
+struct Remote {
+	static_assert(detail::isValidSelector<Selector>,
+		"caramel_poly::Remote: Provided invalid selector. Valid selectors are "
+		"'caramel_poly::Only<METHODS...>', 'caramel_poly::Except<METHODS...>', "
+		"'caramel_poly::Everything', and 'caramel_poly::Everything_else'.");
 
 	template <class Concept, class Functions>
 	static constexpr auto create(Concept, Functions functions) {
-		return boost::hana::template_<caramel_poly::RemoteVTable>(
-			caramel_poly::local<Selector>::create(Concept{}, functions)
-			);
+		return unpack(functions, [](auto... f) {
+			using VTable = caramel_poly::RemoteVTable<
+				caramel_poly::LocalVTable<
+					detail::ConstexprPair<decltype(f), decltype(Concept{}.getSignature(f))>...
+					>
+				>;
+			return VTable{};
+		});
 	}
 
 	Selector selector;
 };
-
-#endif
 
 namespace detail {
 
@@ -334,28 +335,27 @@ template <class Concept, class Policies>
 constexpr auto generateVTable(Policies policies) {
 	auto functions = caramel_poly::detail::clauseNames(Concept{});
 	auto state = makeConstexprPair(functions, caramel_poly::LocalVTable<>{});
-	auto result = foldLeft(policies, state, [](auto state, auto policy) {
-		auto functions = state.first();
-		auto vtable = state.second();
 
-		state.second().foo();
+	auto result = foldLeft(state, policies, [](auto state, auto policy) {
+			auto functions = state.first();
+			auto vtable = state.second();
 
-		auto selectorSplit = policy.selector(functions);
-		auto remaining = selectorSplit.first();
-		auto matched = selectorSplit.second();
+			auto selectorSplit = policy.selector(functions);
+			auto remaining = selectorSplit.first();
+			auto matched = selectorSplit.second();
 
-		if constexpr (detail::isEmptyVTable<decltype(vtable)::Type>) {
-			auto newVTable = decltype(policy.create(Concept{}, matched)){};
-			return makeConstexprPair(remaining, newVTable);
-		} else {
-			auto newVTable = caramel_poly::JoinedVTable<
-				decltype(vtable)::Type,
-				decltype(policy.create(Concept{}, matched))::Type
-				>
-				>{};
-			return makeConstexprPair(remaining, newVTable);
-		}
-	});
+			constexpr auto isEmpty = detail::isEmptyVTable<decltype(vtable)>;
+			if constexpr (isEmpty) {
+				auto newVTable = decltype(policy.create(Concept{}, matched)){};
+				return makeConstexprPair(remaining, newVTable);
+			} else {
+				auto newVTable = caramel_poly::JoinedVTable<
+					decltype(vtable),
+					decltype(policy.create(Concept{}, matched))
+					>{};
+				return makeConstexprPair(remaining, newVTable);
+			}
+		});
 
 	constexpr bool allFunctionsWereTaken = empty(result.first());
 	static_assert(allFunctionsWereTaken,
@@ -376,13 +376,13 @@ constexpr auto generateVTable(Policies policies) {
 // by the `Selector` are the ones to which the policy applies. Policies
 // provided by the library are:
 //
-//  caramel_poly::remote<Selector>
+//  caramel_poly::Remote<Selector>
 //    All functions selected by `Selector` will be stored in a remote vtable.
 //    The vtable object is just a pointer to an actual vtable, and each access
 //    to the vtable requires one indirection. In vanilla C++, this is the usual
 //    vtable implementation.
 //
-//  caramel_poly::local<Selector>
+//  caramel_poly::Local<Selector>
 //    All functions selected by `Selector` will be stored in a local vtable.
 //    The vtable object will actually contain function pointers for all the
 //    selected functions. When accessing a virtual function, no additional
@@ -421,9 +421,9 @@ template <class... Policies>
 struct VTable {
 
 	template <class Concept>
-	using Type = typename decltype(
+	using Type = decltype(
 		caramel_poly::generateVTable<Concept>(detail::ConstexprList<Policies...>{})
-			)::Type;
+		);
 
 };
 
