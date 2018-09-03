@@ -10,6 +10,7 @@
 #define CARAMELPOLY_DSL_HPP__
 
 #include "detail/ConstexprList.hpp"
+#include "detail/ConstexprPair.hpp"
 #include "detail/ConstexprString.hpp"
 #include "SelfPlaceholder.hpp"
 

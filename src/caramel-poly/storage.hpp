@@ -17,6 +17,7 @@
 #include <utility>
 
 #include "dsl.hpp"
+#include "builtin.hpp"
 
 namespace caramel_poly {
 
@@ -35,7 +36,7 @@ namespace caramel_poly {
 // A type `Storage` satisfying the `PolymorphicStorage` concept must provide
 // the following functions as part of its interface:
 //
-// template <typename T> explicit Storage(T&&);
+// template <class T> explicit Storage(T&&);
 //  Semantics: Construct an object of type `std::decay_t<T>` in the polymorphic
 //             storage, forward the argument to the constructor of the object
 //             being created. A particular `Storage` class is not expected to
@@ -43,23 +44,23 @@ namespace caramel_poly {
 //             could be too large to fit in a predefined buffer size, in which
 //             case this call would not compile.
 //
-// template <typename VTable> Storage(Storage const&, VTable const&);
+// template <class VTable> Storage(Storage const&, VTable const&);
 //  Semantics: Copy-construct the contents of the polymorphic storage,
 //             assuming the contents of the source storage can be
 //             manipulated using the provided vtable.
 //
-// template <typename VTable> Storage(Storage&&, VTable const&);
+// template <class VTable> Storage(Storage&&, VTable const&);
 //  Semantics: Move-construct the contents of the polymorphic storage,
 //             assuming the contents of the source storage can be
 //             manipulated using the provided vtable.
 //
-// template <typename MyVTable, typename OtherVTable>
+// template <class MyVTable, class OtherVTable>
 // void swap(MyVTable const&, Storage&, OtherVTable const&);
 //  Semantics: Swap the contents of the two polymorphic storages, assuming
 //             `*this` can be manipulated using `MyVTable` and the other
 //             storage can be manipulated using `OtherVTable`.
 //
-// template <typename VTable> void destruct(VTable const&);
+// template <class VTable> void destruct(VTable const&);
 //  Semantics: Destruct the object held inside the polymorphic storage, assuming
 //             that object can be manipulated using the provided vtable. This
 //             must also free any resource required for storing the object.
@@ -76,12 +77,12 @@ namespace caramel_poly {
 //             automatically because the destructor of `any_iterator` will
 //             not be called.
 //
-// template <typename T = void> T* get();
+// template <class T = void> T* get();
 //  Semantics: Return a pointer of type `T` to the object inside the polymorphic
 //             storage. If `T` is not the actual type of the object stored
 //             inside the polymorphic storage, the behavior is undefined.
 //
-// template <typename T = void> T const* get() const;
+// template <class T = void> T const* get() const;
 //  Semantics: Return a pointer of type `T` to the object inside the polymorphic
 //             storage. If `T` is not the actual type of the object stored
 //             inside the polymorphic storage, the behavior is undefined.
@@ -100,7 +101,7 @@ namespace caramel_poly {
 //         retrieve the size of the type from it and get rid of `uses_heap_`.
 //       - We could also use the low bits of the pointer to the vtable for
 //         `uses_heap_`.
-template <std::size_t SIZE, std::size_t ALIGN = -1u>
+template <std::size_t SIZE, std::size_t ALIGN = static_cast<std::size_t>(-1)>
 class SBOStorage {
 public:
 
@@ -110,7 +111,7 @@ public:
 	SBOStorage& operator=(SBOStorage&&) = delete;
 	SBOStorage& operator=(const SBOStorage&) = delete;
 
-	template <typename T, typename RawT = std::decay_t<T>>
+	template <class T, class RawT = std::decay_t<T>>
 	explicit SBOStorage(T&& t) {
 		// TODO: We could also construct the object at an aligned address within
 		// the buffer, which would require computing the right address everytime
@@ -120,6 +121,7 @@ public:
 			new (&sb_) RawT(std::forward<T>(t));
 		} else {
 			usesHeap_ = true;
+			// #TODO_Caramel: extract to allocator
 			ptr_ = std::malloc(sizeof(RawT));
 			// TODO: Allocating and then calling the constructor is not
 			//       exception-safe if the constructor throws.
@@ -129,51 +131,50 @@ public:
 		}
 	}
 
-
-	skoñczy³em tutej!!!!!!!!!!
-
-	template <typename VTable>
+	template <class VTable>
 	SBOStorage(const SBOStorage& other, const VTable& vtable) {
-		if (other.uses_heap()) {
-			auto info = vtable["storage_info"_s]();
+		if (other.usesHeap_) {
+			auto info = vtable[STORAGE_INFO_LABEL]();
 			usesHeap_ = true;
+			// #TODO_Caramel: extract to allocator
 			ptr_ = std::malloc(info.size);
 			// TODO: That's not a really nice way to handle this
 			assert(ptr_ != nullptr && "std::malloc failed, we're doomed");
-			vtable["copy-construct"_s](ptr_, other.get());
+			vtable[COPY_CONSTRUCT_LABEL](ptr_, other.get());
 		} else {
 			usesHeap_ = false;
-			vtable["copy-construct"_s](&sb_, other.get());
+			vtable[COPY_CONSTRUCT_LABEL](&sb_, other.get());
 		}
 	}
 
-	template <typename VTable>
-	SBOStorage(SBOStorage&& other, VTable const& vtable)
-		: usesHeap_{other.uses_heap()}
+	template <class VTable>
+	SBOStorage(SBOStorage&& other, const VTable& vtable) :
+		usesHeap_{other.usesHeap_}
 	{
-		if (uses_heap()) {
+		if (usesHeap_) {
 			this->ptr_ = other.ptr_;
 			other.ptr_ = nullptr;
 		} else {
-			vtable["move-construct"_s](this->get(), other.get());
+			vtable[MOVE_CONSTRUCT_LABEL](this->get(), other.get());
 		}
 	}
 
-	template <typename MyVTable, typename OtherVTable>
-	void swap(MyVTable const& this_vtable, SBOStorage& other, OtherVTable const& other_vtable) {
-		if (this == &other)
+	template <class ThisVTable, class OtherVTable>
+	void swap(const ThisVTable& thisVTable, SBOStorage& other, const OtherVTable& otherVTable) {
+		if (this == &other) {
 			return;
+		}
 
-		if (this->uses_heap()) {
-			if (other.uses_heap()) {
-				std::swap(this->ptr_, other.ptr_);
-
+		if (this->usesHeap_) {
+			if (other.usesHeap_) {
+				using std::swap;
+				swap(this->ptr_, other.ptr_);
 			} else {
-				void *ptr = this->ptr_;
+				void* ptr = this->ptr_;
 
 				// Bring `other`'s contents to `*this`, destructively
-				other_vtable["move-construct"_s](&this->sb_, &other.sb_);
-				other_vtable["destruct"_s](&other.sb_);
+				otherVTable[MOVE_CONSTRUCT_LABEL](&this->sb_, &other.sb_);
+				otherVTable[DESTRUCT_LABEL](&other.sb_);
 				this->usesHeap_ = false;
 
 				// Bring `*this`'s stuff to `other`
@@ -181,12 +182,12 @@ public:
 				other.usesHeap_ = true;
 			}
 		} else {
-			if (other.uses_heap()) {
+			if (other.usesHeap_) {
 				void *ptr = other.ptr_;
 
 				// Bring `*this`'s contents to `other`, destructively
-				this_vtable["move-construct"_s](&other.sb_, &this->sb_);
-				this_vtable["destruct"_s](&this->sb_);
+				thisVTable[MOVE_CONSTRUCT_LABEL](&other.sb_, &this->sb_);
+				thisVTable[DESTRUCT_LABEL](&this->sb_);
 				other.usesHeap_ = false;
 
 				// Bring `other`'s stuff to `*this`
@@ -196,48 +197,49 @@ public:
 			} else {
 				// Move `other` into temporary local storage, destructively.
 				SBStorage tmp;
-				other_vtable["move-construct"_s](&tmp, &other.sb_);
-				other_vtable["destruct"_s](&other.sb_);
+				otherVTable[MOVE_CONSTRUCT_LABEL](&tmp, &other.sb_);
+				otherVTable[DESTRUCT_LABEL](&other.sb_);
 
 				// Move `*this` into `other`, destructively.
-				this_vtable["move-construct"_s](&other.sb_, &this->sb_);
-				this_vtable["destruct"_s](&this->sb_);
+				thisVTable[MOVE_CONSTRUCT_LABEL](&other.sb_, &this->sb_);
+				thisVTable[DESTRUCT_LABEL](&this->sb_);
 
 				// Now, bring `tmp` into `*this`, destructively.
-				other_vtable["move-construct"_s](&this->sb_, &tmp);
-				other_vtable["destruct"_s](&tmp);
+				otherVTable[MOVE_CONSTRUCT_LABEL](&this->sb_, &tmp);
+				otherVTable[DESTRUCT_LABEL](&tmp);
 			}
 		}
 	}
 
-	template <typename VTable>
+	template <class VTable>
 	void destruct(VTable const& vtable) {
-		if (uses_heap()) {
+		if (usesHeap_) {
 			// If we've been moved from, don't do anything.
 			if (ptr_ == nullptr)
 				return;
 
-			vtable["destruct"_s](ptr_);
+			vtable[DESTRUCT_LABEL](ptr_);
 			std::free(ptr_);
 		} else {
-			vtable["destruct"_s](&sb_);
+			vtable[DESTRUCT_LABEL](&sb_);
 		}
 	}
 
-	template <typename T = void>
+	template <class T = void>
 	T* get() {
-		return static_cast<T*>(uses_heap() ? ptr_ : &sb_);
+		return static_cast<T*>(usesHeap_ ? ptr_ : &sb_);
 	}
 
-	template <typename T = void>
-	T const* get() const {
-		return static_cast<T const*>(uses_heap() ? ptr_ : &sb_);
+	template <class T = void>
+	const T* get() const {
+		return static_cast<const T*>(usesHeap_() ? ptr_ : &sb_);
 	}
 
 private:
 
 	static constexpr std::size_t SBSIZE = (SIZE < sizeof(void*)) ? sizeof(void*) : SIZE;
-	static constexpr std::size_t SBALIGN = (ALIGN == -1u) ? alignof(std::aligned_storage_t<SBSIZE>) : ALIGN;
+	static constexpr std::size_t SBALIGN =
+		(ALIGN == static_cast<std::size_t>(-1)) ? alignof(std::aligned_storage_t<SBSIZE>) : ALIGN;
 	using SBStorage = std::aligned_storage_t<SBSIZE, SBALIGN>;
 
 	union {
@@ -254,6 +256,8 @@ private:
 
 };
 
+#if 0
+
 // Class implementing storage on the heap. Just like the `sbo_storage`, it
 // only handles allocation and deallocation; construction and destruction
 // must be handled externally.
@@ -264,7 +268,7 @@ struct remote_storage {
 	remote_storage& operator=(remote_storage&&) = delete;
 	remote_storage& operator=(remote_storage const&) = delete;
 
-	template <typename T, typename RawT = std::decay_t<T>>
+	template <class T, class RawT = std::decay_t<T>>
 	explicit remote_storage(T&& t)
 		: ptr_{std::malloc(sizeof(RawT))}
 	{
@@ -274,44 +278,44 @@ struct remote_storage {
 		new (ptr_) RawT(std::forward<T>(t));
 	}
 
-	template <typename VTable>
+	template <class VTable>
 	remote_storage(remote_storage const& other, VTable const& vtable)
-		: ptr_{std::malloc(vtable["storage_info"_s]().size)}
+		: ptr_{std::malloc(vtable[STORAGE_INFO_LABEL]().size)}
 	{
 		// TODO: That's not a really nice way to handle this
 		assert(ptr_ != nullptr && "std::malloc failed, we're doomed");
 
-		vtable["copy-construct"_s](this->get(), other.get());
+		vtable[COPY_CONSTRUCT_LABEL](this->get(), other.get());
 	}
 
-	template <typename VTable>
+	template <class VTable>
 	remote_storage(remote_storage&& other, VTable const&)
 		: ptr_{other.ptr_}
 	{
 		other.ptr_ = nullptr;
 	}
 
-	template <typename MyVTable, typename OtherVTable>
-	void swap(MyVTable const&, remote_storage& other, OtherVTable const&) {
+	template <class ThisVTable, class OtherVTable>
+	void swap(ThisVTable const&, remote_storage& other, OtherVTable const&) {
 		std::swap(this->ptr_, other.ptr_);
 	}
 
-	template <typename VTable>
+	template <class VTable>
 	void destruct(VTable const& vtable) {
 		// If we've been moved from, don't do anything.
 		if (ptr_ == nullptr)
 			return;
 
-		vtable["destruct"_s](ptr_);
+		vtable[DESTRUCT_LABEL](ptr_);
 		std::free(ptr_);
 	}
 
-	template <typename T = void>
+	template <class T = void>
 	T* get() {
 		return static_cast<T*>(ptr_);
 	}
 
-	template <typename T = void>
+	template <class T = void>
 	T const* get() const {
 		return static_cast<T const*>(ptr_);
 	}
@@ -342,38 +346,38 @@ struct shared_remote_storage {
 	shared_remote_storage& operator=(shared_remote_storage&&) = delete;
 	shared_remote_storage& operator=(shared_remote_storage const&) = delete;
 
-	template <typename T, typename RawT = std::decay_t<T>>
+	template <class T, class RawT = std::decay_t<T>>
 	explicit shared_remote_storage(T&& t)
 		: ptr_{std::make_shared<RawT>(std::forward<T>(t))}
 	{ }
 
-	template <typename VTable>
+	template <class VTable>
 	shared_remote_storage(shared_remote_storage const& other, VTable const&)
 		: ptr_{other.ptr_}
 	{ }
 
-	template <typename VTable>
+	template <class VTable>
 	shared_remote_storage(shared_remote_storage&& other, VTable const&)
 		: ptr_{std::move(other.ptr_)}
 	{ }
 
-	template <typename MyVTable, typename OtherVTable>
-	void swap(MyVTable const&, shared_remote_storage& other, OtherVTable const&) {
+	template <class ThisVTable, class OtherVTable>
+	void swap(ThisVTable const&, shared_remote_storage& other, OtherVTable const&) {
 		using std::swap;
 		swap(this->ptr_, other.ptr_);
 	}
 
-	template <typename VTable>
+	template <class VTable>
 	void destruct(VTable const&) {
 		ptr_.reset();
 	}
 
-	template <typename T = void>
+	template <class T = void>
 	T* get() {
 		return static_cast<T*>(ptr_.get());
 	}
 
-	template <typename T = void>
+	template <class T = void>
 	T const* get() const {
 		return static_cast<T const*>(ptr_.get());
 	}
@@ -411,7 +415,7 @@ public:
 		return info.size <= sizeof(SBStorage) && alignof(SBStorage) % info.alignment == 0;
 	}
 
-	template <typename T, typename RawT = std::decay_t<T>>
+	template <class T, class RawT = std::decay_t<T>>
 	explicit local_storage(T&& t) {
 		// TODO: We could also construct the object at an aligned address within
 		// the buffer, which would require computing the right address everytime
@@ -423,54 +427,54 @@ public:
 		new (&buffer_) RawT(std::forward<T>(t));
 	}
 
-	template <typename VTable>
+	template <class VTable>
 	local_storage(local_storage const& other, VTable const& vtable) {
-		assert(can_store(vtable["storage_info"_s]()) &&
+		assert(can_store(vtable[STORAGE_INFO_LABEL]()) &&
 			"caramel_poly::local_storage: Trying to copy-construct using a vtable that "
 			"describes an object that won't fit in the storage.");
 
-		vtable["copy-construct"_s](this->get(), other.get());
+		vtable[COPY_CONSTRUCT_LABEL](this->get(), other.get());
 	}
 
-	template <typename VTable>
+	template <class VTable>
 	local_storage(local_storage&& other, VTable const& vtable) {
-		assert(can_store(vtable["storage_info"_s]()) &&
+		assert(can_store(vtable[STORAGE_INFO_LABEL]()) &&
 			"caramel_poly::local_storage: Trying to move-construct using a vtable that "
 			"describes an object that won't fit in the storage.");
 
-		vtable["move-construct"_s](this->get(), other.get());
+		vtable[MOVE_CONSTRUCT_LABEL](this->get(), other.get());
 	}
 
-	template <typename MyVTable, typename OtherVTable>
-	void swap(MyVTable const& this_vtable, local_storage& other, OtherVTable const& other_vtable) {
+	template <class ThisVTable, class OtherVTable>
+	void swap(ThisVTable const& this_vtable, local_storage& other, OtherVTable const& other_vtable) {
 		if (this == &other)
 			return;
 
 		// Move `other` into temporary local storage, destructively.
 		SBStorage tmp;
-		other_vtable["move-construct"_s](&tmp, &other.buffer_);
-		other_vtable["destruct"_s](&other.buffer_);
+		other_vtable[MOVE_CONSTRUCT_LABEL](&tmp, &other.buffer_);
+		other_vtable[DESTRUCT_LABEL](&other.buffer_);
 
 		// Move `*this` into `other`, destructively.
-		this_vtable["move-construct"_s](&other.buffer_, &this->buffer_);
-		this_vtable["destruct"_s](&this->buffer_);
+		this_vtable[MOVE_CONSTRUCT_LABEL](&other.buffer_, &this->buffer_);
+		this_vtable[DESTRUCT_LABEL](&this->buffer_);
 
 		// Now, bring `tmp` into `*this`, destructively.
-		other_vtable["move-construct"_s](&this->buffer_, &tmp);
-		other_vtable["destruct"_s](&tmp);
+		other_vtable[MOVE_CONSTRUCT_LABEL](&this->buffer_, &tmp);
+		other_vtable[DESTRUCT_LABEL](&tmp);
 	}
 
-	template <typename VTable>
+	template <class VTable>
 	void destruct(VTable const& vtable) {
-		vtable["destruct"_s](&buffer_);
+		vtable[DESTRUCT_LABEL](&buffer_);
 	}
 
-	template <typename T = void>
+	template <class T = void>
 	T* get() {
 		return static_cast<T*>(static_cast<void*>(&buffer_));
 	}
 
-	template <typename T = void>
+	template <class T = void>
 	T const* get() const {
 		return static_cast<T const*>(static_cast<void const*>(&buffer_));
 	}
@@ -487,35 +491,35 @@ struct non_owning_storage {
 	non_owning_storage& operator=(non_owning_storage&&) = delete;
 	non_owning_storage& operator=(non_owning_storage const&) = delete;
 
-	template <typename T>
+	template <class T>
 	explicit non_owning_storage(T& t)
 		: ptr_{&t}
 	{ }
 
-	template <typename VTable>
+	template <class VTable>
 	non_owning_storage(non_owning_storage const& other, VTable const&)
 		: ptr_{other.ptr_}
 	{ }
 
-	template <typename VTable>
+	template <class VTable>
 	non_owning_storage(non_owning_storage&& other, VTable const&)
 		: ptr_{other.ptr_}
 	{ }
 
-	template <typename MyVTable, typename OtherVTable>
-	void swap(MyVTable const&, non_owning_storage& other, OtherVTable const&) {
+	template <class ThisVTable, class OtherVTable>
+	void swap(ThisVTable const&, non_owning_storage& other, OtherVTable const&) {
 		std::swap(this->ptr_, other.ptr_);
 	}
 
-	template <typename VTable>
+	template <class VTable>
 	void destruct(VTable const&) { }
 
-	template <typename T = void>
+	template <class T = void>
 	T* get() {
 		return static_cast<T*>(ptr_);
 	}
 
-	template <typename T = void>
+	template <class T = void>
 	T const* get() const {
 		return static_cast<T const*>(ptr_);
 	}
@@ -546,7 +550,7 @@ private:
 // - Technically, this could be used to implement `sbo_storage`. However,
 //   benchmarks show that `sbo_storage` is significantly more efficient.
 //   We should try to optimize `fallback_storage` so that it can replace sbo.
-template <typename First, typename Second>
+template <class First, class Second>
 class fallback_storage {
 	union { First first_; Second second_; };
 	bool in_first_;
@@ -560,13 +564,13 @@ public:
 	fallback_storage& operator=(fallback_storage&&) = delete;
 	fallback_storage& operator=(fallback_storage const&) = delete;
 
-	template <typename T, typename RawT = std::decay_t<T>,
-		typename = std::enable_if_t<First::can_store(caramel_poly::storage_info_for<RawT>)>>
+	template <class T, class RawT = std::decay_t<T>,
+		class = std::enable_if_t<First::can_store(caramel_poly::storage_info_for<RawT>)>>
 		explicit fallback_storage(T&& t) : in_first_{true}
 	{ new (&first_) First{std::forward<T>(t)}; }
 
-	template <typename T, typename RawT = std::decay_t<T>, typename = void,
-		typename = std::enable_if_t<!First::can_store(caramel_poly::storage_info_for<RawT>)>>
+	template <class T, class RawT = std::decay_t<T>, class = void,
+		class = std::enable_if_t<!First::can_store(caramel_poly::storage_info_for<RawT>)>>
 		explicit fallback_storage(T&& t) : in_first_{false} {
 		static_assert(can_store(caramel_poly::storage_info_for<RawT>),
 			"caramel_poly::fallback_storage<First, Second>: Trying to construct from a type "
@@ -575,7 +579,7 @@ public:
 		new (&second_) Second{std::forward<T>(t)};
 	}
 
-	template <typename VTable>
+	template <class VTable>
 	fallback_storage(fallback_storage const& other, VTable const& vtable)
 		: in_first_{other.in_first_}
 	{
@@ -585,7 +589,7 @@ public:
 			new (&second_) Second{other.second_, vtable};
 	}
 
-	template <typename VTable>
+	template <class VTable>
 	fallback_storage(fallback_storage&& other, VTable const& vtable)
 		: in_first_{other.in_first_}
 	{
@@ -596,8 +600,8 @@ public:
 	}
 
 	// TODO: With a destructive move, we could avoid all the calls to `destruct` below.
-	template <typename MyVTable, typename OtherVTable>
-	void swap(MyVTable const& this_vtable, fallback_storage& other, OtherVTable const& other_vtable) {
+	template <class ThisVTable, class OtherVTable>
+	void swap(ThisVTable const& this_vtable, fallback_storage& other, OtherVTable const& other_vtable) {
 		if (this->in_first()) {
 			if (other.in_first()) {
 				this->first_.swap(this_vtable, other.first_, other_vtable);
@@ -639,7 +643,7 @@ public:
 		}
 	}
 
-	template <typename VTable>
+	template <class VTable>
 	void destruct(VTable const& vtable) {
 		if (in_first())
 			first_.destruct(vtable);
@@ -647,13 +651,13 @@ public:
 			second_.destruct(vtable);
 	}
 
-	template <typename T = void>
+	template <class T = void>
 	T* get() {
 		return static_cast<T*>(in_first() ? first_.template get<T>()
 			: second_.template get<T>());
 	}
 
-	template <typename T = void>
+	template <class T = void>
 	T const* get() const {
 		return static_cast<T const*>(in_first() ? first_.template get<T>()
 			: second_.template get<T>());
@@ -663,6 +667,8 @@ public:
 		return First::can_store(info) || Second::can_store(info);
 	}
 };
+
+#endif
 
 } // end namespace caramel_poly
 
