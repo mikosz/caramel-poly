@@ -2,6 +2,7 @@
 // Distributed under the MIT license (See accompanying file LICENSE)
 
 #include <gtest/gtest.h>
+#include <gtest/gtest-typed-test.h>
 
 #include <type_traits>
 
@@ -34,13 +35,18 @@ TEST(SBOStorageTest, StoresNonFittingDataExternally) {
 		);
 }
 
-TEST(StorageTest, DestroysStoredObject) {
-	using TestValue = SBOStorage<sizeof(void*)>;
+template <class T>
+struct StorageTest : ::testing::Test {
+};
 
+using StorageTestTypes = ::testing::Types<SBOStorage<sizeof(void*)>, RemoteStorage>;
+TYPED_TEST_CASE(StorageTest, StorageTestTypes);
+
+TYPED_TEST(StorageTest, DestroysStoredObject) {
 	auto registry = test::ConstructionRegistry();
 
 	{
-		auto s = TestValue(test::ConstructionRegistry::Object(registry));
+		auto s = TypeParam(test::ConstructionRegistry::Object(registry));
 
 		const auto complete = completeConceptMap<Destructible, test::ConstructionRegistry::Object>(
 			conceptMap<Destructible, test::ConstructionRegistry::Object>);
@@ -53,49 +59,43 @@ TEST(StorageTest, DestroysStoredObject) {
 	EXPECT_TRUE(registry.allDestructed());
 }
 
-TEST(StorageTest, MovesStoredObject) {
-	using TestValue = SBOStorage<sizeof(void*)>;
-
+TYPED_TEST(StorageTest, MovesStoredObject) {
 	auto registry = test::ConstructionRegistry();
 
 	{
 		auto original = test::ConstructionRegistry::Object(registry);
-		auto s = TestValue(std::move(original));
+		auto s = TypeParam(std::move(original));
 
 		const auto complete = completeConceptMap<MoveConstructible, test::ConstructionRegistry::Object>(
 			conceptMap<MoveConstructible, test::ConstructionRegistry::Object>);
 		using VTable = VTable<Local<Everything>>;
 		auto vtable = VTable::Type<MoveConstructible>{complete};
 
-		auto m = TestValue(std::move(s), vtable);
+		auto m = TypeParam(std::move(s), vtable);
 
 		const auto& state = m.get<test::ConstructionRegistry::Object>()->state();
 		EXPECT_TRUE(state.moveConstructed);
 		EXPECT_EQ(state.original, &original);
-		EXPECT_EQ(state.immediateOriginal, s.get<test::ConstructionRegistry::Object>());
 	}
 }
 
-TEST(StorageTest, CopiesStoredObject) {
-	using TestValue = SBOStorage<sizeof(void*)>;
-
+TYPED_TEST(StorageTest, CopiesStoredObject) {
 	auto registry = test::ConstructionRegistry();
 
 	{
 		auto original = test::ConstructionRegistry::Object(registry);
-		auto s = TestValue(original);
+		auto s = TypeParam(original);
 
 		const auto complete = completeConceptMap<CopyConstructible, test::ConstructionRegistry::Object>(
 			conceptMap<CopyConstructible, test::ConstructionRegistry::Object>);
 		using VTable = VTable<Local<Everything>>;
 		auto vtable = VTable::Type<CopyConstructible>{complete};
 
-		auto m = TestValue(s, vtable);
+		auto m = TypeParam(s, vtable);
 
 		const auto& state = m.get<test::ConstructionRegistry::Object>()->state();
 		EXPECT_TRUE(state.copyConstructed);
 		EXPECT_EQ(state.original, &original);
-		EXPECT_EQ(state.immediateOriginal, s.get<test::ConstructionRegistry::Object>());
 	}
 }
 

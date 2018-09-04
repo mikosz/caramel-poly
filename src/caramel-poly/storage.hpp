@@ -256,21 +256,19 @@ private:
 
 };
 
-#if 0
-
-// Class implementing storage on the heap. Just like the `sbo_storage`, it
+// Class implementing storage on the heap. Just like the `SBOStorage`, it
 // only handles allocation and deallocation; construction and destruction
 // must be handled externally.
-struct remote_storage {
-	remote_storage() = delete;
-	remote_storage(remote_storage const&) = delete;
-	remote_storage(remote_storage&&) = delete;
-	remote_storage& operator=(remote_storage&&) = delete;
-	remote_storage& operator=(remote_storage const&) = delete;
+struct RemoteStorage {
+	RemoteStorage() = delete;
+	RemoteStorage(const RemoteStorage&) = delete;
+	RemoteStorage(RemoteStorage&&) = delete;
+	RemoteStorage& operator=(RemoteStorage&&) = delete;
+	RemoteStorage& operator=(RemoteStorage const&) = delete;
 
 	template <class T, class RawT = std::decay_t<T>>
-	explicit remote_storage(T&& t)
-		: ptr_{std::malloc(sizeof(RawT))}
+	explicit RemoteStorage(T&& t) :
+		ptr_{std::malloc(sizeof(RawT))}
 	{
 		// TODO: That's not a really nice way to handle this
 		assert(ptr_ != nullptr && "std::malloc failed, we're doomed");
@@ -279,8 +277,8 @@ struct remote_storage {
 	}
 
 	template <class VTable>
-	remote_storage(remote_storage const& other, VTable const& vtable)
-		: ptr_{std::malloc(vtable[STORAGE_INFO_LABEL]().size)}
+	RemoteStorage(const RemoteStorage& other, const VTable& vtable) :
+		ptr_{std::malloc(vtable[STORAGE_INFO_LABEL]().size)}
 	{
 		// TODO: That's not a really nice way to handle this
 		assert(ptr_ != nullptr && "std::malloc failed, we're doomed");
@@ -289,22 +287,23 @@ struct remote_storage {
 	}
 
 	template <class VTable>
-	remote_storage(remote_storage&& other, VTable const&)
-		: ptr_{other.ptr_}
+	RemoteStorage(RemoteStorage&& other, const VTable&) :
+		ptr_{other.ptr_}
 	{
 		other.ptr_ = nullptr;
 	}
 
 	template <class ThisVTable, class OtherVTable>
-	void swap(ThisVTable const&, remote_storage& other, OtherVTable const&) {
+	void swap(const ThisVTable&, RemoteStorage& other, const OtherVTable&) {
 		std::swap(this->ptr_, other.ptr_);
 	}
 
 	template <class VTable>
-	void destruct(VTable const& vtable) {
+	void destruct(const VTable& vtable) {
 		// If we've been moved from, don't do anything.
-		if (ptr_ == nullptr)
+		if (ptr_ == nullptr) {
 			return;
+		}
 
 		vtable[DESTRUCT_LABEL](ptr_);
 		std::free(ptr_);
@@ -316,17 +315,17 @@ struct remote_storage {
 	}
 
 	template <class T = void>
-	T const* get() const {
-		return static_cast<T const*>(ptr_);
-	}
-
-	static constexpr bool can_store(caramel_poly::storage_info) {
-		return true;
+	const T* get() const {
+		return static_cast<const T*>(ptr_);
 	}
 
 private:
+
 	void* ptr_;
+
 };
+
+#if 0
 
 // Class implementing shared remote storage.
 //
@@ -339,30 +338,30 @@ private:
 //   vtable instead.
 // - For remote storage policies, should it be possible to specify whether the
 //   pointed-to storage is const?
-struct shared_remote_storage {
-	shared_remote_storage() = delete;
-	shared_remote_storage(shared_remote_storage const&) = delete;
-	shared_remote_storage(shared_remote_storage&&) = delete;
-	shared_remote_storage& operator=(shared_remote_storage&&) = delete;
-	shared_remote_storage& operator=(shared_remote_storage const&) = delete;
+struct shared_RemoteStorage {
+	shared_RemoteStorage() = delete;
+	shared_RemoteStorage(shared_RemoteStorage const&) = delete;
+	shared_RemoteStorage(shared_RemoteStorage&&) = delete;
+	shared_RemoteStorage& operator=(shared_RemoteStorage&&) = delete;
+	shared_RemoteStorage& operator=(shared_RemoteStorage const&) = delete;
 
 	template <class T, class RawT = std::decay_t<T>>
-	explicit shared_remote_storage(T&& t)
+	explicit shared_RemoteStorage(T&& t)
 		: ptr_{std::make_shared<RawT>(std::forward<T>(t))}
 	{ }
 
 	template <class VTable>
-	shared_remote_storage(shared_remote_storage const& other, VTable const&)
+	shared_RemoteStorage(shared_RemoteStorage const& other, VTable const&)
 		: ptr_{other.ptr_}
 	{ }
 
 	template <class VTable>
-	shared_remote_storage(shared_remote_storage&& other, VTable const&)
+	shared_RemoteStorage(shared_RemoteStorage&& other, VTable const&)
 		: ptr_{std::move(other.ptr_)}
 	{ }
 
 	template <class ThisVTable, class OtherVTable>
-	void swap(ThisVTable const&, shared_remote_storage& other, OtherVTable const&) {
+	void swap(ThisVTable const&, shared_RemoteStorage& other, OtherVTable const&) {
 		using std::swap;
 		swap(this->ptr_, other.ptr_);
 	}
@@ -538,7 +537,7 @@ private:
 // When the primary storage can be used to store a type, it is used. When it
 // can't, however, the secondary storage is used instead. This can be used
 // to implement a small buffer optimization, by using `caramel_poly::local_storage` as
-// the primary storage, and `caramel_poly::remote_storage` as the secondary.
+// the primary storage, and `caramel_poly::RemoteStorage` as the secondary.
 //
 // TODO:
 // - Consider implementing this by storing a pointer to the active object.
