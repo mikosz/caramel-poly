@@ -39,7 +39,11 @@ template <class T>
 struct StorageTest : ::testing::Test {
 };
 
-using StorageTestTypes = ::testing::Types<SBOStorage<sizeof(void*)>, RemoteStorage>;
+using StorageTestTypes = ::testing::Types<
+	SBOStorage<sizeof(void*)>,
+	RemoteStorage,
+	SharedRemoteStorage
+	>;
 TYPED_TEST_CASE(StorageTest, StorageTestTypes);
 
 TYPED_TEST(StorageTest, DestroysStoredObject) {
