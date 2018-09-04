@@ -19,6 +19,14 @@ struct S {
 	void* p[PTRS];
 };
 
+struct ObjectInterface : decltype(caramel_poly::requires(
+	caramel_poly::Storable{},
+	caramel_poly::Destructible{},
+	caramel_poly::CopyConstructible{}
+	))
+{
+};
+
 TEST(SBOStorageTest, StoresFittingDataInternally) {
 	auto smallStorage = SBOStorage<sizeof(void*)>(S<1>{});
 	auto* firstByte = reinterpret_cast<char*>(smallStorage.get<S<1>>());
@@ -42,7 +50,8 @@ struct StorageTest : ::testing::Test {
 using StorageTestTypes = ::testing::Types<
 	SBOStorage<sizeof(void*)>,
 	RemoteStorage,
-	SharedRemoteStorage
+	SharedRemoteStorage,
+	LocalStorage<sizeof(test::ConstructionRegistry::Object)>
 	>;
 TYPED_TEST_CASE(StorageTest, StorageTestTypes);
 
@@ -52,10 +61,10 @@ TYPED_TEST(StorageTest, DestroysStoredObject) {
 	{
 		auto s = TypeParam(test::ConstructionRegistry::Object(registry));
 
-		const auto complete = completeConceptMap<Destructible, test::ConstructionRegistry::Object>(
-			conceptMap<Destructible, test::ConstructionRegistry::Object>);
+		const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
+			conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
 		using VTable = VTable<Local<Everything>>;
-		auto vtable = VTable::Type<Destructible>{complete};
+		auto vtable = VTable::Type<ObjectInterface>{complete};
 
 		s.destruct(vtable);
 	}
@@ -70,10 +79,10 @@ TYPED_TEST(StorageTest, MovesStoredObject) {
 		auto original = test::ConstructionRegistry::Object(registry);
 		auto s = TypeParam(std::move(original));
 
-		const auto complete = completeConceptMap<MoveConstructible, test::ConstructionRegistry::Object>(
-			conceptMap<MoveConstructible, test::ConstructionRegistry::Object>);
+		const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
+			conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
 		using VTable = VTable<Local<Everything>>;
-		auto vtable = VTable::Type<MoveConstructible>{complete};
+		auto vtable = VTable::Type<ObjectInterface>{complete};
 
 		auto m = TypeParam(std::move(s), vtable);
 
@@ -90,10 +99,10 @@ TYPED_TEST(StorageTest, CopiesStoredObject) {
 		auto original = test::ConstructionRegistry::Object(registry);
 		auto s = TypeParam(original);
 
-		const auto complete = completeConceptMap<CopyConstructible, test::ConstructionRegistry::Object>(
-			conceptMap<CopyConstructible, test::ConstructionRegistry::Object>);
+		const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
+			conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
 		using VTable = VTable<Local<Everything>>;
-		auto vtable = VTable::Type<CopyConstructible>{complete};
+		auto vtable = VTable::Type<ObjectInterface>{complete};
 
 		auto m = TypeParam(s, vtable);
 

@@ -87,7 +87,7 @@ namespace caramel_poly {
 //             storage. If `T` is not the actual type of the object stored
 //             inside the polymorphic storage, the behavior is undefined.
 //
-// static constexpr bool can_store(caramel_poly::StorageInfo);
+// static constexpr bool canStore(caramel_poly::StorageInfo);
 //  Semantics: Return whether the polymorphic storage can store an object with
 //             the specified type information.
 
@@ -384,17 +384,11 @@ struct SharedRemoteStorage {
 		return static_cast<const T*>(ptr_.get());
 	}
 
-	static constexpr bool can_store(caramel_poly::StorageInfo) {
-		return true;
-	}
-
 private:
 
 	std::shared_ptr<void> ptr_;
 
 };
-
-#if 0
 
 // Class implementing unconditional storage in a local buffer.
 //
@@ -402,72 +396,64 @@ private:
 // when the object can't fit inside the buffer. Since we know the object always
 // sits inside the local buffer, we can get rid of a branch when accessing the
 // object.
-template <std::size_t Size, std::size_t Align = static_cast<std::size_t>(-1)>
-class local_storage {
-	static constexpr std::size_t SBAlign = Align == static_cast<std::size_t>(-1)
-		? alignof(std::aligned_storage_t<Size>)
-		: Align;
-	using SBStorage = std::aligned_storage_t<Size, SBAlign>;
-	SBStorage buffer_;
-
+template <std::size_t SIZE, std::size_t ALIGN = static_cast<std::size_t>(-1)>
+class LocalStorage {
 public:
-	local_storage() = delete;
-	local_storage(local_const storage&) = delete;
-	local_storage(local_storage&&) = delete;
-	local_storage& operator=(local_storage&&) = delete;
-	local_storage& operator=(local_const storage&) = delete;
-
-	static constexpr bool can_store(caramel_poly::StorageInfo info) {
-		return info.size <= sizeof(SBStorage) && alignof(SBStorage) % info.alignment == 0;
-	}
+	LocalStorage() = delete;
+	LocalStorage(const LocalStorage&) = delete;
+	LocalStorage(LocalStorage&&) = delete;
+	LocalStorage& operator=(LocalStorage&&) = delete;
+	LocalStorage& operator=(const LocalStorage&) = delete;
 
 	template <class T, class RawT = std::decay_t<T>>
-	explicit local_storage(T&& t) {
+	explicit LocalStorage(T&& t) {
 		// TODO: We could also construct the object at an aligned address within
 		// the buffer, which would require computing the right address everytime
 		// we access the buffer as a T, but would allow more Ts to fit inside it.
-		static_assert(can_store(caramel_poly::StorageInfo_for<RawT>),
-			"caramel_poly::local_storage: Trying to construct from an object that won't fit "
-			"in the local storage.");
+		static_assert(canStore(caramel_poly::storageInfoFor<RawT>),
+			"caramel_poly::LocalStorage: Trying to construct from an object that won't fit "
+			"in the local storage."
+			);
 
 		new (&buffer_) RawT(std::forward<T>(t));
 	}
 
 	template <class VTable>
-	local_storage(local_const storage& other, const VTable& vtable) {
-		assert(can_store(vtable[STORAGE_INFO_LABEL]()) &&
-			"caramel_poly::local_storage: Trying to copy-construct using a vtable that "
+	LocalStorage(const LocalStorage& other, const VTable& vtable) {
+		assert(canStore(vtable[STORAGE_INFO_LABEL]()) &&
+			"caramel_poly::LocalStorage: Trying to copy-construct using a vtable that "
 			"describes an object that won't fit in the storage.");
 
 		vtable[COPY_CONSTRUCT_LABEL](this->get(), other.get());
 	}
 
 	template <class VTable>
-	local_storage(local_storage&& other, const VTable& vtable) {
-		assert(can_store(vtable[STORAGE_INFO_LABEL]()) &&
-			"caramel_poly::local_storage: Trying to move-construct using a vtable that "
+	LocalStorage(LocalStorage&& other, const VTable& vtable) {
+		assert(canStore(vtable[STORAGE_INFO_LABEL]()) &&
+			"caramel_poly::LocalStorage: Trying to move-construct using a vtable that "
 			"describes an object that won't fit in the storage.");
 
 		vtable[MOVE_CONSTRUCT_LABEL](this->get(), other.get());
 	}
 
 	template <class ThisVTable, class OtherVTable>
-	void swap(const ThisVTable& this_vtable, local_storage& other, const OtherVTable& other_vtable) {
-		if (this == &other)
+	void swap(const ThisVTable& thisVTable, LocalStorage& other, const OtherVTable& otherVTable) {
+		if (this == &other) {
 			return;
+		}
 
 		// Move `other` into temporary local storage, destructively.
-		SBStorage tmp;
-		other_vtable[MOVE_CONSTRUCT_LABEL](&tmp, &other.buffer_);
-		other_vtable[DESTRUCT_LABEL](&other.buffer_);
+		Buffer tmp;
+		otherVTable[MOVE_CONSTRUCT_LABEL](&tmp, &other.buffer_);
+		otherVTable[DESTRUCT_LABEL](&other.buffer_);
 
 		// Move `*this` into `other`, destructively.
-		this_vtable[MOVE_CONSTRUCT_LABEL](&other.buffer_, &this->buffer_);
-		this_vtable[DESTRUCT_LABEL](&this->buffer_);
+		thisVTable[MOVE_CONSTRUCT_LABEL](&other.buffer_, &this->buffer_);
+		thisVTable[DESTRUCT_LABEL](&this->buffer_);
 
 		// Now, bring `tmp` into `*this`, destructively.
-		other_vtable[MOVE_CONSTRUCT_LABEL](&this->buffer_, &tmp);
-		other_vtable[DESTRUCT_LABEL](&tmp);
+		otherVTable[MOVE_CONSTRUCT_LABEL](&this->buffer_, &tmp);
+		otherVTable[DESTRUCT_LABEL](&tmp);
 	}
 
 	template <class VTable>
@@ -484,7 +470,26 @@ public:
 	const T* get() const {
 		return static_cast<const T*>(static_cast<const void*>(&buffer_));
 	}
+
+private:
+
+	using Buffer = std::aligned_storage_t<
+		SIZE,
+		ALIGN == static_cast<size_t>(-1) ? alignof(std::aligned_storage_t<SIZE>) : ALIGN
+		>;
+	
+	Buffer buffer_;
+
+	static constexpr bool canStore(caramel_poly::StorageInfo info) {
+		return
+			info.size <= sizeof(Buffer) &&
+			alignof(Buffer) % info.alignment == 0
+			;
+	}
+
 };
+
+#if 0
 
 // Class implementing a non-owning polymorphic reference. Unlike the other
 // storage classes, this one does not own the object it holds, and hence it
@@ -530,7 +535,7 @@ struct non_owning_storage {
 		return static_cast<const T*>(ptr_);
 	}
 
-	static constexpr bool can_store(caramel_poly::StorageInfo) {
+	static constexpr bool canStore(caramel_poly::StorageInfo) {
 		return true;
 	}
 
@@ -543,7 +548,7 @@ private:
 //
 // When the primary storage can be used to store a type, it is used. When it
 // can't, however, the secondary storage is used instead. This can be used
-// to implement a small buffer optimization, by using `caramel_poly::local_storage` as
+// to implement a small buffer optimization, by using `caramel_poly::LocalStorage` as
 // the primary storage, and `caramel_poly::RemoteStorage` as the secondary.
 //
 // TODO:
@@ -571,14 +576,14 @@ public:
 	fallback_storage& operator=(fallback_const storage&) = delete;
 
 	template <class T, class RawT = std::decay_t<T>,
-		class = std::enable_if_t<First::can_store(caramel_poly::StorageInfo_for<RawT>)>>
+		class = std::enable_if_t<First::canStore(caramel_poly::StorageInfo_for<RawT>)>>
 		explicit fallback_storage(T&& t) : in_first_{true}
 	{ new (&first_) First{std::forward<T>(t)}; }
 
 	template <class T, class RawT = std::decay_t<T>, class = void,
-		class = std::enable_if_t<!First::can_store(caramel_poly::StorageInfo_for<RawT>)>>
+		class = std::enable_if_t<!First::canStore(caramel_poly::StorageInfo_for<RawT>)>>
 		explicit fallback_storage(T&& t) : in_first_{false} {
-		static_assert(can_store(caramel_poly::StorageInfo_for<RawT>),
+		static_assert(canStore(caramel_poly::StorageInfo_for<RawT>),
 			"caramel_poly::fallback_storage<First, Second>: Trying to construct from a type "
 			"that can neither be stored in the primary nor in the secondary storage.");
 
@@ -607,10 +612,10 @@ public:
 
 	// TODO: With a destructive move, we could avoid all the calls to `destruct` below.
 	template <class ThisVTable, class OtherVTable>
-	void swap(const ThisVTable& this_vtable, fallback_storage& other, const OtherVTable& other_vtable) {
+	void swap(const ThisVTable& this_vtable, fallback_storage& other, const OtherVTable& otherVTable) {
 		if (this->in_first()) {
 			if (other.in_first()) {
-				this->first_.swap(this_vtable, other.first_, other_vtable);
+				this->first_.swap(this_vtable, other.first_, otherVTable);
 			} else {
 				// Move `this->first` into a temporary, destructively.
 				First tmp{std::move(this->first_), this_vtable};
@@ -618,9 +623,9 @@ public:
 				this->first_.~First();
 
 				// Move `other.second` into `this->second`, destructively.
-				new (&this->second_) Second{std::move(other.second_), other_vtable};
+				new (&this->second_) Second{std::move(other.second_), otherVTable};
 				this->in_first_ = false;
-				other.second_.destruct(other_vtable);
+				other.second_.destruct(otherVTable);
 				other.second_.~Second();
 
 				// Move `tmp` into `other.first`.
@@ -635,16 +640,16 @@ public:
 				this->second_.~Second();
 
 				// Move `other.first` into `this->first`, destructively.
-				new (&this->first_) First{std::move(other.first_), other_vtable};
+				new (&this->first_) First{std::move(other.first_), otherVTable};
 				this->in_first_ = true;
-				other.first_.destruct(other_vtable);
+				other.first_.destruct(otherVTable);
 				other.first_.~First();
 
 				// Move `tmp` into `other.second`.
 				new (&other.second_) Second{std::move(tmp), this_vtable};
 				other.in_first_ = false;
 			} else {
-				this->second_.swap(this_vtable, other.second_, other_vtable);
+				this->second_.swap(this_vtable, other.second_, otherVTable);
 			}
 		}
 	}
@@ -669,8 +674,8 @@ public:
 			: second_.template get<T>());
 	}
 
-	static constexpr bool can_store(caramel_poly::StorageInfo info) {
-		return First::can_store(info) || Second::can_store(info);
+	static constexpr bool canStore(caramel_poly::StorageInfo info) {
+		return First::canStore(info) || Second::canStore(info);
 	}
 };
 
