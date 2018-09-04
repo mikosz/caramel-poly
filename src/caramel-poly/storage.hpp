@@ -212,7 +212,7 @@ public:
 	}
 
 	template <class VTable>
-	void destruct(VTable const& vtable) {
+	void destruct(const VTable& vtable) {
 		if (usesHeap_) {
 			// If we've been moved from, don't do anything.
 			if (ptr_ == nullptr)
@@ -232,7 +232,7 @@ public:
 
 	template <class T = void>
 	const T* get() const {
-		return static_cast<const T*>(usesHeap_() ? ptr_ : &sb_);
+		return static_cast<const T*>(usesHeap_ ? ptr_ : &sb_);
 	}
 
 private:

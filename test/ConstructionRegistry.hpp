@@ -27,6 +27,7 @@ public:
 		bool moveConstructed = false;
 		bool moveAssigned = false;
 		bool destructed = false;
+		const Object* immediateOriginal = nullptr;
 		const Object* original = nullptr;
 	};
 
@@ -38,6 +39,7 @@ public:
 		{
 			registry_.get(this).constructed = true;
 			registry_.get(this).original = this;
+			registry_.get(this).immediateOriginal = this;
 		}
 
 		Object(const Object& other) :
@@ -45,12 +47,14 @@ public:
 		{
 			registry_.get(this).copyConstructed = true;
 			registry_.get(this).original = registry_.states_[&other].original;
+			registry_.get(this).immediateOriginal = &other;
 		}
 
 		Object& operator=(const Object& other) {
 			assert(&registry_ == &other.registry_);
 			registry_.get(this).copyAssigned = true;
 			registry_.get(this).original = registry_.states_[&other].original;
+			registry_.get(this).immediateOriginal = &other;
 			return *this;
 		}
 
@@ -59,12 +63,14 @@ public:
 		{
 			registry_.get(this).moveConstructed = true;
 			registry_.get(this).original = registry_.states_[&other].original;
+			registry_.get(this).immediateOriginal = &other;
 		}
 
 		Object& operator=(Object&& other) {
 			assert(&registry_ == &other.registry_);
 			registry_.get(this).moveAssigned = true;
 			registry_.get(this).original = registry_.states_[&other].original;
+			registry_.get(this).immediateOriginal = &other;
 			return *this;
 		}
 
