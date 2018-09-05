@@ -55,19 +55,35 @@ using StorageTestTypes = ::testing::Types<
 	>;
 TYPED_TEST_CASE(StorageTest, StorageTestTypes);
 
+TYPED_TEST(StorageTest, HasStorageInfoForObject) {
+	auto registry = test::ConstructionRegistry();
+
+	auto s = TypeParam(test::ConstructionRegistry::Object(registry));
+
+	const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
+		conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
+	using VTable = VTable<Local<Everything>>;
+	auto vtable = VTable::Type<ObjectInterface>{complete};
+
+	const auto storageInfo = vtable[STORAGE_INFO_LABEL]();
+
+	EXPECT_EQ(storageInfoFor<test::ConstructionRegistry::Object>.size, sizeof(test::ConstructionRegistry::Object));
+
+	//EXPECT_EQ(storageInfo.size, sizeof(test::ConstructionRegistry::Object));
+	//EXPECT_EQ(storageInfo.alignment, alignof(test::ConstructionRegistry::Object));
+}
+
 TYPED_TEST(StorageTest, DestroysStoredObject) {
 	auto registry = test::ConstructionRegistry();
 
-	{
-		auto s = TypeParam(test::ConstructionRegistry::Object(registry));
+	auto s = TypeParam(test::ConstructionRegistry::Object(registry));
 
-		const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
-			conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
-		using VTable = VTable<Local<Everything>>;
-		auto vtable = VTable::Type<ObjectInterface>{complete};
+	const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
+		conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
+	using VTable = VTable<Local<Everything>>;
+	auto vtable = VTable::Type<ObjectInterface>{complete};
 
-		s.destruct(vtable);
-	}
+	s.destruct(vtable);
 
 	EXPECT_TRUE(registry.allDestructed());
 }
@@ -75,41 +91,37 @@ TYPED_TEST(StorageTest, DestroysStoredObject) {
 TYPED_TEST(StorageTest, MovesStoredObject) {
 	auto registry = test::ConstructionRegistry();
 
-	{
-		auto original = test::ConstructionRegistry::Object(registry);
-		auto s = TypeParam(std::move(original));
+	auto original = test::ConstructionRegistry::Object(registry);
+	auto s = TypeParam(std::move(original));
 
-		const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
-			conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
-		using VTable = VTable<Local<Everything>>;
-		auto vtable = VTable::Type<ObjectInterface>{complete};
+	const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
+		conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
+	using VTable = VTable<Local<Everything>>;
+	auto vtable = VTable::Type<ObjectInterface>{complete};
 
-		auto m = TypeParam(std::move(s), vtable);
+	auto m = TypeParam(std::move(s), vtable);
 
-		const auto& state = m.get<test::ConstructionRegistry::Object>()->state();
-		EXPECT_TRUE(state.moveConstructed);
-		EXPECT_EQ(state.original, &original);
-	}
+	const auto& state = m.get<test::ConstructionRegistry::Object>()->state();
+	EXPECT_TRUE(state.moveConstructed);
+	EXPECT_EQ(state.original, &original);
 }
 
 TYPED_TEST(StorageTest, CopiesStoredObject) {
 	auto registry = test::ConstructionRegistry();
 
-	{
-		auto original = test::ConstructionRegistry::Object(registry);
-		auto s = TypeParam(original);
+	auto original = test::ConstructionRegistry::Object(registry);
+	auto s = TypeParam(original);
 
-		const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
-			conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
-		using VTable = VTable<Local<Everything>>;
-		auto vtable = VTable::Type<ObjectInterface>{complete};
+	const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
+		conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
+	using VTable = VTable<Local<Everything>>;
+	auto vtable = VTable::Type<ObjectInterface>{complete};
 
-		auto m = TypeParam(s, vtable);
+	auto c = TypeParam(s, vtable);
 
-		const auto& state = m.get<test::ConstructionRegistry::Object>()->state();
-		EXPECT_TRUE(state.copyConstructed);
-		EXPECT_EQ(state.original, &original);
-	}
+	const auto& state = c.get<test::ConstructionRegistry::Object>()->state();
+	EXPECT_TRUE(state.copyConstructed);
+	EXPECT_EQ(state.original, &original);
 }
 
 } // anonymous namespace
