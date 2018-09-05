@@ -116,7 +116,7 @@ public:
 		// TODO: We could also construct the object at an aligned address within
 		// the buffer, which would require computing the right address everytime
 		// we access the buffer as a T, but would allow more Ts to fit in the SBO.
-		if constexpr (canStore(caramel_poly::storageInfoFor<RawT>)) {
+		if constexpr (canStore(caramel_poly::storageInfoFor<RawT>())) {
 			usesHeap_ = false;
 			new (&sb_) RawT(std::forward<T>(t));
 		} else {
@@ -410,7 +410,7 @@ public:
 		// TODO: We could also construct the object at an aligned address within
 		// the buffer, which would require computing the right address everytime
 		// we access the buffer as a T, but would allow more Ts to fit inside it.
-		static_assert(canStore(caramel_poly::storageInfoFor<RawT>),
+		static_assert(canStore(caramel_poly::storageInfoFor<RawT>()),
 			"caramel_poly::LocalStorage: Trying to construct from an object that won't fit "
 			"in the local storage."
 			);

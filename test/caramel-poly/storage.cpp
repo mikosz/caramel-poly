@@ -67,10 +67,8 @@ TYPED_TEST(StorageTest, HasStorageInfoForObject) {
 
 	const auto storageInfo = vtable[STORAGE_INFO_LABEL]();
 
-	EXPECT_EQ(storageInfoFor<test::ConstructionRegistry::Object>.size, sizeof(test::ConstructionRegistry::Object));
-
-	//EXPECT_EQ(storageInfo.size, sizeof(test::ConstructionRegistry::Object));
-	//EXPECT_EQ(storageInfo.alignment, alignof(test::ConstructionRegistry::Object));
+	EXPECT_EQ(storageInfo.size, sizeof(test::ConstructionRegistry::Object));
+	EXPECT_EQ(storageInfo.alignment, alignof(test::ConstructionRegistry::Object));
 }
 
 TYPED_TEST(StorageTest, DestroysStoredObject) {

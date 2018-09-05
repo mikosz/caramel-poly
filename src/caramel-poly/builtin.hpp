@@ -35,8 +35,13 @@ struct StorageInfo {
 	std::size_t alignment;
 };
 
+// #TODO_Caramel: for some reason on Visual C++ I get StorageInfo{ 0, 0 } if I use the template-variable
+// version, that's why I switched to a constexpr function. The variable is probably more elegant though,
+// so try to get back to it in future.
 template <typename T>
-constexpr auto storageInfoFor = StorageInfo{sizeof(T), alignof(T)};
+constexpr auto storageInfoFor() {
+	return StorageInfo{ sizeof(T), alignof(T) };
+}
 
 struct Storable : decltype(caramel_poly::requires(
 	STORAGE_INFO_LABEL = caramel_poly::function<caramel_poly::StorageInfo()>
@@ -46,7 +51,7 @@ struct Storable : decltype(caramel_poly::requires(
 
 template <typename T>
 auto const defaultConceptMap<Storable, T> = caramel_poly::makeConceptMap(
-	STORAGE_INFO_LABEL = []() { return caramel_poly::storageInfoFor<T>; }
+	STORAGE_INFO_LABEL = []() { return caramel_poly::storageInfoFor<T>(); }
 	);
 
 
