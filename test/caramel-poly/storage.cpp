@@ -44,82 +44,199 @@ TEST(SBOStorageTest, StoresNonFittingDataExternally) {
 }
 
 template <class T>
-struct StorageTest : ::testing::Test {
+struct AllStorageTest : ::testing::Test {};
+template <class T>
+struct RemoteStorageTest : ::testing::Test {};
+template <class T>
+struct LocalStorageTest : ::testing::Test {};
+template <class T>
+struct OwningStorageTest : ::testing::Test {};
+template <class T>
+struct NonOwningStorageTest : ::testing::Test {};
+
+template <class StorageTypeT, class ObjectTypeT>
+struct StorageScenario {
+	using StorageType = StorageTypeT;
+	using ObjectType = ObjectTypeT;
 };
 
-using StorageTestTypes = ::testing::Types<
-	SBOStorage<sizeof(void*)>,
-	RemoteStorage,
-	SharedRemoteStorage,
-	LocalStorage<sizeof(test::ConstructionRegistry::Object)>
-	>;
-TYPED_TEST_CASE(StorageTest, StorageTestTypes);
+using SmallObject = test::ConstructionRegistry::Object;
 
-TYPED_TEST(StorageTest, HasStorageInfoForObject) {
+template <size_t BYTES>
+struct BigObject : test::ConstructionRegistry::Object {
+	char _[BYTES - sizeof(test::ConstructionRegistry::Object)];
+	using test::ConstructionRegistry::Object::Object;
+};
+
+using StorageScenarioSBOFitting = StorageScenario<SBOStorage<sizeof(SmallObject)>, SmallObject>;
+using StorageScenarioSBONonFitting = StorageScenario<SBOStorage<sizeof(SmallObject)>, BigObject<128>>;
+using StorageScenarioRemote = StorageScenario<RemoteStorage, SmallObject>;
+using StorageScenarioSharedRemote = StorageScenario<SharedRemoteStorage, SmallObject>;
+using StorageScenarioLocal = StorageScenario<LocalStorage<sizeof(SmallObject)>, SmallObject>;
+using StorageScenarioNonOwning = StorageScenario<NonOwningStorage, SmallObject>;
+
+using AllStorageTestTypes = ::testing::Types<
+	StorageScenarioSBOFitting,
+	StorageScenarioSBONonFitting,
+	StorageScenarioRemote,
+	StorageScenarioSharedRemote,
+	StorageScenarioLocal,
+	StorageScenarioNonOwning
+	>;
+TYPED_TEST_CASE(AllStorageTest, AllStorageTestTypes);
+
+using RemoteStorageTestTypes = ::testing::Types<
+	StorageScenarioSBONonFitting,
+	StorageScenarioRemote,
+	StorageScenarioSharedRemote,
+	StorageScenarioNonOwning
+	>;
+TYPED_TEST_CASE(RemoteStorageTest, RemoteStorageTestTypes);
+
+using LocalStorageTestTypes = ::testing::Types<
+	StorageScenarioSBOFitting,
+	StorageScenarioLocal
+	>;
+TYPED_TEST_CASE(LocalStorageTest, LocalStorageTestTypes);
+
+using OwningStorageTestTypes = ::testing::Types<
+	StorageScenarioSBOFitting,
+	StorageScenarioSBONonFitting,
+	StorageScenarioRemote,
+	StorageScenarioSharedRemote,
+	StorageScenarioLocal
+>;
+TYPED_TEST_CASE(OwningStorageTest, OwningStorageTestTypes);
+
+using NonOwningStorageTestTypes = ::testing::Types<
+	StorageScenarioNonOwning
+>;
+TYPED_TEST_CASE(NonOwningStorageTest, NonOwningStorageTestTypes);
+
+TYPED_TEST(AllStorageTest, HasStorageInfoForObject) {
+	using Storage = TypeParam::StorageType;
+	using Object = TypeParam::ObjectType;
+
 	auto registry = test::ConstructionRegistry();
 
-	auto s = TypeParam(test::ConstructionRegistry::Object(registry));
+	auto original = Object(registry);
+	Storage s{original};
 
-	const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
-		conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
+	const auto complete = completeConceptMap<ObjectInterface, Object>(conceptMap<ObjectInterface, Object>);
 	using VTable = VTable<Local<Everything>>;
 	auto vtable = VTable::Type<ObjectInterface>{complete};
 
 	const auto storageInfo = vtable[STORAGE_INFO_LABEL]();
 
-	EXPECT_EQ(storageInfo.size, sizeof(test::ConstructionRegistry::Object));
-	EXPECT_EQ(storageInfo.alignment, alignof(test::ConstructionRegistry::Object));
+	EXPECT_EQ(storageInfo.size, sizeof(Object));
+	EXPECT_EQ(storageInfo.alignment, alignof(Object));
 }
 
-TYPED_TEST(StorageTest, DestroysStoredObject) {
+TYPED_TEST(AllStorageTest, DestroysStoredObject) {
+	using Storage = TypeParam::StorageType;
+	using Object = TypeParam::ObjectType;
+
 	auto registry = test::ConstructionRegistry();
 
-	auto s = TypeParam(test::ConstructionRegistry::Object(registry));
+	{
+		auto original = Object(registry);
+		Storage s{original};
 
-	const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
-		conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
-	using VTable = VTable<Local<Everything>>;
-	auto vtable = VTable::Type<ObjectInterface>{complete};
+		const auto complete = completeConceptMap<ObjectInterface, Object>(
+			conceptMap<ObjectInterface, Object>);
+		using VTable = VTable<Local<Everything>>;
+		auto vtable = VTable::Type<ObjectInterface>{complete};
 
-	s.destruct(vtable);
+		s.destruct(vtable);
+	}
 
 	EXPECT_TRUE(registry.allDestructed());
 }
 
-TYPED_TEST(StorageTest, MovesStoredObject) {
+TYPED_TEST(LocalStorageTest, MovesStoredObject) {
+	using Storage = TypeParam::StorageType;
+	using Object = TypeParam::ObjectType;
+
 	auto registry = test::ConstructionRegistry();
 
-	auto original = test::ConstructionRegistry::Object(registry);
-	auto s = TypeParam(std::move(original));
+	auto original = Object(registry);
+	Storage s{original};
 
-	const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
-		conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
+	const auto complete = completeConceptMap<ObjectInterface, Object>(
+		conceptMap<ObjectInterface, Object>);
 	using VTable = VTable<Local<Everything>>;
 	auto vtable = VTable::Type<ObjectInterface>{complete};
 
-	auto m = TypeParam(std::move(s), vtable);
+	auto m = Storage(std::move(s), vtable);
 
-	const auto& state = m.get<test::ConstructionRegistry::Object>()->state();
+	const auto& state = m.get<Object>()->state();
 	EXPECT_TRUE(state.moveConstructed);
 	EXPECT_EQ(state.original, &original);
 }
 
-TYPED_TEST(StorageTest, CopiesStoredObject) {
+TYPED_TEST(RemoteStorageTest, MovesPointerToStoredObject) {
+	using Storage = TypeParam::StorageType;
+	using Object = TypeParam::ObjectType;
+
 	auto registry = test::ConstructionRegistry();
 
-	auto original = test::ConstructionRegistry::Object(registry);
-	auto s = TypeParam(original);
+	auto original = Object(registry);
+	Storage s{original};
+	auto* storedData = s.get<Object>();
 
-	const auto complete = completeConceptMap<ObjectInterface, test::ConstructionRegistry::Object>(
-		conceptMap<ObjectInterface, test::ConstructionRegistry::Object>);
+	const auto complete = completeConceptMap<ObjectInterface, Object>(
+		conceptMap<ObjectInterface, Object>);
 	using VTable = VTable<Local<Everything>>;
 	auto vtable = VTable::Type<ObjectInterface>{complete};
 
-	auto c = TypeParam(s, vtable);
+	auto m = Storage(std::move(s), vtable);
 
-	const auto& state = c.get<test::ConstructionRegistry::Object>()->state();
+	if constexpr (!std::is_same_v<Storage, NonOwningStorage>) {
+		EXPECT_EQ(s.get<Object>(), reinterpret_cast<Object*>(nullptr));
+	}
+	EXPECT_EQ(m.get<Object>(), storedData);
+}
+
+TYPED_TEST(OwningStorageTest, CopiesStoredObject) {
+	using Storage = TypeParam::StorageType;
+	using Object = TypeParam::ObjectType;
+
+	auto registry = test::ConstructionRegistry();
+
+	auto original = Object(registry);
+	auto s = Storage(original);
+
+	const auto complete = completeConceptMap<ObjectInterface, Object>(
+		conceptMap<ObjectInterface, Object>);
+	using VTable = VTable<Local<Everything>>;
+	auto vtable = VTable::Type<ObjectInterface>{complete};
+
+	auto c = Storage(s, vtable);
+
+	const auto& state = c.get<Object>()->state();
 	EXPECT_TRUE(state.copyConstructed);
 	EXPECT_EQ(state.original, &original);
+}
+
+TYPED_TEST(NonOwningStorageTest, CopiesPointerToStoredObject) {
+	using Storage = TypeParam::StorageType;
+	using Object = TypeParam::ObjectType;
+
+	auto registry = test::ConstructionRegistry();
+
+	auto original = Object(registry);
+	auto s = Storage(original);
+	auto* storedData = s.get<Object>();
+
+	const auto complete = completeConceptMap<ObjectInterface, Object>(
+		conceptMap<ObjectInterface, Object>);
+	using VTable = VTable<Local<Everything>>;
+	auto vtable = VTable::Type<ObjectInterface>{complete};
+
+	auto c = Storage(s, vtable);
+
+	EXPECT_EQ(s.get<Object>(), storedData);
+	EXPECT_EQ(c.get<Object>(), storedData);
 }
 
 } // anonymous namespace

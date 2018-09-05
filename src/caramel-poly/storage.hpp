@@ -489,41 +489,43 @@ private:
 
 };
 
-#if 0
-
 // Class implementing a non-owning polymorphic reference. Unlike the other
 // storage classes, this one does not own the object it holds, and hence it
 // does not construct or destruct it. The referenced object must outlive the
 // polymorphic storage that references it, otherwise the behavior is undefined.
-struct non_owning_storage {
-	non_owning_storage() = delete;
-	non_owning_storage(non_owning_const storage&) = delete;
-	non_owning_storage(non_owning_storage&&) = delete;
-	non_owning_storage& operator=(non_owning_storage&&) = delete;
-	non_owning_storage& operator=(non_owning_const storage&) = delete;
+struct NonOwningStorage {
+	NonOwningStorage() = delete;
+	NonOwningStorage(const NonOwningStorage&) = delete;
+	NonOwningStorage(NonOwningStorage&&) = delete;
+	NonOwningStorage& operator=(NonOwningStorage&&) = delete;
+	NonOwningStorage& operator=(const NonOwningStorage&) = delete;
 
 	template <class T>
-	explicit non_owning_storage(T& t)
-		: ptr_{&t}
-	{ }
+	explicit NonOwningStorage(T& t) :
+		ptr_{&t}
+	{
+	}
 
 	template <class VTable>
-	non_owning_storage(non_owning_const storage& other, const VTable&)
-		: ptr_{other.ptr_}
-	{ }
+	NonOwningStorage(const NonOwningStorage& other, const VTable&) :
+		ptr_{other.ptr_}
+	{
+	}
 
 	template <class VTable>
-	non_owning_storage(non_owning_storage&& other, const VTable&)
-		: ptr_{other.ptr_}
-	{ }
+	NonOwningStorage(NonOwningStorage&& other, const VTable&) :
+		ptr_{other.ptr_}
+	{
+	}
 
 	template <class ThisVTable, class OtherVTable>
-	void swap(const ThisVTable&, non_owning_storage& other, const OtherVTable&) {
+	void swap(const ThisVTable&, NonOwningStorage& other, const OtherVTable&) {
 		std::swap(this->ptr_, other.ptr_);
 	}
 
 	template <class VTable>
-	void destruct(const VTable&) { }
+	void destruct(const VTable&) {
+	}
 
 	template <class T = void>
 	T* get() {
@@ -540,8 +542,12 @@ struct non_owning_storage {
 	}
 
 private:
+
 	void* ptr_;
+
 };
+
+#if 0
 
 // Class implementing polymorphic storage with a primary storage and a
 // fallback one.
