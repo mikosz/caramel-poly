@@ -124,41 +124,47 @@ public:
 		auto injected = [f,this](auto&&... args) -> decltype(auto) {
 			return f(*this, static_cast<decltype(args)&&>(args)...);
 		};
-		return boost::hana::unpack(std::move(delayed.args), injected);
+		return unpack(std::move(delayed.args), injected);
 	}
 
-	template <class Function,
-		bool HasClause = decltype(boost::hana::contains(caramel_poly::clause_names(Concept{}), Function{})){},
+	template <
+		class Function,
+		bool HasClause = decltype(contains(caramel_poly::clauseNames(Concept{}), Function{})){},
 		std::enable_if_t<HasClause>* = nullptr
-	>
-		constexpr decltype(auto) virtual_(Function name) const& {
-		auto clauses = boost::hana::to_map(caramel_poly::clauses(Concept{}));
-		return virtual_impl(clauses[name], name);
-	}
-	template <class Function,
-		bool HasClause = decltype(boost::hana::contains(caramel_poly::clause_names(Concept{}), Function{})){},
-		std::enable_if_t<HasClause>* = nullptr
-	>
-		constexpr decltype(auto) virtual_(Function name) & {
-		auto clauses = boost::hana::to_map(caramel_poly::clauses(Concept{}));
-		return virtual_impl(clauses[name], name);
-	}
-	template <class Function,
-		bool HasClause = decltype(boost::hana::contains(caramel_poly::clause_names(Concept{}), Function{})){},
-		std::enable_if_t<HasClause>* = nullptr
-	>
-		constexpr decltype(auto) virtual_(Function name) && {
-		auto clauses = boost::hana::to_map(caramel_poly::clauses(Concept{}));
-		return std::move(*this).virtual_impl(clauses[name], name);
+		>
+	constexpr decltype(auto) invoke(Function name) const & {
+		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::clauses(Concept{}));
+		return virtualImpl(clauses[name], name);
 	}
 
-	template <class Function,
-		bool HasClause = decltype(boost::hana::contains(caramel_poly::clause_names(Concept{}), Function{})){},
-		std::enable_if_t<!HasClause>* = nullptr
-	>
-		constexpr decltype(auto) virtual_(Function) const {
-		static_assert(HasClause, "caramel_poly::Poly::virtual_: Trying to access a function "
-			"that is not part of the Concept");
+	template <
+		class Function,
+		bool HasClause = decltype(contains(caramel_poly::clauseNames(Concept{}), Function{})){},
+		std::enable_if_t<HasClause>* = nullptr
+		>
+	constexpr decltype(auto) invoke(Function name) & {
+		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::clauses(Concept{}));
+		return virtualImpl(clauses[name], name);
+	}
+
+	template <
+		class Function,
+		bool HasClause = decltype(contains(caramel_poly::clauseNames(Concept{}), Function{})){},
+		std::enable_if_t<HasClause>* = nullptr
+		>
+	constexpr decltype(auto) invoke(Function name) && {
+		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::clauses(Concept{}));
+		return virtualImpl(clauses[name], name);
+	}
+
+	template <
+		class Function,
+		bool HasClause = decltype(contains(caramel_poly::clauseNames(Concept{}), Function{})){},
+		std::enable_if_t<HasClause>* = nullptr
+		>
+	constexpr decltype(auto) invoke(Function name) const {
+		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::clauses(Concept{}));
+		return virtualImpl(clauses[name], name);
 	}
 
 	// Returns a pointer to the underlying storage.
@@ -170,10 +176,14 @@ public:
 	// The behavior is undefined if the requested type is not cv-qualified `void`
 	// and the underlying storage is not of the requested type.
 	template <class T>
-	T* unsafe_get() { return storage_.template get<T>(); }
+	T* unsafeGet() {
+		return storage_.template get<T>();
+	}
 
 	template <class T>
-	T const* unsafe_get() const { return storage_.template get<T>(); }
+	const T* unsafeGet() const {
+		return storage_.template get<T>();
+	}
 
 private:
 
@@ -181,10 +191,12 @@ private:
 		Concept{},
 		caramel_poly::Destructible{},
 		caramel_poly::Storable{}
-	));
-	using VTable = class VTablePolicy::template apply<ActualConcept>;
+		));
+
+	using VTable = class VTablePolicy::template Type<ActualConcept>;
 
 	VTable vtable_;
+
 	Storage storage_;
 
 	// Handle caramel_poly::function
