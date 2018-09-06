@@ -12,6 +12,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "detail/isPlaceholder.hpp"
 #include "builtin.hpp"
 #include "Concept.hpp"
 #include "ConceptMap.hpp"
@@ -118,54 +119,56 @@ public:
 		a.swap(b);
 	}
 
-	template <class... T, class Name, class... Args>
-	decltype(auto) operator->*(caramel_poly::detail::delayedCall<Name, Args...>&& delayed) {
-		auto f = virtual_(Name{});
-		auto injected = [f,this](auto&&... args) -> decltype(auto) {
-			return f(*this, static_cast<decltype(args)&&>(args)...);
-		};
-		return unpack(std::move(delayed.args), injected);
-	}
+	// #TODO_Caramel
+	//template <class... T, class Name, class... Args>
+	//decltype(auto) operator->*(caramel_poly::detail::delayedCall<Name, Args...>&& delayed) {
+	//	auto f = virtual_(Name{});
+	//	auto injected = [f,this](auto&&... args) -> decltype(auto) {
+	//		return f(*this, static_cast<decltype(args)&&>(args)...);
+	//	};
+	//	return unpack(std::move(delayed.args), injected);
+	//}
 
 	template <
 		class Function,
-		bool HasClause = decltype(contains(caramel_poly::clauseNames(Concept{}), Function{})){},
+		bool HasClause = contains(caramel_poly::detail::clauseNames(Concept{}), Function{}),
 		std::enable_if_t<HasClause>* = nullptr
 		>
-	constexpr decltype(auto) invoke(Function name) const & {
-		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::clauses(Concept{}));
+	constexpr decltype(auto) virtual_(Function name) const & {
+		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(Concept{}));
 		return virtualImpl(clauses[name], name);
 	}
 
 	template <
 		class Function,
-		bool HasClause = decltype(contains(caramel_poly::clauseNames(Concept{}), Function{})){},
+		bool HasClause = contains(caramel_poly::detail::clauseNames(Concept{}), Function{}),
 		std::enable_if_t<HasClause>* = nullptr
 		>
-	constexpr decltype(auto) invoke(Function name) & {
-		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::clauses(Concept{}));
+	constexpr decltype(auto) virtual_(Function name) & {
+		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(Concept{}));
 		return virtualImpl(clauses[name], name);
 	}
 
 	template <
 		class Function,
-		bool HasClause = decltype(contains(caramel_poly::clauseNames(Concept{}), Function{})){},
+		bool HasClause = contains(caramel_poly::detail::clauseNames(Concept{}), Function{}),
 		std::enable_if_t<HasClause>* = nullptr
 		>
-	constexpr decltype(auto) invoke(Function name) && {
-		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::clauses(Concept{}));
+	constexpr decltype(auto) virtual_(Function name) && {
+		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(Concept{}));
 		return virtualImpl(clauses[name], name);
 	}
 
-	template <
-		class Function,
-		bool HasClause = decltype(contains(caramel_poly::clauseNames(Concept{}), Function{})){},
-		std::enable_if_t<HasClause>* = nullptr
-		>
-	constexpr decltype(auto) invoke(Function name) const {
-		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::clauses(Concept{}));
-		return virtualImpl(clauses[name], name);
-	}
+	// #TODO_Caramel: cannot override?
+	//template <
+	//	class Function,
+	//	bool HasClause = decltype(contains(caramel_poly::clauseNames(Concept{}), Function{})){},
+	//	std::enable_if_t<HasClause>* = nullptr
+	//	>
+	//constexpr decltype(auto) invoke(Function name) const {
+	//	auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(Concept{}));
+	//	return virtualImpl(clauses[name], name);
+	//}
 
 	// Returns a pointer to the underlying storage.
 	//
@@ -193,82 +196,84 @@ private:
 		caramel_poly::Storable{}
 		));
 
-	using VTable = class VTablePolicy::template Type<ActualConcept>;
+	using VTable = typename VTablePolicy::template Type<ActualConcept>;
 
 	VTable vtable_;
 
 	Storage storage_;
 
 	// Handle caramel_poly::function
-	template <class R, class... T, class Function>
-	constexpr decltype(auto) virtual_impl(caramel_poly::function_t<R(T...)>, Function name) const {
+	template <class R, class... T, class Name>
+	constexpr decltype(auto) virtualImpl(caramel_poly::Function<R(T...)>, Name name) const {
 		auto fptr = vtable_[name];
 		return [fptr](auto&&... args) -> decltype(auto) {
-			return fptr(Poly::unerase_poly<T>(static_cast<decltype(args)&&>(args))...);
+			return fptr(Poly::unerasePoly<T>(static_cast<decltype(args)&&>(args))...);
 		};
 	}
 
 	// Handle caramel_poly::method
-	template <class R, class... T, class Function>
-	constexpr decltype(auto) virtual_impl(caramel_poly::method_t<R(T...)>, Function name) & {
+	template <class R, class... T, class Name>
+	constexpr decltype(auto) virtualImpl(caramel_poly::Method<R(T...)>, Name name) & {
 		auto fptr = vtable_[name];
 		return [fptr, this](auto&&... args) -> decltype(auto) {
-			return fptr(Poly::unerase_poly<caramel_poly::T&>(*this),
-				Poly::unerase_poly<T>(static_cast<decltype(args)&&>(args))...);
+			return fptr(Poly::unerasePoly<caramel_poly::SelfPlaceholder&>(*this),
+				Poly::unerasePoly<T>(static_cast<decltype(args)&&>(args))...);
 		};
 	}
-	template <class R, class... T, class Function>
-	constexpr decltype(auto) virtual_impl(caramel_poly::method_t<R(T...)&>, Function name) & {
+	template <class R, class... T, class Name>
+	constexpr decltype(auto) virtualImpl(caramel_poly::Method<R(T...)&>, Name name) & {
 		auto fptr = vtable_[name];
 		return [fptr, this](auto&&... args) -> decltype(auto) {
-			return fptr(Poly::unerase_poly<caramel_poly::T&>(*this),
-				Poly::unerase_poly<T>(static_cast<decltype(args)&&>(args))...);
+			return fptr(Poly::unerasePoly<caramel_poly::SelfPlaceholder&>(*this),
+				Poly::unerasePoly<T>(static_cast<decltype(args)&&>(args))...);
 		};
 	}
-	template <class R, class... T, class Function>
-	constexpr decltype(auto) virtual_impl(caramel_poly::method_t<R(T...)&&>, Function name) && {
+	template <class R, class... T, class Name>
+	constexpr decltype(auto) virtualImpl(caramel_poly::Method<R(T...)&&>, Name name) && {
 		auto fptr = vtable_[name];
 		return [fptr, this](auto&&... args) -> decltype(auto) {
-			return fptr(Poly::unerase_poly<caramel_poly::T&&>(*this),
-				Poly::unerase_poly<T>(static_cast<decltype(args)&&>(args))...);
+			return fptr(Poly::unerasePoly<caramel_poly::SelfPlaceholder&&>(*this),
+				Poly::unerasePoly<T>(static_cast<decltype(args)&&>(args))...);
 		};
 	}
-	template <class R, class... T, class Function>
-	constexpr decltype(auto) virtual_impl(caramel_poly::method_t<R(T...) const>, Function name) const {
+	template <class R, class... T, class Name>
+	constexpr decltype(auto) virtualImpl(caramel_poly::Method<R(T...) const>, Name name) const {
 		auto fptr = vtable_[name];
 		return [fptr, this](auto&&... args) -> decltype(auto) {
-			return fptr(Poly::unerase_poly<caramel_poly::T const&>(*this),
-				Poly::unerase_poly<T>(static_cast<decltype(args)&&>(args))...);
+			return fptr(Poly::unerasePoly<caramel_poly::SelfPlaceholder const&>(*this),
+				Poly::unerasePoly<T>(static_cast<decltype(args)&&>(args))...);
 		};
 	}
-	template <class R, class... T, class Function>
-	constexpr decltype(auto) virtual_impl(caramel_poly::method_t<R(T...) const&>, Function name) const {
+	template <class R, class... T, class Name>
+	constexpr decltype(auto) virtualImpl(caramel_poly::Method<R(T...) const&>, Name name) const {
 		auto fptr = vtable_[name];
 		return [fptr, this](auto&&... args) -> decltype(auto) {
-			return fptr(Poly::unerase_poly<caramel_poly::T const&>(*this),
-				Poly::unerase_poly<T>(static_cast<decltype(args)&&>(args))...);
+			return fptr(Poly::unerasePoly<caramel_poly::SelfPlaceholder const&>(*this),
+				Poly::unerasePoly<T>(static_cast<decltype(args)&&>(args))...);
 		};
 	}
 
-	// unerase_poly helper
-	template <class T, class Arg, std::enable_if_t<!detail::is_placeholder<T>::value, int> = 0>
-	static constexpr decltype(auto) unerase_poly(Arg&& arg)
-	{ return static_cast<Arg&&>(arg); }
+	// unerasePoly helper
+	template <class T, class Arg, std::enable_if_t<!detail::isPlaceholder<T>, int> = 0>
+	static constexpr decltype(auto) unerasePoly(Arg&& arg) {
+		return static_cast<Arg&&>(arg);
+	}
 
-	template <class T, class Arg, std::enable_if_t<detail::is_placeholder<T>::value, int> = 0>
-	static constexpr decltype(auto) unerase_poly(Arg&& arg) {
+	template <class T, class Arg, std::enable_if_t<detail::isPlaceholder<T>, int> = 0>
+	static constexpr decltype(auto) unerasePoly(Arg&& arg) {
 		using RawArg = std::remove_cv_t<std::remove_reference_t<Arg>>;
-		constexpr bool is_poly = std::is_same<Poly, RawArg>::value;
-		static_assert(is_poly,
+		constexpr bool isPoly = std::is_same<Poly, RawArg>::value;
+		static_assert(isPoly,
 			"caramel_poly::Poly::virtual_: Passing a non-poly object as an argument to a virtual "
 			"function that specified a placeholder for that parameter.");
 		return static_cast<Arg&&>(arg).storage_.get();
 	}
-	template <class T, class Arg, std::enable_if_t<detail::is_placeholder<T>::value, int> = 0>
-	static constexpr decltype(auto) unerase_poly(Arg* arg) {
+
+	template <class T, class Arg, std::enable_if_t<detail::isPlaceholder<T>, int> = 0>
+	static constexpr decltype(auto) unerasePoly(Arg* arg) {
 		using RawArg = std::remove_cv_t<Arg>;
-		constexpr bool is_poly = std::is_same<Poly, RawArg>::value;
-		static_assert(is_poly,
+		constexpr bool isPoly = std::is_same<Poly, RawArg>::value;
+		static_assert(isPoly,
 			"caramel_poly::Poly::virtual_: Passing a non-poly object as an argument to a virtual "
 			"function that specified a placeholder for that parameter.");
 		return arg->storage_.get();
