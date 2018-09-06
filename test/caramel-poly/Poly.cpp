@@ -67,6 +67,13 @@ constexpr auto caramel_poly::defaultConceptMap<Printable, T> = makeConceptMap(
 	FREE_PRINT_NAME = [](const auto& o) { return print(o); }
 	);
 
+template <class T>
+constexpr auto caramel_poly::conceptMap<Printable, T, std::enable_if_t<std::is_same_v<int, T>>> = makeConceptMap(
+	CONST_PRINT_NAME = [](const auto& o) { return "cprint:int:"s + std::to_string(o); },
+	NONCONST_PRINT_NAME = [](auto& o) { return "ncprint:int:"s + std::to_string(o); },
+	FREE_PRINT_NAME = [](const auto& o) { return "fprint:int:"s + std::to_string(o); }
+	);
+
 namespace /* anonymous */ {
 
 TEST(PolyTest, InvokesBasicPolymorphicCalls) {
@@ -79,6 +86,11 @@ TEST(PolyTest, InvokesBasicPolymorphicCalls) {
 	EXPECT_EQ(sp.virtual_(CONST_PRINT_NAME)(), "cprint:T:"s + std::to_string(3.14f));
 	EXPECT_EQ(sp.virtual_(NONCONST_PRINT_NAME)(), "ncprint:T:"s + std::to_string(3.14f));
 	EXPECT_EQ(sp.virtual_(FREE_PRINT_NAME)(sp), "fprint:T:"s + std::to_string(3.14f));
+
+	sp = Poly<Printable>(12);
+	EXPECT_EQ(sp.virtual_(CONST_PRINT_NAME)(), "cprint:int:12"s);
+	EXPECT_EQ(sp.virtual_(NONCONST_PRINT_NAME)(), "ncprint:int:12"s);
+	EXPECT_EQ(sp.virtual_(FREE_PRINT_NAME)(sp), "fprint:int:12"s);
 }
 
 } // anonymous namespace

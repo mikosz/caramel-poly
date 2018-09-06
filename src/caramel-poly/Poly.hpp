@@ -165,7 +165,7 @@ public:
 	//	bool HasClause = decltype(contains(caramel_poly::clauseNames(Concept{}), Function{})){},
 	//	std::enable_if_t<HasClause>* = nullptr
 	//	>
-	//constexpr decltype(auto) invoke(Function name) const {
+	//constexpr decltype(auto) virtual_(Function name) const {
 	//	auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(Concept{}));
 	//	return virtualImpl(clauses[name], name);
 	//}

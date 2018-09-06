@@ -131,7 +131,7 @@ constexpr auto completeConceptMapImpl(Map map) {
 	auto merged = foldLeft(withDefaults, refined, [](auto m, auto c) {
 			using C = decltype(c);
 			auto completed = detail::completeConceptMapImpl<C, T>(caramel_poly::conceptMap<C, T>);
-			return mapUnion(completed, m);
+			return mapUnion(m, completed);
 		});
 
 	return merged;
