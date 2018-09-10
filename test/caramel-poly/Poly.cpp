@@ -93,4 +93,15 @@ TEST(PolyTest, InvokesBasicPolymorphicCalls) {
 	EXPECT_EQ(sp.virtual_(FREE_PRINT_NAME)(sp), "fprint:int:12"s);
 }
 
+TEST(PolyTest, StorableAndDestructibleByDefault) {
+	auto sp = Poly<Printable>(S{ 42 });
+
+	static_assert(models<Storable, S>);
+	static_assert(models<Destructible, S>);
+
+	EXPECT_EQ(sp.virtual_(STORAGE_INFO_LABEL)().size, sizeof(S));
+	EXPECT_EQ(sp.virtual_(STORAGE_INFO_LABEL)().alignment, alignof(S));
+	sp.virtual_(DESTRUCT_LABEL);
+}
+
 } // anonymous namespace

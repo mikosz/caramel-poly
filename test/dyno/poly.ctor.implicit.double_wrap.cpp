@@ -14,10 +14,12 @@
 // itself requires (and hence would be a valid candidate for the implicit
 // converting constructors).
 
+namespace /* anonymous */ {
+
 struct Foo { };
 
 struct Concept
-  : decltype(caramel_poly::requires(caramel_poly::CopyConstructible{}, caramel_poly::TypeId{}))
+	: decltype(caramel_poly::requires(caramel_poly::CopyConstructible{}, caramel_poly::TypeId{}))
 { };
 
 TEST(DynoTest, CtorImplicitDoubleWrap) {
@@ -35,3 +37,5 @@ TEST(DynoTest, CtorImplicitDoubleWrap) {
   caramel_poly::Poly<Concept> implicit_copy = poly;
   EXPECT_EQ(implicit_copy.virtual_(caramel_poly::TYPEID_LABEL)(), typeid(Foo));
 }
+
+} // anonymous namespace

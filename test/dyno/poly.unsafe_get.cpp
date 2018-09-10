@@ -9,6 +9,7 @@
 
 #include <string>
 
+namespace /* anonymous */ {
 
 TEST(DynoTest, UnsafeGet) {
   std::string foobar{"foobar"};
@@ -33,3 +34,5 @@ TEST(DynoTest, UnsafeGet) {
     EXPECT_EQ(*s, foobar);
   }
 }
+
+} // anonymous namespace

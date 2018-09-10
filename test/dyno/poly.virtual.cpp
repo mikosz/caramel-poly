@@ -8,6 +8,8 @@
 #include "caramel-poly/ConceptMap.hpp"
 #include "caramel-poly/Poly.hpp"
 
+namespace /* anonymous */ {
+
 constexpr auto a_NAME = METHOD_NAME("a");
 constexpr auto b_NAME = METHOD_NAME("b");
 constexpr auto c_NAME = METHOD_NAME("c");
@@ -28,6 +30,8 @@ struct Concept : decltype(caramel_poly::requires(
 
 struct Foo { };
 
+} // anonymous namespace
+
 template <class T>
 auto const caramel_poly::conceptMap<Concept, T, std::enable_if_t<std::is_same_v<Foo, T>>> = caramel_poly::makeConceptMap(
   a_NAME = [](Foo&) { return 111; },
@@ -36,6 +40,8 @@ auto const caramel_poly::conceptMap<Concept, T, std::enable_if_t<std::is_same_v<
   d_NAME = [](Foo const&) { return 444; },
   e_NAME = [](Foo const*) { return 555; }
 );
+
+namespace /* anonymous */ {
 
 TEST(DynoTest, Virtual) {
   {
@@ -64,3 +70,5 @@ TEST(DynoTest, Virtual) {
 	EXPECT_EQ(poly.virtual_(e_NAME)(&poly), 555);
   }
 }
+
+} // anonymous namespace

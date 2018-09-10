@@ -131,31 +131,31 @@ public:
 
 	template <
 		class Function,
-		bool HasClause = contains(caramel_poly::detail::clauseNames(Concept{}), Function{}),
+		bool HasClause = contains(caramel_poly::detail::clauseNames(ActualConcept{}), Function{}),
 		std::enable_if_t<HasClause>* = nullptr
 		>
 	constexpr decltype(auto) virtual_(Function name) const & {
-		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(Concept{}));
+		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(ActualConcept{}));
 		return virtualImpl(clauses[name], name);
 	}
 
 	template <
 		class Function,
-		bool HasClause = contains(caramel_poly::detail::clauseNames(Concept{}), Function{}),
+		bool HasClause = contains(caramel_poly::detail::clauseNames(ActualConcept{}), Function{}),
 		std::enable_if_t<HasClause>* = nullptr
 		>
 	constexpr decltype(auto) virtual_(Function name) & {
-		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(Concept{}));
+		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(ActualConcept{}));
 		return virtualImpl(clauses[name], name);
 	}
 
 	template <
 		class Function,
-		bool HasClause = contains(caramel_poly::detail::clauseNames(Concept{}), Function{}),
+		bool HasClause = contains(caramel_poly::detail::clauseNames(ActualConcept{}), Function{}),
 		std::enable_if_t<HasClause>* = nullptr
 		>
 	constexpr decltype(auto) virtual_(Function name) && {
-		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(Concept{}));
+		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(ActualConcept{}));
 		return virtualImpl(clauses[name], name);
 	}
 

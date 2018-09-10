@@ -12,6 +12,7 @@
 
 #include <utility>
 
+namespace /* anonymous */ {
 
 TEST(DynoTest, CtorCopy) {
   // Make sure the copy constructor is not instantiated unless requested.
@@ -22,3 +23,5 @@ TEST(DynoTest, CtorCopy) {
     caramel_poly::Poly<NonCopyable> b{std::move(a)};
   }
 }
+
+} // anonymous namespace

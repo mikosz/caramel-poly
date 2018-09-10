@@ -10,6 +10,8 @@
 // that do not model them do not, instead of failing because of lack of
 // SFINAE-friendliness.
 
+namespace /* anonymous */ {
+
 struct non_default_constructible { non_default_constructible() = delete; };
 struct non_move_constructible { non_move_constructible(non_move_constructible&&) = delete; };
 struct non_copy_constructible { non_copy_constructible(non_copy_constructible const&) = delete; };
@@ -25,3 +27,5 @@ static_assert(caramel_poly::models<caramel_poly::MoveAssignable, non_move_assign
 static_assert(caramel_poly::models<caramel_poly::CopyAssignable, non_copy_assignable>, "");
 static_assert(!caramel_poly::models<caramel_poly::EqualityComparable, non_equality_comparable>, "");
 static_assert(!caramel_poly::models<caramel_poly::Destructible, non_destructible>, "");
+
+} // anonymous namespace
