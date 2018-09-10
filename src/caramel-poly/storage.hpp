@@ -471,6 +471,13 @@ public:
 		return static_cast<const T*>(static_cast<const void*>(&buffer_));
 	}
 
+	static constexpr bool canStore(caramel_poly::StorageInfo info) {
+		return
+			info.size <= sizeof(Buffer) &&
+			alignof(Buffer) % info.alignment == 0
+			;
+	}
+
 private:
 
 	using Buffer = std::aligned_storage_t<
@@ -479,13 +486,6 @@ private:
 		>;
 	
 	Buffer buffer_;
-
-	static constexpr bool canStore(caramel_poly::StorageInfo info) {
-		return
-			info.size <= sizeof(Buffer) &&
-			alignof(Buffer) % info.alignment == 0
-			;
-	}
 
 };
 
