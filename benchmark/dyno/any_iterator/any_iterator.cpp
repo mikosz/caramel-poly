@@ -11,6 +11,7 @@
 #include "handrolled_sean.hpp"
 //#include "mpark_variant.hpp"
 #include "sean.hpp"
+#include "virtual.hpp"
 
 #include <utility>
 #include <vector>
@@ -55,8 +56,11 @@ BENCHMARK_TEMPLATE(BM_any_iterator, handrolled_remote_storage::any_iterator<int>
 
 BENCHMARK_TEMPLATE(BM_any_iterator, dyno_generic::local_storage)->Arg(N);
 BENCHMARK_TEMPLATE(BM_any_iterator, dyno_generic::local_storage_inlined_vtable)->Arg(N);
+BENCHMARK_TEMPLATE(BM_any_iterator, dyno_generic::remote_storage)->Arg(N);
 
 //BENCHMARK_TEMPLATE(BM_any_iterator, boost_type_erasure::any_iterator<int>)->Arg(N);
 //
 //BENCHMARK_TEMPLATE(BM_any_iterator, boost_variant::any_iterator<std::vector<int>::iterator>)->Arg(N);
 //BENCHMARK_TEMPLATE(BM_any_iterator, mpark_variant::any_iterator<std::vector<int>::iterator>)->Arg(N);
+
+BENCHMARK_TEMPLATE(BM_any_iterator, vrt::any_iterator<int>)->Arg(N);
