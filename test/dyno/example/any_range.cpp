@@ -37,7 +37,7 @@ struct Range : decltype(caramel_poly::requires(
 
 template <typename Value, typename Category, typename R>
 auto const caramel_poly::defaultConceptMap<Range<Value, Category>, R> = caramel_poly::makeConceptMap(
-		begin_LABEL = [](R& range) -> any_iterator<Value, Category> {
+	begin_LABEL = [](R& range) -> any_iterator<Value, Category> {
 			return any_iterator<Value, Category>{range.begin()};
 		},
 	end_LABEL = [](R& range) -> any_iterator<Value, Category> {

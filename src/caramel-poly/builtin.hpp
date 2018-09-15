@@ -106,11 +106,9 @@ auto const defaultConceptMap<MoveConstructible, T, std::enable_if_t<std::is_move
 		);
 
 
-// #TODO_Caramel: why require move constructible for copy constructible?
-// #TODO_Caramel: added StorageInfo, otherwise copy doesn't work - does it work in dyno?
 struct CopyConstructible : decltype(caramel_poly::requires(
 	caramel_poly::Storable{},
-	caramel_poly::MoveConstructible{},
+	//caramel_poly::MoveConstructible{},
 	COPY_CONSTRUCT_LABEL = caramel_poly::function<void (void*, const caramel_poly::SelfPlaceholder&)>
 	))
 {

@@ -26,6 +26,7 @@ constexpr auto distance_LABEL = POLY_FUNCTION_LABEL("distance");
 template <typename Reference>
 struct Iterator : decltype(caramel_poly::requires(
 	caramel_poly::CopyConstructible{},
+	caramel_poly::MoveConstructible{},
 	caramel_poly::CopyAssignable{},
 	caramel_poly::Destructible{},
 	caramel_poly::Swappable{},
@@ -128,8 +129,8 @@ struct any_iterator {
 
 private:
 	using Concept = typename detail::iterator_category_to_concept<
-		iterator_category, reference, difference_type
-	>::type;
+			iterator_category, reference, difference_type
+		>::type;
 	using ActualConcept = decltype(caramel_poly::requires(
 		Concept{},
 		caramel_poly::TypeId{} // For assertion in operator==

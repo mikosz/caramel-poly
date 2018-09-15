@@ -16,6 +16,7 @@ constexpr auto f3_LABEL = POLY_FUNCTION_LABEL("f3");
 
 struct Concept : decltype(caramel_poly::requires(
 	caramel_poly::CopyConstructible{},
+	caramel_poly::MoveConstructible{},
 	caramel_poly::Swappable{},
 	caramel_poly::Destructible{},
 	caramel_poly::Storable{},

@@ -22,7 +22,8 @@ struct S {
 struct ObjectInterface : decltype(caramel_poly::requires(
 	caramel_poly::Storable{},
 	caramel_poly::Destructible{},
-	caramel_poly::CopyConstructible{}
+	caramel_poly::CopyConstructible{},
+	caramel_poly::MoveConstructible{}
 	))
 {
 };
