@@ -54,7 +54,7 @@ TEST(DynoTest, VirtualMethod) {
     caramel_poly::Poly<Concept> poly{foo};
 	EXPECT_EQ(poly.virtual_(b_NAME)(int{}), 222);
   }
-  // #TODO_Caramel
+  // #TODO_Caramel: doesn't compile
  // {
  //   Foo foo;
  //   caramel_poly::Poly<Concept> poly{foo};

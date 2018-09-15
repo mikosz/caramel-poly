@@ -81,7 +81,7 @@ public:
 	}
 
 private:
-	using Storage = caramel_poly::SharedRemoteStorage;
+	using Storage = caramel_poly::SharedRemoteStorage<>;
 	using VTable = caramel_poly::VTable<caramel_poly::Remote<caramel_poly::Everything>>;
 	caramel_poly::Poly<Drawable, Storage, VTable> poly_;
 };

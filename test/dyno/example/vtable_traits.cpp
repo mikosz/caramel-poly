@@ -67,7 +67,7 @@ struct any_iterator {
 
 private:
 	using Concept = Iterator<reference>;
-	using Storage = caramel_poly::RemoteStorage;
+	using Storage = caramel_poly::RemoteStorage<>;
 	using VTable = caramel_poly::VTable<
 		caramel_poly::Local<
 			caramel_poly::Only<

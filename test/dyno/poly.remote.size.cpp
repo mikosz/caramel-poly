@@ -17,7 +17,7 @@ struct Concept : decltype(caramel_poly::requires(
   f_NAME = caramel_poly::function<void (caramel_poly::SelfPlaceholder&)>
 )) { };
 
-using Storage = caramel_poly::RemoteStorage;
+using Storage = caramel_poly::RemoteStorage<>;
 using VTable = caramel_poly::VTable<caramel_poly::Remote<caramel_poly::Everything>>;
 using Poly = caramel_poly::Poly<Concept, Storage, VTable>;
 static_assert(sizeof(Poly) == 2 * sizeof(void*));

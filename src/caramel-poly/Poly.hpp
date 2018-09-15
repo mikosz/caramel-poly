@@ -59,7 +59,7 @@ namespace caramel_poly {
 // - Test that we can't call e.g. a non-const method on a const poly.
 template <
 	class Concept,
-	class Storage = caramel_poly::RemoteStorage,
+	class Storage = caramel_poly::RemoteStorage<>,
 	class VTablePolicy = caramel_poly::VTable<caramel_poly::Remote<caramel_poly::Everything>>
 	>
 struct Poly {
@@ -158,17 +158,6 @@ public:
 		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(ActualConcept{}));
 		return virtualImpl(clauses[name], name);
 	}
-
-	// #TODO_Caramel: cannot override?
-	//template <
-	//	class Function,
-	//	bool HasClause = decltype(contains(caramel_poly::clauseNames(Concept{}), Function{})){},
-	//	std::enable_if_t<HasClause>* = nullptr
-	//	>
-	//constexpr decltype(auto) virtual_(Function name) const {
-	//	auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(Concept{}));
-	//	return virtualImpl(clauses[name], name);
-	//}
 
 	// Returns a pointer to the underlying storage.
 	//

@@ -71,8 +71,8 @@ struct BigObject : test::ConstructionRegistry::Object {
 
 using StorageScenarioSBOFitting = StorageScenario<SBOStorage<sizeof(SmallObject)>, SmallObject>;
 using StorageScenarioSBONonFitting = StorageScenario<SBOStorage<sizeof(SmallObject)>, BigObject<128>>;
-using StorageScenarioRemote = StorageScenario<RemoteStorage, SmallObject>;
-using StorageScenarioSharedRemote = StorageScenario<SharedRemoteStorage, SmallObject>;
+using StorageScenarioRemote = StorageScenario<RemoteStorage<>, SmallObject>;
+using StorageScenarioSharedRemote = StorageScenario<SharedRemoteStorage<>, SmallObject>;
 using StorageScenarioLocal = StorageScenario<LocalStorage<sizeof(SmallObject)>, SmallObject>;
 using StorageScenarioNonOwning = StorageScenario<NonOwningStorage, SmallObject>;
 

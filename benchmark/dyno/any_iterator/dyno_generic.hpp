@@ -58,7 +58,7 @@ private:
 };
 
 using remote_storage = dyno_generic::any_iterator<
-	int, caramel_poly::RemoteStorage, caramel_poly::VTable<caramel_poly::Remote<caramel_poly::Everything>>
+	int, caramel_poly::RemoteStorage<>, caramel_poly::VTable<caramel_poly::Remote<caramel_poly::Everything>>
 >;
 
 using local_storage = dyno_generic::any_iterator<

@@ -35,5 +35,5 @@ BENCHMARK_TEMPLATE(BM_swap_same, caramel_poly::SBOStorage<16>);
 BENCHMARK_TEMPLATE(BM_swap_same, caramel_poly::SBOStorage<32>);
 // #TODO_Caramel
 //BENCHMARK_TEMPLATE(BM_swap_same, caramel_poly::FallbackStorage<caramel_poly::local_storage<8>, caramel_poly::remote_storage>);
-BENCHMARK_TEMPLATE(BM_swap_same, caramel_poly::RemoteStorage);
+BENCHMARK_TEMPLATE(BM_swap_same, caramel_poly::RemoteStorage<>);
 BENCHMARK_TEMPLATE(BM_swap_same, caramel_poly::LocalStorage<32>);

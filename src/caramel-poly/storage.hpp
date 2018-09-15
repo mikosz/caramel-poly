@@ -21,6 +21,21 @@
 
 namespace caramel_poly {
 
+struct MallocAllocator {
+	static void* allocate(std::size_t size) {
+		return std::malloc(size);
+	}
+
+	static void free(void* ptr) {
+		std::free(ptr);
+	}
+
+	template <class T, class... Args>
+	static std::shared_ptr<T> makeShared(Args&&... args) {
+		return std::make_shared<T>(std::forward<Args>(args)...);
+	}
+};
+
 // concept PolymorphicStorage
 //
 // The PolymorphicStorage concept represents storage that can be used to store
@@ -101,7 +116,11 @@ namespace caramel_poly {
 //         retrieve the size of the type from it and get rid of `uses_heap_`.
 //       - We could also use the low bits of the pointer to the vtable for
 //         `uses_heap_`.
-template <std::size_t SIZE, std::size_t ALIGN = static_cast<std::size_t>(-1)>
+template <
+	std::size_t SIZE,
+	std::size_t ALIGN = static_cast<std::size_t>(-1),
+	class Allocator = MallocAllocator
+	>
 class SBOStorage {
 public:
 
@@ -121,12 +140,11 @@ public:
 			new (&sb_) RawT(std::forward<T>(t));
 		} else {
 			usesHeap_ = true;
-			// #TODO_Caramel: extract to allocator
-			ptr_ = std::malloc(sizeof(RawT));
+			ptr_ = Allocator::allocate(sizeof(RawT));
 			// TODO: Allocating and then calling the constructor is not
 			//       exception-safe if the constructor throws.
 			// TODO: That's not a really nice way to handle this
-			assert(ptr_ != nullptr && "std::malloc failed, we're doomed");
+			assert(ptr_ != nullptr && "Memory allocation failed, we're doomed");
 			new (ptr_) RawT(std::forward<T>(t));
 		}
 	}
@@ -136,10 +154,9 @@ public:
 		if (other.usesHeap_) {
 			auto info = vtable[STORAGE_INFO_LABEL]();
 			usesHeap_ = true;
-			// #TODO_Caramel: extract to allocator
-			ptr_ = std::malloc(info.size);
+			ptr_ = Allocator::allocate(info.size);
 			// TODO: That's not a really nice way to handle this
-			assert(ptr_ != nullptr && "std::malloc failed, we're doomed");
+			assert(ptr_ != nullptr && "Memory allocation failed, we're doomed");
 			vtable[COPY_CONSTRUCT_LABEL](ptr_, other.get());
 		} else {
 			usesHeap_ = false;
@@ -219,7 +236,7 @@ public:
 				return;
 
 			vtable[DESTRUCT_LABEL](ptr_);
-			std::free(ptr_);
+			Allocator::free(ptr_);
 		} else {
 			vtable[DESTRUCT_LABEL](&sb_);
 		}
@@ -259,6 +276,7 @@ private:
 // Class implementing storage on the heap. Just like the `SBOStorage`, it
 // only handles allocation and deallocation; construction and destruction
 // must be handled externally.
+template <class Allocator = MallocAllocator>
 struct RemoteStorage {
 	RemoteStorage() = delete;
 	RemoteStorage(const RemoteStorage&) = delete;
@@ -268,20 +286,20 @@ struct RemoteStorage {
 
 	template <class T, class RawT = std::decay_t<T>>
 	explicit RemoteStorage(T&& t) :
-		ptr_{std::malloc(sizeof(RawT))}
+		ptr_{Allocator::allocate(sizeof(RawT))}
 	{
 		// TODO: That's not a really nice way to handle this
-		assert(ptr_ != nullptr && "std::malloc failed, we're doomed");
+		assert(ptr_ != nullptr && "Memory allocation failed, we're doomed");
 
 		new (ptr_) RawT(std::forward<T>(t));
 	}
 
 	template <class VTable>
 	RemoteStorage(const RemoteStorage& other, const VTable& vtable) :
-		ptr_{std::malloc(vtable[STORAGE_INFO_LABEL]().size)}
+		ptr_{Allocator::allocate(vtable[STORAGE_INFO_LABEL]().size)}
 	{
 		// TODO: That's not a really nice way to handle this
-		assert(ptr_ != nullptr && "std::malloc failed, we're doomed");
+		assert(ptr_ != nullptr && "Memory allocation failed, we're doomed");
 
 		vtable[COPY_CONSTRUCT_LABEL](this->get(), other.get());
 	}
@@ -306,7 +324,7 @@ struct RemoteStorage {
 		}
 
 		vtable[DESTRUCT_LABEL](ptr_);
-		std::free(ptr_);
+		Allocator::free(ptr_);
 	}
 
 	template <class T = void>
@@ -338,6 +356,7 @@ private:
 // std::shared_ptr with it then?
 // - For remote storage policies, should it be possible to specify whether the
 //   pointed-to storage is const?
+template <class Allocator = MallocAllocator>
 struct SharedRemoteStorage {
 	SharedRemoteStorage() = delete;
 	SharedRemoteStorage(const SharedRemoteStorage&) = delete;
@@ -347,7 +366,7 @@ struct SharedRemoteStorage {
 
 	template <class T, class RawT = std::decay_t<T>>
 	explicit SharedRemoteStorage(T&& t) :
-		ptr_{std::make_shared<RawT>(std::forward<T>(t))}
+		ptr_{Allocator::makeShared<RawT>(std::forward<T>(t))}
 	{
 	}
 
@@ -396,7 +415,10 @@ private:
 // when the object can't fit inside the buffer. Since we know the object always
 // sits inside the local buffer, we can get rid of a branch when accessing the
 // object.
-template <std::size_t SIZE, std::size_t ALIGN = static_cast<std::size_t>(-1)>
+template <
+	std::size_t SIZE,
+	std::size_t ALIGN = static_cast<std::size_t>(-1)
+	>
 class LocalStorage {
 public:
 	LocalStorage() = delete;
