@@ -4,7 +4,7 @@
 
 #include "model.hpp"
 
-#include <dyno.hpp>
+#include "caramel-poly/Poly.hpp"
 
 #include <benchmark/benchmark.h>
 

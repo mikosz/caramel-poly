@@ -230,7 +230,7 @@ template <class... Functions>
 struct Only {
 	template <class All>
 	constexpr auto operator()(All all) const {
-		auto matched = makeConstexprList(Functions{}...);
+		auto matched = detail::makeConstexprList(Functions{}...);
 		static_assert(isSubset(decltype(matched){}, All{}),
 			"caramel_poly::Only: Some functions specified in this selector are not part of "
 			"the concept to which the selector was applied.");
