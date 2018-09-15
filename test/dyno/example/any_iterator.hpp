@@ -25,6 +25,7 @@ constexpr auto distance_LABEL = POLY_FUNCTION_LABEL("distance");
 // in possibly many different ways.
 template <typename Reference>
 struct Iterator : decltype(caramel_poly::requires(
+	caramel_poly::TypeId{},
 	caramel_poly::CopyConstructible{},
 	caramel_poly::MoveConstructible{},
 	caramel_poly::CopyAssignable{},
@@ -188,9 +189,11 @@ public:
 		return *this;
 	}
 
-	template <bool True = true, typename = std::enable_if_t<True &&
-		std::is_base_of<std::bidirectional_iterator_tag, iterator_category>{}
-	>> any_iterator& operator--() {
+	template <
+		bool True = true,
+		typename = std::enable_if_t<True && std::is_base_of<std::bidirectional_iterator_tag, iterator_category>{}>
+		> any_iterator& operator--()
+	{
 		poly_.virtual_(decrement_LABEL)(poly_);
 		return *this;
 	}
@@ -200,8 +203,7 @@ public:
 	}
 
 	friend bool operator==(any_iterator const& a, any_iterator const& b) {
-		// #TODO_Caramel
-		//assert(a.poly_.virtual_(caramel_poly::TYPEID_LABEL)() == b.poly_.virtual_(caramel_poly::TYPEID_LABEL)());
+		assert(a.poly_.virtual_(caramel_poly::TYPEID_LABEL)() == b.poly_.virtual_(caramel_poly::TYPEID_LABEL)());
 		return a.poly_.virtual_(caramel_poly::EQUAL_LABEL)(a.poly_, b.poly_);
 	}
 

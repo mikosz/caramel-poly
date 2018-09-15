@@ -81,16 +81,25 @@ TEST(PolyTest, InvokesBasicPolymorphicCalls) {
 	EXPECT_EQ(sp.virtual_(CONST_PRINT_NAME)(), "cprint:S:42"s);
 	EXPECT_EQ(sp.virtual_(NONCONST_PRINT_NAME)(), "ncprint:S:42"s);
 	EXPECT_EQ(sp.virtual_(FREE_PRINT_NAME)(sp), "fprint:S:42"s);
+	EXPECT_EQ(sp.invoke(CONST_PRINT_NAME), "cprint:S:42"s);
+	EXPECT_EQ(sp.invoke(NONCONST_PRINT_NAME), "ncprint:S:42"s);
+	EXPECT_EQ(sp.invoke(FREE_PRINT_NAME, sp), "fprint:S:42"s);
 
 	sp = Poly<Printable>(T{ 3.14f });
 	EXPECT_EQ(sp.virtual_(CONST_PRINT_NAME)(), "cprint:T:"s + std::to_string(3.14f));
 	EXPECT_EQ(sp.virtual_(NONCONST_PRINT_NAME)(), "ncprint:T:"s + std::to_string(3.14f));
 	EXPECT_EQ(sp.virtual_(FREE_PRINT_NAME)(sp), "fprint:T:"s + std::to_string(3.14f));
+	EXPECT_EQ(sp.invoke(CONST_PRINT_NAME), "cprint:T:"s + std::to_string(3.14f));
+	EXPECT_EQ(sp.invoke(NONCONST_PRINT_NAME), "ncprint:T:"s + std::to_string(3.14f));
+	EXPECT_EQ(sp.invoke(FREE_PRINT_NAME, sp), "fprint:T:"s + std::to_string(3.14f));
 
 	sp = Poly<Printable>(12);
 	EXPECT_EQ(sp.virtual_(CONST_PRINT_NAME)(), "cprint:int:12"s);
 	EXPECT_EQ(sp.virtual_(NONCONST_PRINT_NAME)(), "ncprint:int:12"s);
 	EXPECT_EQ(sp.virtual_(FREE_PRINT_NAME)(sp), "fprint:int:12"s);
+	EXPECT_EQ(sp.invoke(CONST_PRINT_NAME), "cprint:int:12"s);
+	EXPECT_EQ(sp.invoke(NONCONST_PRINT_NAME), "ncprint:int:12"s);
+	EXPECT_EQ(sp.invoke(FREE_PRINT_NAME, sp), "fprint:int:12"s);
 }
 
 TEST(PolyTest, StorableAndDestructibleByDefault) {

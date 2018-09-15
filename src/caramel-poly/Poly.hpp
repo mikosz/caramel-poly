@@ -119,16 +119,6 @@ public:
 		a.swap(b);
 	}
 
-	// #TODO_Caramel
-	//template <class... T, class Name, class... Args>
-	//decltype(auto) operator->*(caramel_poly::detail::delayedCall<Name, Args...>&& delayed) {
-	//	auto f = virtual_(Name{});
-	//	auto injected = [f,this](auto&&... args) -> decltype(auto) {
-	//		return f(*this, static_cast<decltype(args)&&>(args)...);
-	//	};
-	//	return unpack(std::move(delayed.args), injected);
-	//}
-
 	template <
 		class Function,
 		bool HasClause = contains(caramel_poly::detail::clauseNames(ActualConcept{}), Function{}),
@@ -157,6 +147,36 @@ public:
 	constexpr decltype(auto) virtual_(Function name) && {
 		auto clauses = caramel_poly::detail::makeConstexprMap(caramel_poly::detail::clauses(ActualConcept{}));
 		return virtualImpl(clauses[name], name);
+	}
+
+	template <
+		class Function,
+		class... Args,
+		bool HasClause = contains(caramel_poly::detail::clauseNames(ActualConcept{}), Function{}),
+		std::enable_if_t<HasClause>* = nullptr
+		>
+	decltype(auto) invoke(Function name, Args&&... args) const & {
+		return virtual_(name)(std::forward<Args>(args)...);
+	}
+
+	template <
+		class Function,
+		class... Args,
+		bool HasClause = contains(caramel_poly::detail::clauseNames(ActualConcept{}), Function{}),
+		std::enable_if_t<HasClause>* = nullptr
+		>
+	decltype(auto) invoke(Function name, Args&&... args) & {
+		return virtual_(name)(std::forward<Args>(args)...);
+	}
+
+	template <
+		class Function,
+		class... Args,
+		bool HasClause = contains(caramel_poly::detail::clauseNames(ActualConcept{}), Function{}),
+		std::enable_if_t<HasClause>* = nullptr
+		>
+	decltype(auto) invoke(Function name, Args&&... args) && {
+		return virtual_(name)(std::forward<Args>(args)...);
 	}
 
 	// Returns a pointer to the underlying storage.
