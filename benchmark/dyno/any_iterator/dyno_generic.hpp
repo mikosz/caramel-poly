@@ -10,9 +10,9 @@
 
 namespace dyno_generic {
 
-constexpr auto increment_LABEL = METHOD_NAME("increment");
-constexpr auto decrement_LABEL = METHOD_NAME("decrement");
-constexpr auto dereference_LABEL = METHOD_NAME("dereference");
+constexpr auto increment_LABEL = POLY_FUNCTION_LABEL("increment");
+constexpr auto decrement_LABEL = POLY_FUNCTION_LABEL("decrement");
+constexpr auto dereference_LABEL = POLY_FUNCTION_LABEL("dereference");
 
 template <typename Reference>
 struct Iterator : decltype(caramel_poly::requires(

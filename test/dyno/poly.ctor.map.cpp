@@ -13,8 +13,8 @@ namespace /* anonymous */ {
 // This test makes sure that `caramel_poly::poly` allows overriding the concept map used
 // for a type at construction time.
 
-constexpr auto f_NAME = METHOD_NAME("f");
-constexpr auto g_NAME = METHOD_NAME("g");
+constexpr auto f_NAME = POLY_FUNCTION_LABEL("f");
+constexpr auto g_NAME = POLY_FUNCTION_LABEL("g");
 
 struct Concept : decltype(caramel_poly::requires(
   f_NAME = caramel_poly::function<int (caramel_poly::SelfPlaceholder&)>,

@@ -12,7 +12,7 @@
 
 namespace /* anonymous */ {
 
-constexpr auto draw_LABEL = METHOD_NAME("draw");
+constexpr auto draw_LABEL = POLY_FUNCTION_LABEL("draw");
 
 struct Drawable : decltype(caramel_poly::requires(
 	draw_LABEL = caramel_poly::method<void(std::ostream&) const>

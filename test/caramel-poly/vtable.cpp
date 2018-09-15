@@ -11,10 +11,10 @@ namespace /* anonymous */ {
 
 using namespace caramel_poly;
 
-const auto fooName = METHOD_NAME("foo");
-const auto barName = METHOD_NAME("bar");
-const auto bazName = METHOD_NAME("baz");
-const auto bzzName = METHOD_NAME("bzz");
+const auto fooName = POLY_FUNCTION_LABEL("foo");
+const auto barName = POLY_FUNCTION_LABEL("bar");
+const auto bazName = POLY_FUNCTION_LABEL("baz");
+const auto bzzName = POLY_FUNCTION_LABEL("bzz");
 
 struct Parent : decltype(requires(
 	fooName = method<int () const>
@@ -38,13 +38,13 @@ struct S {
 
 template <class T>
 const auto caramel_poly::defaultConceptMap<Interface, T> = makeConceptMap(
-	METHOD_NAME("foo") = [](const S& s) { return s.i; },
-	METHOD_NAME("bar") = [](const S& s, int i) { return s.i * i; }
+	POLY_FUNCTION_LABEL("foo") = [](const S& s) { return s.i; },
+	POLY_FUNCTION_LABEL("bar") = [](const S& s, int i) { return s.i * i; }
 	);
 
 template <class T>
 const auto caramel_poly::conceptMap<Interface, T, std::enable_if_t<std::is_same_v<T, S>>> = makeConceptMap(
-	METHOD_NAME("baz") = [](S& s, double d) { s.i = static_cast<int>(d); }
+	POLY_FUNCTION_LABEL("baz") = [](S& s, double d) { s.i = static_cast<int>(d); }
 	);
 
 namespace /* anonymous */ {

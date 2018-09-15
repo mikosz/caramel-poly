@@ -14,11 +14,11 @@ namespace /* anonymous */ {
 // when a function in a concept is defined using `method` instead of
 // `function`.
 
-constexpr auto a_NAME = METHOD_NAME("a");
-constexpr auto b_NAME = METHOD_NAME("b");
-constexpr auto c_NAME = METHOD_NAME("c");
-constexpr auto d_NAME = METHOD_NAME("d");
-constexpr auto e_NAME = METHOD_NAME("e");
+constexpr auto a_NAME = POLY_FUNCTION_LABEL("a");
+constexpr auto b_NAME = POLY_FUNCTION_LABEL("b");
+constexpr auto c_NAME = POLY_FUNCTION_LABEL("c");
+constexpr auto d_NAME = POLY_FUNCTION_LABEL("d");
+constexpr auto e_NAME = POLY_FUNCTION_LABEL("e");
 
 struct Concept : decltype(caramel_poly::requires(
   a_NAME = caramel_poly::method<int (int)>,

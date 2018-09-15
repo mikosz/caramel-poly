@@ -11,7 +11,7 @@ namespace /* anonymous */ {
 // policy and a remote vtable is the size of 2 pointers. There was once a bug
 // where the size was more than that.
 
-constexpr auto f_NAME = METHOD_NAME("f");
+constexpr auto f_NAME = POLY_FUNCTION_LABEL("f");
 
 struct Concept : decltype(caramel_poly::requires(
   f_NAME = caramel_poly::function<void (caramel_poly::SelfPlaceholder&)>

@@ -20,10 +20,10 @@
 
 namespace /* anonymous */ {
 
-constexpr auto begin_LABEL = METHOD_NAME("begin");
-constexpr auto end_LABEL = METHOD_NAME("end");
-constexpr auto cbegin_LABEL = METHOD_NAME("cbegin");
-constexpr auto cend_LABEL = METHOD_NAME("cend");
+constexpr auto begin_LABEL = POLY_FUNCTION_LABEL("begin");
+constexpr auto end_LABEL = POLY_FUNCTION_LABEL("end");
+constexpr auto cbegin_LABEL = POLY_FUNCTION_LABEL("cbegin");
+constexpr auto cend_LABEL = POLY_FUNCTION_LABEL("cend");
 
 template <typename Value, typename Category>
 struct Range : decltype(caramel_poly::requires(

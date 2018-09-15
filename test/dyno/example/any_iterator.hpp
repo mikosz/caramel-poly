@@ -13,11 +13,11 @@
 #include <utility>
 #include <array>
 
-constexpr auto increment_LABEL = METHOD_NAME("increment");
-constexpr auto decrement_LABEL = METHOD_NAME("decrement");
-constexpr auto dereference_LABEL = METHOD_NAME("dereference");
-constexpr auto advance_LABEL = METHOD_NAME("advance");
-constexpr auto distance_LABEL = METHOD_NAME("distance");
+constexpr auto increment_LABEL = POLY_FUNCTION_LABEL("increment");
+constexpr auto decrement_LABEL = POLY_FUNCTION_LABEL("decrement");
+constexpr auto dereference_LABEL = POLY_FUNCTION_LABEL("dereference");
+constexpr auto advance_LABEL = POLY_FUNCTION_LABEL("advance");
+constexpr auto distance_LABEL = POLY_FUNCTION_LABEL("distance");
 
 // This is the definition of an Iterator concept using a "generic" language.
 // Instead of defining specific methods that must be defined, it defines its

@@ -10,9 +10,9 @@
 #include <memory>
 #include <utility>
 
-constexpr auto f1_LABEL = METHOD_NAME("f1");
-constexpr auto f2_LABEL = METHOD_NAME("f2");
-constexpr auto f3_LABEL = METHOD_NAME("f3");
+constexpr auto f1_LABEL = POLY_FUNCTION_LABEL("f1");
+constexpr auto f2_LABEL = POLY_FUNCTION_LABEL("f2");
+constexpr auto f3_LABEL = POLY_FUNCTION_LABEL("f3");
 
 struct Concept : decltype(caramel_poly::requires(
 	caramel_poly::CopyConstructible{},

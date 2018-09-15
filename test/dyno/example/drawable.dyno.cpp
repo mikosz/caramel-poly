@@ -15,7 +15,7 @@
 
 namespace /* anonymous */ {
 
-constexpr auto draw_LABEL = METHOD_NAME("draw");
+constexpr auto draw_LABEL = POLY_FUNCTION_LABEL("draw");
 
 template <typename Object>
 using document_t = std::vector<Object>;

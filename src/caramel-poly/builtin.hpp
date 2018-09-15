@@ -19,12 +19,12 @@
 
 namespace caramel_poly {
 
-constexpr auto STORAGE_INFO_LABEL = METHOD_NAME("storage-info");
-constexpr auto TYPEID_LABEL = METHOD_NAME("typeid");
-constexpr auto DESTRUCT_LABEL = METHOD_NAME("destruct");
-constexpr auto COPY_CONSTRUCT_LABEL = METHOD_NAME("copy-construct");
-constexpr auto MOVE_CONSTRUCT_LABEL = METHOD_NAME("move-construct");
-constexpr auto EQUAL_LABEL = METHOD_NAME("equal");
+constexpr auto STORAGE_INFO_LABEL = POLY_FUNCTION_LABEL("storage-info");
+constexpr auto TYPEID_LABEL = POLY_FUNCTION_LABEL("typeid");
+constexpr auto DESTRUCT_LABEL = POLY_FUNCTION_LABEL("destruct");
+constexpr auto COPY_CONSTRUCT_LABEL = POLY_FUNCTION_LABEL("copy-construct");
+constexpr auto MOVE_CONSTRUCT_LABEL = POLY_FUNCTION_LABEL("move-construct");
+constexpr auto EQUAL_LABEL = POLY_FUNCTION_LABEL("equal");
 
 // Encapsulates the minimal amount of information required to allocate
 // storage for an object of a given type.

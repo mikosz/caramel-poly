@@ -12,22 +12,22 @@ namespace /* anonymous */ {
 using namespace caramel_poly;
 
 TEST(ConceptTest, RequiresConstructsAConcept) {
-	const auto fooName = METHOD_NAME("foo");
-	const auto barName = METHOD_NAME("bar");
-	const auto bazName = METHOD_NAME("baz");
+	const auto fooName = POLY_FUNCTION_LABEL("foo");
+	const auto barName = POLY_FUNCTION_LABEL("bar");
+	const auto bazName = POLY_FUNCTION_LABEL("baz");
 
 	const auto parent = requires(
-		METHOD_NAME("foo") = method<void (int)>
+		POLY_FUNCTION_LABEL("foo") = method<void (int)>
 		);
 
 	const auto concept = requires(
 		parent,
 		// Should not compile with error stating that the concept redefines a parent's method
-		//METHOD_NAME("foo") = method<void (int)>,
-		METHOD_NAME("bar") = method<float () const>,
+		//POLY_FUNCTION_LABEL("foo") = method<void (int)>,
+		POLY_FUNCTION_LABEL("bar") = method<float () const>,
 		// Should not compile with error stating that the concept has a duplicate method
-		//METHOD_NAME("bar") = method<void (int)>,
-		METHOD_NAME("baz") = method<std::string (double) &&>
+		//POLY_FUNCTION_LABEL("bar") = method<void (int)>,
+		POLY_FUNCTION_LABEL("baz") = method<std::string (double) &&>
 		);
 
 	static_assert(std::is_same_v<
@@ -44,7 +44,7 @@ TEST(ConceptTest, RequiresConstructsAConcept) {
 		>);
 
 	// Should not compile with error stating that function was not found
-	//const auto bzzName = METHOD_NAME("bzz");
+	//const auto bzzName = POLY_FUNCTION_LABEL("bzz");
 	//concept.getSignature(bzzName);
 
 	constexpr auto names = detail::clauseNames(concept);

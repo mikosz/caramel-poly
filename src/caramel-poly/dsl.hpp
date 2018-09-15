@@ -161,7 +161,7 @@ constexpr auto operator""_s() {
 // The user-defined literal is non-standard as of C++17, and it requires
 // brining the literal in scope (through a using declaration or such),
 // which is not always convenient or possible.
-#define METHOD_NAME(s)                                                   \
+#define POLY_FUNCTION_LABEL(s)                                                   \
   (::caramel_poly::detail::prepareString([]{                             \
 	  struct tmp {                                                       \
 		  /* exclude null terminator in size() */                        \

@@ -15,7 +15,7 @@
 
 namespace /* anonymous */ {
 
-constexpr auto draw_LABEL = METHOD_NAME("draw");
+constexpr auto draw_LABEL = POLY_FUNCTION_LABEL("draw");
 
 // Define the interface of something that can be drawn
 struct Drawable : decltype(caramel_poly::requires(

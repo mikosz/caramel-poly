@@ -12,9 +12,9 @@ namespace /* anonymous */ {
 using namespace caramel_poly;
 using namespace std::string_literals;
 
-constexpr auto CONST_PRINT_NAME = METHOD_NAME("cprint");
-constexpr auto NONCONST_PRINT_NAME = METHOD_NAME("ncprint");
-constexpr auto FREE_PRINT_NAME = METHOD_NAME("print");
+constexpr auto CONST_PRINT_NAME = POLY_FUNCTION_LABEL("cprint");
+constexpr auto NONCONST_PRINT_NAME = POLY_FUNCTION_LABEL("ncprint");
+constexpr auto FREE_PRINT_NAME = POLY_FUNCTION_LABEL("print");
 
 struct Printable : decltype(requires(
 	CONST_PRINT_NAME = method<std::string () const>,

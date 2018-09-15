@@ -13,7 +13,7 @@
 
 namespace /* anonymous */ {
 
-constexpr auto call_LABEL = METHOD_NAME("call");
+constexpr auto call_LABEL = POLY_FUNCTION_LABEL("call");
 
 //
 // Example of creating a naive equivalent to `std::function` using the library.

@@ -13,11 +13,11 @@
 
 namespace /* anonymous */ {
 
-constexpr auto increment_LABEL = METHOD_NAME("increment");
-constexpr auto decrement_LABEL = METHOD_NAME("decrement");
-constexpr auto dereference_LABEL = METHOD_NAME("dereference");
-constexpr auto advance_LABEL = METHOD_NAME("advance");
-constexpr auto distance_LABEL = METHOD_NAME("distance");
+constexpr auto increment_LABEL = POLY_FUNCTION_LABEL("increment");
+constexpr auto decrement_LABEL = POLY_FUNCTION_LABEL("decrement");
+constexpr auto dereference_LABEL = POLY_FUNCTION_LABEL("dereference");
+constexpr auto advance_LABEL = POLY_FUNCTION_LABEL("advance");
+constexpr auto distance_LABEL = POLY_FUNCTION_LABEL("distance");
 
 // This example shows how vtable traits can be used to customize the way
 // dynamic dispatch is done, and in particular how one can control which
