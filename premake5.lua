@@ -12,7 +12,7 @@ workspace "caramel-poly"
 
 	configurations { "DebugStatic", "DebugMemcheckStatic", "ProfileBuildTimes", "ReleaseStatic" }
 	
-	platforms { "Win64" }
+	platforms { "Win64", "Linux" }
 	
 	language "C++"
 
@@ -34,12 +34,12 @@ workspace "caramel-poly"
 	
 	-- Platform specific settings
 	
-	filter "platforms:Win32"
-		system "Windows"
-		architecture "x32"
-
 	filter "platforms:Win64"
 		system "Windows"
+		architecture "x64"
+		
+	filter "platforms:Linux"
+		system "Linux"
 		architecture "x64"
 		
 	filter {}
@@ -57,6 +57,11 @@ workspace "caramel-poly"
 		defines { "GTEST_LANG_CXX11=1" }
 	filter {}
 
+	filter "action:gmake"
+		buildoptions { "-std=c++17" }
+		defines { "GTEST_LANG_CXX11=1" }
+	filter {}
+	
 	structure.header_project("caramel-poly", "src")
 	
 	structure.executable_project("caramel-poly-test", "test", false, function()
