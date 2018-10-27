@@ -1,6 +1,8 @@
-function googlebenchmark_include_dir()
+function googlebenchmark_include()
 	local benchmark_dir = path.join(_MAIN_SCRIPT_DIR, "external/benchmark")
-	return path.join(benchmark_dir, "include")
+	filter { "action:vs*" }
+		includedirs(path.join(benchmark_dir, "vs/include"))
+	filter {}
 end
 
 function add_googlebenchmark_libdir()
@@ -21,7 +23,7 @@ function link_googlebenchmark_lib()
 end
 
 function use_googlebenchmark()
-	includedirs(googlebenchmark_include_dir())
+	googlebenchmark_include()
 	add_googlebenchmark_libdir()
 	link_googlebenchmark_lib()
 end
