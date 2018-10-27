@@ -18,6 +18,8 @@
 
 #if defined(_MSC_VER)
 #define NOINLINE __declspec(noinline)
+#else
+#define NOINLINE __attribute__((noinline))
 #endif
 
 // We use this to make sure the compiler is not able to see through the

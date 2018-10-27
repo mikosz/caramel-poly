@@ -65,7 +65,7 @@ struct LocalVTable<detail::ConstexprPair<Name, Clause>...> {
 	constexpr LocalVTable() = default;
 
 	template <class ConceptMap>
-	constexpr explicit LocalVTable([[maybe_unused]] ConceptMap map) :
+	constexpr explicit LocalVTable(ConceptMap map) :
 		vtbl_{
 			detail::makeConstexprMap(
 				detail::makeConstexprPair(

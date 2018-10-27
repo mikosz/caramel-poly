@@ -50,8 +50,8 @@ private:
 
 template <class Value, class Reference = Value&>
 struct any_iterator {
-	using value_type = typename Value;
-	using reference = typename Reference;
+	using value_type = Value;
+	using reference = Reference;
 
 	template <typename Iterator>
 	explicit any_iterator(Iterator it)

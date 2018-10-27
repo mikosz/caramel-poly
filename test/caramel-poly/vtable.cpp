@@ -188,7 +188,7 @@ TEST(VTableTest, LocalVTableGenerationTest) {
 	using Generated = VTable<Local<Everything>>;
 	const auto vtable = Generated::Type<Interface>{complete};
 
-	static_assert(sizeof(vtable, 3 * sizeof(void*)));
+	static_assert(sizeof(vtable) == 3 * sizeof(void*));
 
 	EXPECT_EQ((*vtable[fooName])(&s), 3);
 	EXPECT_EQ((*vtable[barName])(&s, 2), 6);
@@ -204,7 +204,7 @@ TEST(VTableTest, SplitVTableGenerationTest) {
 	using Generated = VTable<Local<Only<decltype(fooName)>>, Remote<EverythingElse>>;
 	const auto vtable = Generated::Type<Interface>{complete};
 
-	static_assert(sizeof(vtable, 2 * sizeof(void*)));
+	static_assert(sizeof(vtable) == 2 * sizeof(void*));
 
 	EXPECT_EQ((*vtable[fooName])(&s), 3);
 	EXPECT_EQ((*vtable[barName])(&s, 2), 6);

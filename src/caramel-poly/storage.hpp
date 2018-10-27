@@ -124,6 +124,10 @@ template <
 class SBOStorage {
 public:
 
+	static constexpr std::size_t SBSIZE = (SIZE < sizeof(void*)) ? sizeof(void*) : SIZE;
+	static constexpr std::size_t SBALIGN =
+		(ALIGN == static_cast<std::size_t>(-1)) ? alignof(std::aligned_storage_t<SBSIZE>) : ALIGN;
+
 	SBOStorage() = delete;
 	SBOStorage(const SBOStorage&) = delete;
 	SBOStorage(SBOStorage&&) = delete;
@@ -254,9 +258,6 @@ public:
 
 private:
 
-	static constexpr std::size_t SBSIZE = (SIZE < sizeof(void*)) ? sizeof(void*) : SIZE;
-	static constexpr std::size_t SBALIGN =
-		(ALIGN == static_cast<std::size_t>(-1)) ? alignof(std::aligned_storage_t<SBSIZE>) : ALIGN;
 	using SBStorage = std::aligned_storage_t<SBSIZE, SBALIGN>;
 
 	union {
@@ -268,7 +269,7 @@ private:
 	bool usesHeap_;
 
 	static constexpr bool canStore(caramel_poly::StorageInfo info) {
-		return info.size <= sizeof(SBStorage) && alignof(SBStorage) % info.alignment == 0;
+		return (info.size <= SBSIZE) && (SBALIGN % info.alignment == 0);
 	}
 
 };
@@ -366,7 +367,7 @@ struct SharedRemoteStorage {
 
 	template <class T, class RawT = std::decay_t<T>>
 	explicit SharedRemoteStorage(T&& t) :
-		ptr_{Allocator::makeShared<RawT>(std::forward<T>(t))}
+		ptr_{Allocator::template makeShared<RawT>(std::forward<T>(t))}
 	{
 	}
 

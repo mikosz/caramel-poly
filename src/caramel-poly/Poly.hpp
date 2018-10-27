@@ -63,6 +63,14 @@ template <
 	class VTablePolicy = caramel_poly::VTable<caramel_poly::Remote<caramel_poly::Everything>>
 	>
 struct Poly {
+private:
+
+	using ActualConcept = decltype(caramel_poly::requires(
+		Concept{},
+		caramel_poly::Destructible{},
+		caramel_poly::Storable{}
+		));
+
 public:
 
 	template <class T, class RawT = std::decay_t<T>, class ConceptMap>
@@ -198,12 +206,6 @@ public:
 	}
 
 private:
-
-	using ActualConcept = decltype(caramel_poly::requires(
-		Concept{},
-		caramel_poly::Destructible{},
-		caramel_poly::Storable{}
-		));
 
 	using VTable = typename VTablePolicy::template Type<ActualConcept>;
 

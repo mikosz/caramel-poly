@@ -2,8 +2,8 @@
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE.md or copy at http://boost.org/LICENSE_1_0.txt)
 
-#include "caramel-poly/concept.hpp"
-#include "caramel-poly/poly.hpp"
+#include "caramel-poly/Concept.hpp"
+#include "caramel-poly/Poly.hpp"
 
 namespace /* anonymous */ {
 

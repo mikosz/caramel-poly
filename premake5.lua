@@ -43,7 +43,23 @@ workspace "caramel-poly"
 		architecture "x64"
 		
 	filter {}
+
+	filter "action:gmake"
+		linkoptions { "-pthread" }
+	filter {}
 	
+	-- C++ Standard
+
+	filter "action:vs*"
+		buildoptions { "/std:c++latest" }
+		defines { "GTEST_LANG_CXX11=1" }
+	filter {}
+
+	filter "action:gmake"
+		buildoptions { "-std=c++17" }
+		defines { "GTEST_LANG_CXX11=1" }
+	filter {}
+		
 	-- Warnings
 	
 	warnings "Extra"
@@ -53,15 +69,8 @@ workspace "caramel-poly"
 	
 	filter "action:vs*"
 		defines { "_SCL_SECURE_NO_WARNINGS" }
-		buildoptions { "/std:c++latest" }
-		defines { "GTEST_LANG_CXX11=1" }
 	filter {}
 
-	filter "action:gmake"
-		buildoptions { "-std=c++17" }
-		defines { "GTEST_LANG_CXX11=1" }
-	filter {}
-	
 	structure.header_project("caramel-poly", "src")
 	
 	structure.executable_project("caramel-poly-test", "test", false, function()
@@ -77,4 +86,3 @@ workspace "caramel-poly"
 	structure.create_build_all_project()
 	structure.create_install_project()
 	structure.create_run_tests_project()
-	

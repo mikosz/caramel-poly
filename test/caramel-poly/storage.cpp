@@ -30,14 +30,14 @@ struct ObjectInterface : decltype(caramel_poly::requires(
 
 TEST(SBOStorageTest, StoresFittingDataInternally) {
 	auto smallStorage = SBOStorage<sizeof(void*)>(S<1>{});
-	auto* firstByte = reinterpret_cast<char*>(smallStorage.get<S<1>>());
+	auto* firstByte = reinterpret_cast<char*>(smallStorage.template get<S<1>>());
 	EXPECT_GE(firstByte, reinterpret_cast<char*>(&smallStorage));
 	EXPECT_LT(firstByte, reinterpret_cast<char*>(&smallStorage) + sizeof(smallStorage));
 }
 
 TEST(SBOStorageTest, StoresNonFittingDataExternally) {
 	auto smallStorage = SBOStorage<sizeof(void*)>(S<2>{});
-	auto* firstByte = reinterpret_cast<char*>(smallStorage.get<S<2>>());
+	auto* firstByte = reinterpret_cast<char*>(smallStorage.template get<S<2>>());
 	EXPECT_TRUE(
 		firstByte < reinterpret_cast<char*>(&smallStorage) ||
 		firstByte >= reinterpret_cast<char*>(&smallStorage) + sizeof(smallStorage)
@@ -115,8 +115,8 @@ using NonOwningStorageTestTypes = ::testing::Types<
 TYPED_TEST_CASE(NonOwningStorageTest, NonOwningStorageTestTypes);
 
 TYPED_TEST(AllStorageTest, HasStorageInfoForObject) {
-	using Storage = TypeParam::StorageType;
-	using Object = TypeParam::ObjectType;
+	using Storage = typename TypeParam::StorageType;
+	using Object = typename TypeParam::ObjectType;
 
 	auto registry = test::ConstructionRegistry();
 
@@ -134,8 +134,8 @@ TYPED_TEST(AllStorageTest, HasStorageInfoForObject) {
 }
 
 TYPED_TEST(AllStorageTest, DestroysStoredObject) {
-	using Storage = TypeParam::StorageType;
-	using Object = TypeParam::ObjectType;
+	using Storage = typename TypeParam::StorageType;
+	using Object = typename TypeParam::ObjectType;
 
 	auto registry = test::ConstructionRegistry();
 
@@ -155,8 +155,8 @@ TYPED_TEST(AllStorageTest, DestroysStoredObject) {
 }
 
 TYPED_TEST(LocalStorageTest, MovesStoredObject) {
-	using Storage = TypeParam::StorageType;
-	using Object = TypeParam::ObjectType;
+	using Storage = typename TypeParam::StorageType;
+	using Object = typename TypeParam::ObjectType;
 
 	auto registry = test::ConstructionRegistry();
 
@@ -170,20 +170,20 @@ TYPED_TEST(LocalStorageTest, MovesStoredObject) {
 
 	auto m = Storage(std::move(s), vtable);
 
-	const auto& state = m.get<Object>()->state();
+	const auto& state = m.template get<Object>()->state();
 	EXPECT_TRUE(state.moveConstructed);
 	EXPECT_EQ(state.original, &original);
 }
 
 TYPED_TEST(RemoteStorageTest, MovesPointerToStoredObject) {
-	using Storage = TypeParam::StorageType;
-	using Object = TypeParam::ObjectType;
+	using Storage = typename TypeParam::StorageType;
+	using Object = typename TypeParam::ObjectType;
 
 	auto registry = test::ConstructionRegistry();
 
 	auto original = Object(registry);
 	Storage s{original};
-	auto* storedData = s.get<Object>();
+	auto* storedData = s.template get<Object>();
 
 	const auto complete = completeConceptMap<ObjectInterface, Object>(
 		conceptMap<ObjectInterface, Object>);
@@ -193,14 +193,14 @@ TYPED_TEST(RemoteStorageTest, MovesPointerToStoredObject) {
 	auto m = Storage(std::move(s), vtable);
 
 	if constexpr (!std::is_same_v<Storage, NonOwningStorage>) {
-		EXPECT_EQ(s.get<Object>(), reinterpret_cast<Object*>(nullptr));
+		EXPECT_EQ(s.template get<Object>(), static_cast<Object*>(nullptr));
 	}
-	EXPECT_EQ(m.get<Object>(), storedData);
+	EXPECT_EQ(m.template get<Object>(), storedData);
 }
 
 TYPED_TEST(OwningStorageTest, CopiesStoredObject) {
-	using Storage = TypeParam::StorageType;
-	using Object = TypeParam::ObjectType;
+	using Storage = typename TypeParam::StorageType;
+	using Object = typename TypeParam::ObjectType;
 
 	auto registry = test::ConstructionRegistry();
 
@@ -214,20 +214,20 @@ TYPED_TEST(OwningStorageTest, CopiesStoredObject) {
 
 	auto c = Storage(s, vtable);
 
-	const auto& state = c.get<Object>()->state();
+	const auto& state = c.template get<Object>()->state();
 	EXPECT_TRUE(state.copyConstructed);
 	EXPECT_EQ(state.original, &original);
 }
 
 TYPED_TEST(NonOwningStorageTest, CopiesPointerToStoredObject) {
-	using Storage = TypeParam::StorageType;
-	using Object = TypeParam::ObjectType;
+	using Storage = typename TypeParam::StorageType;
+	using Object = typename TypeParam::ObjectType;
 
 	auto registry = test::ConstructionRegistry();
 
 	auto original = Object(registry);
 	auto s = Storage(original);
-	auto* storedData = s.get<Object>();
+	auto* storedData = s.template get<Object>();
 
 	const auto complete = completeConceptMap<ObjectInterface, Object>(
 		conceptMap<ObjectInterface, Object>);
@@ -236,8 +236,8 @@ TYPED_TEST(NonOwningStorageTest, CopiesPointerToStoredObject) {
 
 	auto c = Storage(s, vtable);
 
-	EXPECT_EQ(s.get<Object>(), storedData);
-	EXPECT_EQ(c.get<Object>(), storedData);
+	EXPECT_EQ(s.template get<Object>(), storedData);
+	EXPECT_EQ(c.template get<Object>(), storedData);
 }
 
 } // anonymous namespace

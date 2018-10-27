@@ -5,8 +5,8 @@
 #include <gtest/gtest.h>
 
 #include "caramel-poly/builtin.hpp"
-#include "caramel-poly/concept.hpp"
-#include "caramel-poly/poly.hpp"
+#include "caramel-poly/Concept.hpp"
+#include "caramel-poly/Poly.hpp"
 
 #include "awful.hpp"
 
