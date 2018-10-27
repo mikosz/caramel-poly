@@ -70,7 +70,7 @@ public:
 
 	template <class... OtherEntries>
 	constexpr auto insertAll([[maybe_unused]] ConstexprList<OtherEntries...> other) const {
-		if constexpr (empty(ConstexprMap<OtherEntries...>::Entries{})) {
+		if constexpr (empty(typename ConstexprMap<OtherEntries...>::Entries{})) {
 			return *this;
 		} else {
 			return

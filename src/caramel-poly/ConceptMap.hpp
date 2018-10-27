@@ -16,7 +16,7 @@
 #include "detail/ConstexprPair.hpp"
 #include "detail/ConstexprMap.hpp"
 #include "detail/BindSignature.hpp"
-#include "concept.hpp"
+#include "Concept.hpp"
 #include "dsl.hpp"
 
 namespace caramel_poly {
@@ -39,9 +39,9 @@ struct ConceptMap<Concept, T, detail::ConstexprPair<Name, Function>...> {
 
 	template <class NameArg>
 	constexpr auto operator[](NameArg) const {
-		constexpr bool isKnown = anyOf(Functions{}, [](auto e) { return e.first() == NameArg{}; });
+		constexpr bool isKnown = Functions{}.contains(NameArg{});
 		if constexpr (isKnown) {
-			return find(Functions{}, [](auto e) { return e.first() == NameArg{}; }).second();
+			return Functions{}[NameArg{}];
 		} else {
 			static_assert(
 				isKnown,
@@ -140,7 +140,7 @@ constexpr auto completeConceptMapImpl(Map map) {
 // Turns a constexpr map into a concept map.
 template <class Concept, class T, class Map>
 constexpr auto toConceptMap(Map) {
-	return unpack(Map{}, [](auto... m) {
+	return unpack(typename Map::Entries{}, [](auto... m) {
 			return caramel_poly::ConceptMap<Concept, T, decltype(m)...>{};
 		});
 }

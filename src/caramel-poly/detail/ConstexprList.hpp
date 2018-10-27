@@ -131,7 +131,7 @@ constexpr auto find([[maybe_unused]] ConstexprList<Head, Tail...> c, MetaPredica
 
 template <class MetaPredicate>
 constexpr auto find(ConstexprList<>, MetaPredicate) {
-	static_assert(false, "Element not found");
+	// static_assert(false, "Element not found");
 }
 
 template <class Head, class... Tail, class MetaPredicate>
@@ -231,7 +231,7 @@ constexpr auto flatten(ConstexprList<Entries...> c) {
 }
 
 template <class State, class Foldable, class Function>
-constexpr auto foldLeft(State state, Foldable foldable, [[maybe_unused]] Function f) {
+constexpr auto foldLeft(State state, [[maybe_unused]] Foldable foldable, [[maybe_unused]] Function f) {
 	if constexpr (empty(Foldable{})) {
 		return state;
 	} else {
@@ -242,7 +242,7 @@ constexpr auto foldLeft(State state, Foldable foldable, [[maybe_unused]] Functio
 template <class Foldable, class Function>
 constexpr auto foldLeft(Foldable foldable, [[maybe_unused]] Function f) {
 	if constexpr (empty(Foldable{})) {
-		static_assert(false, "Can't fold an empty list");
+		// static_assert(false, "Can't fold an empty list");
 	} else if constexpr (empty(Foldable{}.tail())) {
 		return foldable.head();
 	} else {

@@ -15,6 +15,9 @@
 namespace caramel_poly::detail {
 
 template <char... CHARS>
+constexpr const char COMPILE_STRING_STORAGE[] = { CHARS..., '\0' };
+
+template <char... CHARS>
 class ConstexprString {
 public:
 
@@ -48,9 +51,6 @@ template <char... CHARS>
 std::ostream& operator<<(std::ostream& os, ConstexprString<CHARS...> s) {
 	return os << s.c_str();
 }
-
-template <char... CHARS>
-constexpr const char COMPILE_STRING_STORAGE[] = { CHARS..., '\0' };
 
 template <class S, std::size_t... N>
 constexpr auto prepare_impl(S, std::index_sequence<N...>)

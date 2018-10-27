@@ -112,7 +112,7 @@ struct Concept : detail::ConceptBase {
 			constexpr auto clause = find(clauses(Concept{}), [](auto clause) { return clause.first() == Name{}; });
 			return clause.second();
 		} else {
-			static_assert(false, "Function not found");
+			// static_assert(false, "Function not found");
 		}
 	}
 
