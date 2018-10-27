@@ -1,17 +1,16 @@
 function googlebenchmark_include()
-	local benchmark_dir = path.join(_MAIN_SCRIPT_DIR, "external/benchmark")
-	filter { "action:vs*" }
-		includedirs(path.join(benchmark_dir, "vs/include"))
-	filter {}
+	includedirs("external/benchmark/include")
 end
 
 function add_googlebenchmark_libdir()
-	local benchmark_dir = path.join(_MAIN_SCRIPT_DIR, "external/benchmark")
+	local benchmark_dir = path.join(_MAIN_SCRIPT_DIR, "external/benchmark/src/")
 	
 	filter { "action:vs*", "configurations:Debug*" }
-		libdirs(path.join(benchmark_dir, "vs/Debug/lib"))
+		libdirs(path.join(benchmark_dir, "Debug/"))
 	filter { "action:vs*", "configurations:Release*" }
-		libdirs(path.join(benchmark_dir, "vs/Release/lib"))
+		libdirs(path.join(benchmark_dir, "Release/"))
+	filter { "action:gmake" }
+		libdirs(path.join(benchmark_dir, "src/"))
 	filter {}
 end
 
