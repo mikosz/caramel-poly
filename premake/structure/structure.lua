@@ -57,11 +57,11 @@ local create_main_project = function(name, src_dir)
 	project "*"
 		
 	includedirs(src_dir)
-	gather_headers(src_dir)
 end
 
 function m.header_project(name, src_dir, common_settings)
 	create_main_project(name, src_dir)
+	gather_headers(src_dir)
 
 	project(name)
 		kind "Utility"
@@ -74,6 +74,7 @@ end
 
 function m.library_project(name, src_dir, common_settings)
 	create_main_project(name, src_dir)
+	gather_headers(src_dir)
 
 	project(name)
 		kind "StaticLib"

@@ -1,6 +1,5 @@
 structure = require "structure"
 
-include "premake5.cfg.lua"
 include "googletest.lua"
 include "googlebenchmark.lua"
 

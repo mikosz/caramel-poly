@@ -15,7 +15,7 @@ template <typename VTablePolicy>
 static void BM_dispatch3(benchmark::State& state) {
 	unsigned int x = 0;
 	model<VTablePolicy> m{x};
-	int const N = state.range(0);
+	int const N = static_cast<int>(state.range(0));
 	while (state.KeepRunning()) {
 		for (int i = 0; i != N; ++i) {
 			benchmark::DoNotOptimize(m);
