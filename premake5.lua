@@ -84,4 +84,5 @@ workspace "caramel-poly"
 
 	structure.create_build_all_project()
 	structure.create_install_project()
-	structure.create_run_tests_project()
+	-- TODO: doesn't work
+	-- structure.create_run_tests_project()

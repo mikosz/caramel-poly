@@ -17,3 +17,7 @@ build:
   project: build\caramel-poly.sln
   verbosity: minimal
   
+test_script:
+  - cmd: |
+    echo $env:configuration
+    build\debugstatic_win64\bin\caramel-poly-test.d.exe

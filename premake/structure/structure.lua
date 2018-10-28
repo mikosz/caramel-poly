@@ -185,19 +185,20 @@ function m.create_install_project()
 	project "*"
 end
 
-function m.create_run_tests_project()
-	project "RUN_TESTS"
-		kind "Utility"
-		dependson(test_projects)
+-- TODO: doesn't work
+-- function m.create_run_tests_project()
+	-- project "RUN_TESTS"
+		-- kind "Utility"
+		-- dependson(test_projects)
 		
-		for _, test in pairs(test_projects) do
-			postbuildcommands {
-				"{ECHO} Running "..test,
-				"%{wks.location}%{cfg.shortname}/tests/"..test..".exe" -- ".exe" could come from a token?
-			}
-		end
-	project "*"
-end
+		-- for _, test in pairs(test_projects) do
+			-- postbuildcommands {
+				-- "{ECHO} Running "..test,
+				-- "%{wks.location}%{cfg.shortname}/tests/"..test..".exe" -- ".exe" could come from a token?
+			-- }
+		-- end
+	-- project "*"
+-- end
 
 function m.create_build_all_project()
 	project "BUILD_ALL"
