@@ -19,5 +19,5 @@ build:
   
 test_script:
   - cmd: |
-    echo $env:configuration
+    @echo "$env:configuration"
     build\debugstatic_win64\bin\caramel-poly-test.d.exe
