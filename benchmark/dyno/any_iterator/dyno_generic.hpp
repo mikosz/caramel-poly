@@ -62,12 +62,12 @@ using remote_storage = dyno_generic::any_iterator<
 >;
 
 using local_storage = dyno_generic::any_iterator<
-	int, caramel_poly::LocalStorage<16>, caramel_poly::VTable<caramel_poly::Remote<caramel_poly::Everything>>
+	int, caramel_poly::LocalStorage<sizeof(std::vector<int>::iterator)>, caramel_poly::VTable<caramel_poly::Remote<caramel_poly::Everything>>
 >;
 
 using local_storage_inlined_vtable = dyno_generic::any_iterator<
 	int,
-	caramel_poly::LocalStorage<16>,
+	caramel_poly::LocalStorage<sizeof(std::vector<int>::iterator)>,
 	caramel_poly::VTable<
 		caramel_poly::Local<
 			caramel_poly::Only<decltype(increment_LABEL),
