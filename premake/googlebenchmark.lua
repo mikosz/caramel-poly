@@ -6,7 +6,7 @@ function add_googlebenchmark_libdir()
 	local benchmark_dir = path.join(_MAIN_SCRIPT_DIR, "external/benchmark")
 	
 	filter { "platforms:Win64", "action:vs2017" }
-		libdirs(path.join(benchmark_dir, "x64/vs2017/Release/"))
+		libdirs(path.join(benchmark_dir, "Win64/vs2017/Release/"))
 	filter { "action:gmake" }
 		libdirs(path.join(benchmark_dir, "src/"))
 	filter {}

@@ -1,0 +1,19 @@
+version: 1.0.{build}
+image: Visual Studio 2017
+
+configuration:
+  - DebugStatic
+  - ReleaseStatic
+
+platform: Win64
+
+init:
+  - cmd: ''
+
+before_build:
+  - cmd: external\premake5.exe --scripts=premake/ --install-prefix=install/ vs2017
+
+build:
+  project: build\caramel-poly.sln
+  verbosity: minimal
+  
