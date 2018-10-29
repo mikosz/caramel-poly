@@ -7,8 +7,8 @@
 # https://github.com/ldionne/dyno
 
 language: cpp
-os: linux # Use Linux unless specified otherwise
-dist: trusty # Use 'trusty' unless specified otherwise
+os: linux
+dist: trusty
 sudo: false
 
 # Do not build branches of the form "pr/*". By prefixing pull requests coming

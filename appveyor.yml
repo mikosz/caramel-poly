@@ -1,3 +1,11 @@
+# Copyright Mikolaj Radwan 2018
+# Distributed under the MIT license (See accompanying file LICENSE)
+#
+# This is Louis Dionne's Dyno library adapted to work on Visual Studio 2017 and
+# without Boost, modified to my taste. All credit for the design and delivery goes
+# to Louis. His original implementation may be found here:
+# https://github.com/ldionne/dyno
+
 version: 1.0.{build}
 image: Visual Studio 2017
 
@@ -24,3 +32,15 @@ test_script:
      build\%CONFIGURATION%_%PLATFORM%\bin\caramel-poly-test.exe
      @echo ============== RUNNING BENCHMARKS ===============
      build\%CONFIGURATION%_%PLATFORM%\bin\caramel-poly-benchmark.exe
+
+notifications:
+  - provider: Email
+    to:
+      - mikoszrrr@gmail.com
+    on_build_success: false
+    
+artifacts:
+  - path: build\install
+    name: caramel-poly
+    type: zip
+    
