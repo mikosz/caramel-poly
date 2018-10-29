@@ -40,7 +40,7 @@ notifications:
     on_build_success: false
     
 artifacts:
-  - path: build\install\caramel-poly
+  - path: build\install\include
     name: caramel-poly
     type: zip
     

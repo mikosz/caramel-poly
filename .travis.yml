@@ -19,8 +19,8 @@ branches:
 
 matrix:
   include:
-    - env: COMPILER=clang++-4.0
-      addons: { apt: { packages: ["clang-4.0"], sources: ["llvm-toolchain-trusty-4.0", "ubuntu-toolchain-r-test"] } }
+    - env: COMPILER=clang++-7.0
+      addons: { apt: { packages: ["clang-7.0"], sources: ["llvm-toolchain-trusty-7.0", "ubuntu-toolchain-r-test"] } }
 
     - env: COMPILER=g++-7
       addons: { apt: { packages: ["g++-7"], sources: ["ubuntu-toolchain-r-test"] } }
@@ -42,7 +42,7 @@ install:
   # Otherwise, it uses the libstdc++ provided with the system.
   - |
     if [[ "${CXX}" == "clang"* && "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      if [[ "${CXX}" == "clang++-4.0" ]]; then LLVM_VERSION="4.0.0"; fi
+      if [[ "${CXX}" == "clang++-7.0" ]]; then LLVM_VERSION="7.0.0"; fi
       LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
       LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
       LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
