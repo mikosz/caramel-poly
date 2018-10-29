@@ -19,8 +19,8 @@ build:
   
 test_script:
   - cmd: |
-     @echo $env.configuration_$env.platform
+     @echo %env.configuration%_%env.platform%
      @echo ================= RUNNING TESTS =================
-     build\$env.configuration_$env.platform\bin\caramel-poly-test.exe
+     build\%env.configuration%_%env.platform%\bin\caramel-poly-test.exe
      @echo ============== RUNNING BENCHMARKS ===============
-     build\$env.configuration_$env.platform\bin\caramel-poly-benchmark.exe
+     build\%env.configuration%_%env.platform%\bin\caramel-poly-benchmark.exe
