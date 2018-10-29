@@ -69,6 +69,7 @@ before_script:
   - cd "${TRAVIS_BUILD_DIR}"
 script:
   - ./create-project-gmake.sh
+  - cd build/
   - make
   - find build/
   
