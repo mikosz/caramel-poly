@@ -113,9 +113,11 @@ function m.executable_project(name, src_dir, is_windowed, common_settings)
 		
 		targetdir(target_dir_path("bin"))
 		
-		filter "configurations:Debug*"
-			targetsuffix(".d")
-		filter {}
+		-- TODO: disabled .d suffix for .exe - for caramel-poly doesn't make sense and
+		-- raises issues with CI
+		-- filter "configurations:Debug*"
+			-- targetsuffix(".d")
+		-- filter {}
 		
 		if common_settings then
 			common_settings()

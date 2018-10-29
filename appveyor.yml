@@ -18,4 +18,9 @@ build:
   verbosity: minimal
   
 test_script:
-  - cmd: build\debugstatic_win64\bin\caramel-poly-test.d.exe
+  - cmd: |
+     @echo %env.configuration_%env.platform
+     @echo ================= RUNNING TESTS =================
+     build\%env.configuration_%env.platform\bin\caramel-poly-test.exe
+     @echo ============== RUNNING BENCHMARKS ===============
+     build\%env.configuration_%env.platform\bin\caramel-poly-benchmark.exe
