@@ -25,14 +25,6 @@ matrix:
     - env: COMPILER=g++-7
       addons: { apt: { packages: ["g++-7"], sources: ["ubuntu-toolchain-r-test"] } }
 
-    - os: osx
-      env: COMPILER=clang++
-      osx_image: xcode9.1
-
-    # Build without the optional dependencies
-    - env: COMPILER=clang++-4.0 NO_OPTIONAL_DEPENDENCIES=true
-      addons: { apt: { packages: ["clang-4.0"], sources: ["llvm-toolchain-trusty-4.0", "ubuntu-toolchain-r-test"] } }
-
 install:
   # Set the ${CXX} and ${CC} variables properly. They are picked up by CMake
   # to determine the C++ and C compilers, respectively.
@@ -70,8 +62,7 @@ before_script:
 script:
   - ./create-project-gmake.sh
   - cd build/
-  - make help
-  - make debugstatic_linux
-  - make releasestatic_linux
+  - make config=debugstatic_linux
+  - make config=releasestatic_linux
   - find build/
   
