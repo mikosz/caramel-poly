@@ -261,12 +261,15 @@ constexpr auto isSubset(ConstexprList<LhsEntries...> l, ConstexprList<RhsEntries
 }
 
 template <class... LhsEntries, class... RhsEntries>
-constexpr auto difference(ConstexprList<LhsEntries...> lhs, ConstexprList<RhsEntries...> rhs) {
+constexpr auto difference(
+	ConstexprList<LhsEntries...> lhs,
+	[[maybe_unused]] ConstexprList<RhsEntries...> rhs
+	) {
 	return foldLeft(
 		ConstexprList<>{},
 		lhs,
-		[rhs](auto d, auto e) {
-				if constexpr (contains(decltype(rhs){}, decltype(e){})) {
+		[](auto d, auto e) {
+				if constexpr (contains(ConstexprList<RhsEntries...>{}, decltype(e){})) {
 					return d;
 				} else {
 					return prepend(d, e);
