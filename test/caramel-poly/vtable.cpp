@@ -14,7 +14,6 @@ using namespace caramel_poly;
 const auto fooName = POLY_FUNCTION_LABEL("foo");
 const auto barName = POLY_FUNCTION_LABEL("bar");
 const auto bazName = POLY_FUNCTION_LABEL("baz");
-const auto bzzName = POLY_FUNCTION_LABEL("bzz");
 
 struct Parent : decltype(requires(
 	fooName = method<int () const>
