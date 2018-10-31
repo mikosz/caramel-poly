@@ -38,7 +38,7 @@ public:
 		return &*it_;
 	}
 
-	bool equal(const IAnyIterator& other) const {
+	bool equal(const IAnyIterator& other) const override {
 		return it_ == reinterpret_cast<const AnyIteratorImpl<Iterator>&>(other).it_;
 	}
 
