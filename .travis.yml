@@ -61,9 +61,10 @@ install:
     git clone https://github.com/google/benchmark.git
     cd benchmark
     mkdir build/
+    cd build/
     cmake ..
     make
-    make install
+    sudo make install
 before_script:
   - cd "${TRAVIS_BUILD_DIR}"
 script:
