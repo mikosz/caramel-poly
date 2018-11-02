@@ -70,7 +70,9 @@ before_script:
 script:
   - ./create-project-gmake.sh
   - cd build/
+  - make help
   - make config=debugstatic_linux
   - make config=releasestatic_linux
-  - find build/
+  - find debugstatic_linux
+  - find releasestatic_linux
   
