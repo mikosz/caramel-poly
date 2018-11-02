@@ -58,6 +58,10 @@ install:
       export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${DEPS_DIR}/llvm/install/lib"
     fi
   - |
+    if [[ "${CXX}" == "g++"* ]]; then
+      export SKIP_BENCHMARK=1
+    fi
+  - |
     git clone https://github.com/google/benchmark.git
     cd benchmark
     mkdir build/
@@ -70,9 +74,12 @@ before_script:
 script:
   - ./create-project-gmake.sh
   - cd build/
-  - make help
-  - make config=debugstatic_linux
-  - make config=releasestatic_linux
-  - find debugstatic_linux
-  - find releasestatic_linux
+  - make config=debugstatic_linux caramel-poly-test
+  - debugstatic_linux/bin/caramel-poly-test
+  - if [[ $SKIP_BENCHMARK != 1 ]]; then make config=debugstatic_linux caramel-poly-benchmark; fi
+  - if [[ $SKIP_BENCHMARK != 1 ]]; then debugstatic_linux/bin/caramel-poly-benchmark; fi
+  - make config=releasestatic_linux caramel-poly-test
+  - releasestatic_linux/bin/caramel-poly-test
+  - if [[ $SKIP_BENCHMARK != 1 ]]; then make config=releasestatic_linux caramel-poly-benchmark; fi
+  - if [[ $SKIP_BENCHMARK != 1 ]]; then releasestatic_linux/bin/caramel-poly-benchmark; fi
   
