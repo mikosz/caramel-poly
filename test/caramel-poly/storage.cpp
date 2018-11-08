@@ -12,18 +12,18 @@
 
 namespace /* anonymous */ {
 
-using namespace caramel_poly;
+using namespace caramel::poly;
 
 template <size_t PTRS>
 struct S {
 	void* p[PTRS];
 };
 
-struct ObjectInterface : decltype(caramel_poly::requires(
-	caramel_poly::Storable{},
-	caramel_poly::Destructible{},
-	caramel_poly::CopyConstructible{},
-	caramel_poly::MoveConstructible{}
+struct ObjectInterface : decltype(caramel::poly::requires(
+	caramel::poly::Storable{},
+	caramel::poly::Destructible{},
+	caramel::poly::CopyConstructible{},
+	caramel::poly::MoveConstructible{}
 	))
 {
 };

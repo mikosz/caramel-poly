@@ -17,10 +17,10 @@ namespace /* anonymous */ {
 TEST(DynoTest, CtorCopy) {
   // Make sure the copy constructor is not instantiated unless requested.
   {
-    using NonCopyable = decltype(caramel_poly::requires(caramel_poly::MoveConstructible{},
-                                                caramel_poly::Destructible{}));
-    caramel_poly::Poly<NonCopyable> a{awful::noncopyable{}};
-    caramel_poly::Poly<NonCopyable> b{std::move(a)};
+    using NonCopyable = decltype(caramel::poly::requires(caramel::poly::MoveConstructible{},
+                                                caramel::poly::Destructible{}));
+    caramel::poly::Poly<NonCopyable> a{awful::noncopyable{}};
+    caramel::poly::Poly<NonCopyable> b{std::move(a)};
   }
 }
 

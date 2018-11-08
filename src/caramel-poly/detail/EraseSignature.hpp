@@ -12,7 +12,7 @@
 #include "EraserTraits.hpp"
 #include "TransformSignature.hpp"
 
-namespace caramel_poly::detail {
+namespace caramel::poly::detail {
 
 template <class Eraser>
 struct ApplyErasePlaceholder {
@@ -26,7 +26,7 @@ struct ApplyErasePlaceholder {
 // containing no placeholders, and which would be suitable for storing as a
 // function pointer.
 //
-// Basically, this turns types like `caramel_poly::SelfPlaceholder&` into `void*`
+// Basically, this turns types like `caramel::poly::SelfPlaceholder&` into `void*`
 // (or what's specified by the given `Eraser`) at the top-level of the signature.
 // This is used when we need to generate a vtable from a concept definition. The
 // concept defines signatures with placeholders, and we need to generate a concrete
@@ -40,6 +40,6 @@ struct ApplyErasePlaceholder {
 template <class Signature, class Eraser = void>
 using EraseSignature = TransformSignature<Signature, ApplyErasePlaceholder<Eraser>::template Type>;
 
-} // namespace caramel_poly::detail
+} // namespace caramel::poly::detail
 
 #endif // CARAMELPOLY_DETAIL_ERASESIGNATURE_HPP__

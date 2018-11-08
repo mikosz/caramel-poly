@@ -15,7 +15,7 @@
 #include "EmptyObject.hpp"
 #include "EraserTraits.hpp"
 
-namespace caramel_poly::detail {
+namespace caramel::poly::detail {
 
 template <class Eraser, class F, class PlaceholderSig, class ActualSig>
 struct Thunk;
@@ -70,6 +70,6 @@ constexpr auto EraseFunction(const F&) {
 	return &Thunk::apply;
 }
 
-} // namespace caramel_poly::detail
+} // namespace caramel::poly::detail
 
 #endif // CARAMELPOLY_DETAIL_ERASEFUNCTION_HPP__

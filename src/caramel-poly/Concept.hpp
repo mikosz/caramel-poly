@@ -16,7 +16,7 @@
 #include "detail/ConstexprPair.hpp"
 #include "dsl.hpp"
 
-namespace caramel_poly {
+namespace caramel::poly {
 
 template <class... Clauses>
 struct Concept;
@@ -41,7 +41,7 @@ constexpr auto expandClauses(const Concept<Clauses...>&) {
 //
 // In the returned sequence, each clause is a pair where the first element
 // is the name of the clause and the second element is the clause itself
-// (e.g. a `caramel_poly::function`). The order of clauses is not specified.
+// (e.g. a `caramel::poly::function`). The order of clauses is not specified.
 template <class... Clauses>
 constexpr auto clauses(const Concept<Clauses...>&) {
 	return flatten(makeConstexprList(detail::expandClauses(Clauses{})...));
@@ -94,7 +94,7 @@ constexpr auto isRedefiningBaseConceptClause(const Concept<Clauses...>& c) {
 // A `Concept` is a collection of clauses and refined Concepts representing
 // requirements for a type to model the Concept.
 //
-// A Concept is created by using `caramel_poly::requires`.
+// A Concept is created by using `caramel::poly::requires`.
 //
 // From a `Concept`, one can generate a virtual function table by looking at
 // the signatures of the functions defined in the Concept. In the future, it
@@ -124,9 +124,9 @@ struct Concept : detail::ConceptBase {
 //
 // ```
 // template <class Reference>
-// struct Iterator : decltype(caramel_poly::requires(
+// struct Iterator : decltype(caramel::poly::requires(
 //   Incrementable{},
-//   "dereference"_s = caramel_poly::function<Reference (caramel_poly::SelfPlaceholder&)>
+//   "dereference"_s = caramel::poly::function<Reference (caramel::poly::SelfPlaceholder&)>
 //   ...
 // )) { };
 // ```
@@ -154,6 +154,6 @@ constexpr Concept<Clauses...> requires(Clauses...) {
 	return {};
 }
 
-} // namespace caramel_poly
+} // namespace caramel::poly
 
 #endif // CARAMELPOLY_CONCEPT_HPP__

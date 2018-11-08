@@ -12,7 +12,7 @@
 #include <utility>
 #include <iosfwd>
 
-namespace caramel_poly::detail {
+namespace caramel::poly::detail {
 
 template <char... CHARS>
 constexpr const char COMPILE_STRING_STORAGE[] = { CHARS..., '\0' };
@@ -63,10 +63,10 @@ constexpr decltype(auto) prepare(S s) {
 	return prepare_impl(s, std::make_index_sequence<sizeof(S::get()) - 1>{});
 }
 
-} // namespace caramel_poly::detail
+} // namespace caramel::poly::detail
 
 #define CONSTEXPR_STRING(s)                                                 \
-    (::caramel_poly::detail::prepare([]{                                    \
+    (::caramel::poly::detail::prepare([]{                                    \
         struct tmp {                                                        \
             static constexpr decltype(auto) get() {                         \
 				return s;                                                   \

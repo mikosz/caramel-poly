@@ -9,7 +9,7 @@
 
 namespace /* anonymous */ {
 
-using namespace caramel_poly;
+using namespace caramel::poly;
 using namespace std::string_literals;
 
 constexpr auto CONST_PRINT_NAME = POLY_FUNCTION_LABEL("cprint");
@@ -19,7 +19,7 @@ constexpr auto FREE_PRINT_NAME = POLY_FUNCTION_LABEL("print");
 struct Printable : decltype(requires(
 	CONST_PRINT_NAME = method<std::string () const>,
 	NONCONST_PRINT_NAME = method<std::string ()>,
-	FREE_PRINT_NAME = function<std::string (const caramel_poly::SelfPlaceholder&)>
+	FREE_PRINT_NAME = function<std::string (const caramel::poly::SelfPlaceholder&)>
 	))
 {
 };
@@ -61,14 +61,14 @@ std::string print(const T& t) {
 } // anonymous namespace
 
 template <class T>
-constexpr auto caramel_poly::defaultConceptMap<Printable, T> = makeConceptMap(
+constexpr auto caramel::poly::defaultConceptMap<Printable, T> = makeConceptMap(
 	CONST_PRINT_NAME = [](const auto& o) { return o.print(); },
 	NONCONST_PRINT_NAME = [](auto& o) { return o.print(); },
 	FREE_PRINT_NAME = [](const auto& o) { return print(o); }
 	);
 
 template <class T>
-constexpr auto caramel_poly::conceptMap<Printable, T, std::enable_if_t<std::is_same_v<int, T>>> = makeConceptMap(
+constexpr auto caramel::poly::conceptMap<Printable, T, std::enable_if_t<std::is_same_v<int, T>>> = makeConceptMap(
 	CONST_PRINT_NAME = [](const auto& o) { return "cprint:int:"s + std::to_string(o); },
 	NONCONST_PRINT_NAME = [](auto& o) { return "ncprint:int:"s + std::to_string(o); },
 	FREE_PRINT_NAME = [](const auto& o) { return "fprint:int:"s + std::to_string(o); }

@@ -9,7 +9,7 @@
 
 namespace /* anonymous */ {
 
-using namespace caramel_poly;
+using namespace caramel::poly;
 
 struct S {
 };
@@ -17,7 +17,7 @@ struct S {
 } // anonymous namespace
 
 template <class T>
-constexpr auto caramel_poly::conceptMap<TypeId, T, std::enable_if_t<std::is_same_v<S, T>>> = makeConceptMap(
+constexpr auto caramel::poly::conceptMap<TypeId, T, std::enable_if_t<std::is_same_v<S, T>>> = makeConceptMap(
 	);
 
 namespace /* anonymous */ {

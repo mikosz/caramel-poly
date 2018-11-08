@@ -11,7 +11,7 @@
 
 #include "caramel-poly/detail/EmptyObject.hpp"
 
-namespace caramel_poly::detail {
+namespace caramel::poly::detail {
 
 template <class LambdaType, class Signature>
 struct DefaultConstructibleLambda;
@@ -22,7 +22,7 @@ struct DefaultConstructibleLambda<LambdaType, ReturnType (Args...)> {
 	using Signature = ReturnType (Args...);
 
 	ReturnType operator()(Args... args) const {
-		const auto lambda = caramel_poly::detail::EmptyObject<LambdaType>{}.get();
+		const auto lambda = caramel::poly::detail::EmptyObject<LambdaType>{}.get();
 		return lambda(std::forward<Args>(args)...);
 	}
 
@@ -34,12 +34,12 @@ struct DefaultConstructibleLambda<LambdaType, void (Args...)> {
 	using Signature = void (Args...);
 
 	void operator()(Args... args) const {
-		const auto lambda = caramel_poly::detail::EmptyObject<LambdaType>{}.get();
+		const auto lambda = caramel::poly::detail::EmptyObject<LambdaType>{}.get();
 		lambda(std::forward<Args>(args)...);
 	}
 
 };
 
-} // namespace caramel_poly::detail
+} // namespace caramel::poly::detail
 
 #endif /* CARAMELPOLY_DETAIL_DEFAULTCONSTRUCTIBLELAMBDA_HPP__ */

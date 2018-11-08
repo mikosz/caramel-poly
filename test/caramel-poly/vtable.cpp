@@ -9,7 +9,7 @@
 
 namespace /* anonymous */ {
 
-using namespace caramel_poly;
+using namespace caramel::poly;
 
 const auto fooName = POLY_FUNCTION_LABEL("foo");
 const auto barName = POLY_FUNCTION_LABEL("bar");
@@ -36,13 +36,13 @@ struct S {
 } // anonymous namespace
 
 template <class T>
-const auto caramel_poly::defaultConceptMap<Interface, T> = makeConceptMap(
+const auto caramel::poly::defaultConceptMap<Interface, T> = makeConceptMap(
 	POLY_FUNCTION_LABEL("foo") = [](const S& s) { return s.i; },
 	POLY_FUNCTION_LABEL("bar") = [](const S& s, int i) { return s.i * i; }
 	);
 
 template <class T>
-const auto caramel_poly::conceptMap<Interface, T, std::enable_if_t<std::is_same_v<T, S>>> = makeConceptMap(
+const auto caramel::poly::conceptMap<Interface, T, std::enable_if_t<std::is_same_v<T, S>>> = makeConceptMap(
 	POLY_FUNCTION_LABEL("baz") = [](S& s, double d) { s.i = static_cast<int>(d); }
 	);
 

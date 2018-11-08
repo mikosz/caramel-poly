@@ -15,11 +15,11 @@ constexpr auto decrement_LABEL = POLY_FUNCTION_LABEL("decrement");
 constexpr auto dereference_LABEL = POLY_FUNCTION_LABEL("dereference");
 
 template <typename Reference>
-struct Iterator : decltype(caramel_poly::requires(
-	caramel_poly::MoveConstructible{},
-	increment_LABEL = caramel_poly::function<void (caramel_poly::SelfPlaceholder&)>,
-	dereference_LABEL = caramel_poly::function<Reference (caramel_poly::SelfPlaceholder&)>,
-	caramel_poly::EQUAL_LABEL = caramel_poly::function<bool (caramel_poly::SelfPlaceholder const&, caramel_poly::SelfPlaceholder const&)>
+struct Iterator : decltype(caramel::poly::requires(
+	caramel::poly::MoveConstructible{},
+	increment_LABEL = caramel::poly::function<void (caramel::poly::SelfPlaceholder&)>,
+	dereference_LABEL = caramel::poly::function<Reference (caramel::poly::SelfPlaceholder&)>,
+	caramel::poly::EQUAL_LABEL = caramel::poly::function<bool (caramel::poly::SelfPlaceholder const&, caramel::poly::SelfPlaceholder const&)>
 )) { };
 
 template <typename Value, typename StoragePolicy, typename VTablePolicy, typename Reference = Value&>
@@ -29,10 +29,10 @@ struct any_iterator {
 
 	template <typename It>
 	explicit any_iterator(It it)
-		: poly_{std::move(it), caramel_poly::makeConceptMap(
+		: poly_{std::move(it), caramel::poly::makeConceptMap(
 			increment_LABEL = [](It& self) { ++self; },
 			dereference_LABEL = [](It& self) -> decltype(auto) { return *self; },
-			caramel_poly::EQUAL_LABEL = [](It const& a, It const& b) -> bool { return a == b; }
+			caramel::poly::EQUAL_LABEL = [](It const& a, It const& b) -> bool { return a == b; }
 		)}
 	{ }
 
@@ -50,32 +50,32 @@ struct any_iterator {
 	}
 
 	friend bool operator==(any_iterator const& a, any_iterator const& b) {
-		return a.poly_.virtual_(caramel_poly::EQUAL_LABEL)(a.poly_, b.poly_);
+		return a.poly_.virtual_(caramel::poly::EQUAL_LABEL)(a.poly_, b.poly_);
 	}
 
 private:
-	caramel_poly::Poly<Iterator<reference>, StoragePolicy, VTablePolicy> poly_;
+	caramel::poly::Poly<Iterator<reference>, StoragePolicy, VTablePolicy> poly_;
 };
 
 using remote_storage = dyno_generic::any_iterator<
-	int, caramel_poly::RemoteStorage<>, caramel_poly::VTable<caramel_poly::Remote<caramel_poly::Everything>>
+	int, caramel::poly::RemoteStorage<>, caramel::poly::VTable<caramel::poly::Remote<caramel::poly::Everything>>
 >;
 
 using local_storage = dyno_generic::any_iterator<
-	int, caramel_poly::LocalStorage<sizeof(std::vector<int>::iterator)>, caramel_poly::VTable<caramel_poly::Remote<caramel_poly::Everything>>
+	int, caramel::poly::LocalStorage<sizeof(std::vector<int>::iterator)>, caramel::poly::VTable<caramel::poly::Remote<caramel::poly::Everything>>
 >;
 
 using local_storage_inlined_vtable = dyno_generic::any_iterator<
 	int,
-	caramel_poly::LocalStorage<sizeof(std::vector<int>::iterator)>,
-	caramel_poly::VTable<
-		caramel_poly::Local<
-			caramel_poly::Only<decltype(increment_LABEL),
+	caramel::poly::LocalStorage<sizeof(std::vector<int>::iterator)>,
+	caramel::poly::VTable<
+		caramel::poly::Local<
+			caramel::poly::Only<decltype(increment_LABEL),
 			decltype(dereference_LABEL),
-			decltype(caramel_poly::EQUAL_LABEL)
+			decltype(caramel::poly::EQUAL_LABEL)
 			>
 		>,
-		caramel_poly::Remote<caramel_poly::EverythingElse>
+		caramel::poly::Remote<caramel::poly::EverythingElse>
 		>
 	>;
 } // end namespace dyno_generic

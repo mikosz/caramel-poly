@@ -6,7 +6,7 @@
 
 #include <type_traits>
 
-namespace caramel_poly::detail {
+namespace caramel::poly::detail {
 
 template <class T, class P, class = void>
 struct ListStorage;
@@ -277,6 +277,6 @@ constexpr auto difference(
 			});
 }
 
-} // namespace caramel_poly::detail
+} // namespace caramel::poly::detail
 
 #endif /* CARAMELPOLY_DETAIL_CONSTEXPRLIST_HPP__ */

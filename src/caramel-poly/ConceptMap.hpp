@@ -19,12 +19,12 @@
 #include "Concept.hpp"
 #include "dsl.hpp"
 
-namespace caramel_poly {
+namespace caramel::poly {
 
 // A concept map is a statically-known mapping from functions implemented by
 // a type `T` to functions defined by a concept. A concept map is what's being
 // used to fill the vtable extracted from a concept definition. An instance of
-// this type is never created as-is; `caramel_poly::makeConceptMap` must always be used.
+// this type is never created as-is; `caramel::poly::makeConceptMap` must always be used.
 //
 // Note that everything in the concept map is known statically. Specifically,
 // the types of the functions in the concept map are known statically, and
@@ -45,7 +45,7 @@ struct ConceptMap<Concept, T, detail::ConstexprPair<Name, Function>...> {
 		} else {
 			static_assert(
 				isKnown,
-				"caramel_poly::ConceptMap::operator[]: Request for the implementation of a "
+				"caramel::poly::ConceptMap::operator[]: Request for the implementation of a "
 				"function that was not provided in the concept map. Make sure the "
 				"concept map contains the proper functions, and that you're requesting "
 				"the right function from the concept map. You can find the contents of "
@@ -79,7 +79,7 @@ private:
 // is the implementation of that function (as a stateless function object).
 //
 // Note that a concept map created with this function can be incomplete. Before
-// being used, it must be completed using `caramel_poly::completeConceptMap`.
+// being used, it must be completed using `caramel::poly::completeConceptMap`.
 template <class... Name, class... Function>
 constexpr auto makeConceptMap(detail::ConstexprPair<Name, Function>... mappings) {
 	auto map = detail::makeConstexprList(mappings...);
@@ -87,7 +87,7 @@ constexpr auto makeConceptMap(detail::ConstexprPair<Name, Function>... mappings)
 
 	static_assert(
 		!hasDuplicates(decltype(keys){}),
-		"caramel_poly::makeConceptMap: It looks like you have multiple entries with the "
+		"caramel::poly::makeConceptMap: It looks like you have multiple entries with the "
 		"same name in your concept map. This is not allowed; each entry must have "
 		"a different name."
 		);
@@ -122,15 +122,15 @@ constexpr auto completeConceptMapImpl(Map map) {
 	// 1. Bring in the functions provided in the default concept map.
 	auto withDefaults = mapUnion(
 		makeConstexprMap(map),
-		makeConstexprMap(caramel_poly::defaultConceptMap<Concept, T>)
+		makeConstexprMap(caramel::poly::defaultConceptMap<Concept, T>)
 		);
 
 	// 2. For each refined concept, recursively complete the concept map for
 	//		that Concept and merge that into the current concept map.
-	auto refined = caramel_poly::detail::refinedConcepts(Concept{});
+	auto refined = caramel::poly::detail::refinedConcepts(Concept{});
 	auto merged = foldLeft(withDefaults, refined, [](auto m, auto c) {
 			using C = decltype(c);
-			auto completed = detail::completeConceptMapImpl<C, T>(caramel_poly::conceptMap<C, T>);
+			auto completed = detail::completeConceptMapImpl<C, T>(caramel::poly::conceptMap<C, T>);
 			return mapUnion(m, completed);
 		});
 
@@ -141,7 +141,7 @@ constexpr auto completeConceptMapImpl(Map map) {
 template <class Concept, class T, class Map>
 constexpr auto toConceptMap(Map) {
 	return unpack(typename Map::Entries{}, [](auto... m) {
-			return caramel_poly::ConceptMap<Concept, T, decltype(m)...>{};
+			return caramel::poly::ConceptMap<Concept, T, decltype(m)...>{};
 		});
 }
 
@@ -149,7 +149,7 @@ constexpr auto toConceptMap(Map) {
 // the given `Concept`, is missing any functions.
 template <class Concept, class T, class Map>
 constexpr auto conceptMapIsComplete = isSubset(
-	caramel_poly::detail::clauseNames(Concept{}),
+	caramel::poly::detail::clauseNames(Concept{}),
 	keys(Map{})
 	);
 
@@ -160,13 +160,13 @@ constexpr auto conceptMapIsComplete = isSubset(
 // Specifically, checks whether it is possible to complete the concept map of
 // the given type for the given concept. Usage goes as follows:
 // ```
-// static_assert(caramel_poly::models<Drawable, my_polygon>);
+// static_assert(caramel::poly::models<Drawable, my_polygon>);
 // ```
 template <class Concept, class T>
 constexpr auto models = detail::conceptMapIsComplete<
 	Concept,
 	T,
-	decltype(detail::completeConceptMapImpl<Concept, T>(caramel_poly::conceptMap<Concept, T>))
+	decltype(detail::completeConceptMapImpl<Concept, T>(caramel::poly::conceptMap<Concept, T>))
 	>;
 
 namespace diagnostic {
@@ -181,7 +181,7 @@ namespace diagnostic {
 	constexpr void INCOMPLETE_CONCEPT_MAP() {
 		static_assert(
 			IS_COMPLETE,
-			"caramel_poly::conceptMap: Incomplete definition of your concept map. Despite "
+			"caramel::poly::conceptMap: Incomplete definition of your concept map. Despite "
 			"looking at the default concept map for this concept and the concept "
 			"maps for all the concepts this concept refines, I can't find definitions "
 			"for all the functions that the concept requires. Please make sure you did "
@@ -199,28 +199,28 @@ namespace diagnostic {
 // The concept maps for all the concepts that `Concept` refines are merged with
 // the mappings provided explicitly. For example:
 // ```
-// struct A : decltype(caramel_poly::requires(
-//	 "f"_s = caramel_poly::function<void (caramel_poly::T&)>
+// struct A : decltype(caramel::poly::requires(
+//	 "f"_s = caramel::poly::function<void (caramel::poly::T&)>
 // )) { };
 //
-// struct B : decltype(caramel_poly::requires(
+// struct B : decltype(caramel::poly::requires(
 //	 A{},
-//	 "g"_s = caramel_poly::function<int (caramel_poly::T&)>
+//	 "g"_s = caramel::poly::function<int (caramel::poly::T&)>
 // )) { };
 //
 // struct Foo { };
 //
 // template <>
-// auto const caramel_poly::conceptMap<A, Foo> = caramel_poly::makeConceptMap(
+// auto const caramel::poly::conceptMap<A, Foo> = caramel::poly::makeConceptMap(
 //	 "f"_s = [](Foo&) { }
 // );
 //
 // template <>
-// auto const caramel_poly::conceptMap<B, Foo> = caramel_poly::makeConceptMap(
+// auto const caramel::poly::conceptMap<B, Foo> = caramel::poly::makeConceptMap(
 //	 "g"_s = [](Foo&) { return 0; }
 // );
 //
-// auto complete = caramel_poly::completeConceptMap<B, Foo>(caramel_poly::conceptMap<B, Foo>);
+// auto complete = caramel::poly::completeConceptMap<B, Foo>(caramel::poly::conceptMap<B, Foo>);
 // // `f` is automatically pulled from `concept<A, Foo>`
 // ```
 //
@@ -245,7 +245,7 @@ constexpr auto completeConceptMap(Map map) {
 	
 	constexpr auto isComplete = detail::conceptMapIsComplete<Concept, T, decltype(completeMap)>;
 	if constexpr (!isComplete) {
-		auto required = caramel_poly::detail::clauseNames(Concept{});
+		auto required = caramel::poly::detail::clauseNames(Concept{});
 		auto declared = keys(completeMap);
 		auto missing = difference(required, declared);
 		diagnostic::INCOMPLETE_CONCEPT_MAP<
@@ -261,6 +261,6 @@ constexpr auto completeConceptMap(Map map) {
 	return asConceptMap;
 }
 
-} // end namespace caramel_poly
+} // end namespace caramel::poly
 
 #endif // CARAMELPOLY_CONCEPTMAP_HPP__

@@ -45,21 +45,21 @@ static constexpr int N = 10;
 // Always insert the same type in the type-erasure wrapper (may interact with
 // branch prediction and caches).
 BENCHMARK_TEMPLATE(BM_dispatch_many, inheritance_tag,         WithSize<4>, WithSize<4>)->Arg(N);
-BENCHMARK_TEMPLATE(BM_dispatch_many, caramel_poly::RemoteStorage<>,  WithSize<4>, WithSize<4>)->Arg(N);
-BENCHMARK_TEMPLATE(BM_dispatch_many, caramel_poly::SBOStorage<4>,    WithSize<4>, WithSize<4>)->Arg(N);
-BENCHMARK_TEMPLATE(BM_dispatch_many, caramel_poly::SBOStorage<8>,    WithSize<4>, WithSize<4>)->Arg(N);
-BENCHMARK_TEMPLATE(BM_dispatch_many, caramel_poly::SBOStorage<16>,   WithSize<4>, WithSize<4>)->Arg(N);
-BENCHMARK_TEMPLATE(BM_dispatch_many, caramel_poly::LocalStorage<16>, WithSize<4>, WithSize<4>)->Arg(N);
+BENCHMARK_TEMPLATE(BM_dispatch_many, caramel::poly::RemoteStorage<>,  WithSize<4>, WithSize<4>)->Arg(N);
+BENCHMARK_TEMPLATE(BM_dispatch_many, caramel::poly::SBOStorage<4>,    WithSize<4>, WithSize<4>)->Arg(N);
+BENCHMARK_TEMPLATE(BM_dispatch_many, caramel::poly::SBOStorage<8>,    WithSize<4>, WithSize<4>)->Arg(N);
+BENCHMARK_TEMPLATE(BM_dispatch_many, caramel::poly::SBOStorage<16>,   WithSize<4>, WithSize<4>)->Arg(N);
+BENCHMARK_TEMPLATE(BM_dispatch_many, caramel::poly::LocalStorage<16>, WithSize<4>, WithSize<4>)->Arg(N);
 
 // For some reason, the benchmarks below for local_storage are much better
 // when this benchmark is enabled than when it is not. TODO: Find out why.
-BENCHMARK_TEMPLATE(BM_dispatch_many, caramel_poly::LocalStorage<16>, WithSize<8>, WithSize<8>)->Arg(N);
+BENCHMARK_TEMPLATE(BM_dispatch_many, caramel::poly::LocalStorage<16>, WithSize<8>, WithSize<8>)->Arg(N);
 
 // Insert two different types in the type-erasure wrapper to look at what happens
 // with SBO.
 BENCHMARK_TEMPLATE(BM_dispatch_many, inheritance_tag,         WithSize<8>, WithSize<16>)->Arg(N);
-BENCHMARK_TEMPLATE(BM_dispatch_many, caramel_poly::RemoteStorage<>,  WithSize<8>, WithSize<16>)->Arg(N);
-BENCHMARK_TEMPLATE(BM_dispatch_many, caramel_poly::SBOStorage<4>,    WithSize<8>, WithSize<16>)->Arg(N);
-BENCHMARK_TEMPLATE(BM_dispatch_many, caramel_poly::SBOStorage<8>,    WithSize<8>, WithSize<16>)->Arg(N);
-BENCHMARK_TEMPLATE(BM_dispatch_many, caramel_poly::SBOStorage<16>,   WithSize<8>, WithSize<16>)->Arg(N);
-BENCHMARK_TEMPLATE(BM_dispatch_many, caramel_poly::LocalStorage<16>, WithSize<8>, WithSize<16>)->Arg(N);
+BENCHMARK_TEMPLATE(BM_dispatch_many, caramel::poly::RemoteStorage<>,  WithSize<8>, WithSize<16>)->Arg(N);
+BENCHMARK_TEMPLATE(BM_dispatch_many, caramel::poly::SBOStorage<4>,    WithSize<8>, WithSize<16>)->Arg(N);
+BENCHMARK_TEMPLATE(BM_dispatch_many, caramel::poly::SBOStorage<8>,    WithSize<8>, WithSize<16>)->Arg(N);
+BENCHMARK_TEMPLATE(BM_dispatch_many, caramel::poly::SBOStorage<16>,   WithSize<8>, WithSize<16>)->Arg(N);
+BENCHMARK_TEMPLATE(BM_dispatch_many, caramel::poly::LocalStorage<16>, WithSize<8>, WithSize<16>)->Arg(N);

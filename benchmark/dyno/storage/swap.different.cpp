@@ -29,11 +29,11 @@ static void BM_swap_different(benchmark::State& state) {
 }
 
 BENCHMARK_TEMPLATE(BM_swap_different, inheritance_tag);
-BENCHMARK_TEMPLATE(BM_swap_different, caramel_poly::SBOStorage<4>);
-BENCHMARK_TEMPLATE(BM_swap_different, caramel_poly::SBOStorage<8>);
-BENCHMARK_TEMPLATE(BM_swap_different, caramel_poly::SBOStorage<16>);
-BENCHMARK_TEMPLATE(BM_swap_different, caramel_poly::SBOStorage<sizeof(std::string)>);
+BENCHMARK_TEMPLATE(BM_swap_different, caramel::poly::SBOStorage<4>);
+BENCHMARK_TEMPLATE(BM_swap_different, caramel::poly::SBOStorage<8>);
+BENCHMARK_TEMPLATE(BM_swap_different, caramel::poly::SBOStorage<16>);
+BENCHMARK_TEMPLATE(BM_swap_different, caramel::poly::SBOStorage<sizeof(std::string)>);
 // #TODO_Caramel: re-enable if adding FallbackStorage
-// BENCHMARK_TEMPLATE(BM_swap_different, caramel_poly::FallbackStorage<caramel_poly::local_storage<8>, caramel_poly::remote_storage>);
-BENCHMARK_TEMPLATE(BM_swap_different, caramel_poly::RemoteStorage<>);
-BENCHMARK_TEMPLATE(BM_swap_different, caramel_poly::LocalStorage<sizeof(std::string)>);
+// BENCHMARK_TEMPLATE(BM_swap_different, caramel::poly::FallbackStorage<caramel::poly::local_storage<8>, caramel::poly::remote_storage>);
+BENCHMARK_TEMPLATE(BM_swap_different, caramel::poly::RemoteStorage<>);
+BENCHMARK_TEMPLATE(BM_swap_different, caramel::poly::LocalStorage<sizeof(std::string)>);

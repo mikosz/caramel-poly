@@ -19,23 +19,23 @@ namespace /* anonymous */ {
 struct Foo { };
 
 struct Concept
-	: decltype(caramel_poly::requires(caramel_poly::CopyConstructible{}, caramel_poly::TypeId{}))
+	: decltype(caramel::poly::requires(caramel::poly::CopyConstructible{}, caramel::poly::TypeId{}))
 { };
 
 TEST(DynoTest, CtorImplicitDoubleWrap) {
   Foo foo;
-  caramel_poly::Poly<Concept> poly{foo};
+  caramel::poly::Poly<Concept> poly{foo};
 
   // We expect the objects below to be a copy of the above `poly` (and thus
   // `poly`s holding a `Foo`), not `poly`s holding a `poly`.
-  const auto si = poly.virtual_(caramel_poly::STORAGE_INFO_LABEL)();
+  const auto si = poly.virtual_(caramel::poly::STORAGE_INFO_LABEL)();
   EXPECT_EQ(si.size, sizeof(Foo));
 
-  caramel_poly::Poly<Concept> explicit_copy{poly};
-  EXPECT_EQ(explicit_copy.virtual_(caramel_poly::TYPEID_LABEL)(), typeid(Foo));
+  caramel::poly::Poly<Concept> explicit_copy{poly};
+  EXPECT_EQ(explicit_copy.virtual_(caramel::poly::TYPEID_LABEL)(), typeid(Foo));
 
-  caramel_poly::Poly<Concept> implicit_copy = poly;
-  EXPECT_EQ(implicit_copy.virtual_(caramel_poly::TYPEID_LABEL)(), typeid(Foo));
+  caramel::poly::Poly<Concept> implicit_copy = poly;
+  EXPECT_EQ(implicit_copy.virtual_(caramel::poly::TYPEID_LABEL)(), typeid(Foo));
 }
 
 } // anonymous namespace

@@ -26,24 +26,24 @@ constexpr auto distance_LABEL = POLY_FUNCTION_LABEL("distance");
 // other functions (e.g. the destructor) in a remote vtable.
 
 template <typename Reference>
-struct Iterator : decltype(caramel_poly::requires(
-	caramel_poly::DefaultConstructible{},
-	caramel_poly::CopyConstructible{},
-	caramel_poly::CopyAssignable{},
-	caramel_poly::Destructible{},
-	caramel_poly::Swappable{},
-	caramel_poly::EqualityComparable{},
-	increment_LABEL = caramel_poly::function<void(caramel_poly::SelfPlaceholder&)>,
-	decrement_LABEL = caramel_poly::function<void(caramel_poly::SelfPlaceholder&)>,
-	dereference_LABEL = caramel_poly::function<Reference(caramel_poly::SelfPlaceholder&)>,
-	advance_LABEL = caramel_poly::function<void(caramel_poly::SelfPlaceholder&, std::ptrdiff_t)>,
-	distance_LABEL = caramel_poly::function<std::ptrdiff_t(caramel_poly::SelfPlaceholder const&, caramel_poly::SelfPlaceholder const&)>
+struct Iterator : decltype(caramel::poly::requires(
+	caramel::poly::DefaultConstructible{},
+	caramel::poly::CopyConstructible{},
+	caramel::poly::CopyAssignable{},
+	caramel::poly::Destructible{},
+	caramel::poly::Swappable{},
+	caramel::poly::EqualityComparable{},
+	increment_LABEL = caramel::poly::function<void(caramel::poly::SelfPlaceholder&)>,
+	decrement_LABEL = caramel::poly::function<void(caramel::poly::SelfPlaceholder&)>,
+	dereference_LABEL = caramel::poly::function<Reference(caramel::poly::SelfPlaceholder&)>,
+	advance_LABEL = caramel::poly::function<void(caramel::poly::SelfPlaceholder&, std::ptrdiff_t)>,
+	distance_LABEL = caramel::poly::function<std::ptrdiff_t(caramel::poly::SelfPlaceholder const&, caramel::poly::SelfPlaceholder const&)>
 )) { };
 
 } // anonymous namespace
 
 template <typename Ref, typename T>
-auto const caramel_poly::defaultConceptMap<Iterator<Ref>, T> = caramel_poly::makeConceptMap(
+auto const caramel::poly::defaultConceptMap<Iterator<Ref>, T> = caramel::poly::makeConceptMap(
 	increment_LABEL = [](T& self) { ++self; },
 	decrement_LABEL = [](T& self) -> void { --self; },
 	dereference_LABEL = [](T& self) -> Ref { return *self; },
@@ -67,18 +67,18 @@ struct any_iterator {
 
 private:
 	using Concept = Iterator<reference>;
-	using Storage = caramel_poly::RemoteStorage<>;
-	using VTable = caramel_poly::VTable<
-		caramel_poly::Local<
-			caramel_poly::Only<
+	using Storage = caramel::poly::RemoteStorage<>;
+	using VTable = caramel::poly::VTable<
+		caramel::poly::Local<
+			caramel::poly::Only<
 				decltype(increment_LABEL),
-				decltype(caramel_poly::EQUAL_LABEL),
+				decltype(caramel::poly::EQUAL_LABEL),
 				decltype(dereference_LABEL)
 				>
 			>,
-			caramel_poly::Remote<caramel_poly::EverythingElse>
+			caramel::poly::Remote<caramel::poly::EverythingElse>
 		>;
-	caramel_poly::Poly<Concept, Storage, VTable> poly_;
+	caramel::poly::Poly<Concept, Storage, VTable> poly_;
 
 public:
 	template <typename It>
@@ -114,7 +114,7 @@ public:
 	}
 
 	friend bool operator==(any_iterator const& a, any_iterator const& b) {
-		return a.poly_.virtual_(caramel_poly::EQUAL_LABEL)(a.poly_, b.poly_);
+		return a.poly_.virtual_(caramel::poly::EQUAL_LABEL)(a.poly_, b.poly_);
 	}
 
 	friend bool operator!=(any_iterator const& a, any_iterator const& b) {

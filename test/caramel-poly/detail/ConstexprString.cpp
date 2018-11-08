@@ -16,8 +16,8 @@
 namespace /* anonymous */ {
 
 using namespace std::string_literals;
-using namespace caramel_poly;
-using namespace caramel_poly::detail;
+using namespace caramel::poly;
+using namespace caramel::poly::detail;
 
 TEST(StringTest, HasLength) {
 	constexpr auto cs = CONSTEXPR_STRING("123456");

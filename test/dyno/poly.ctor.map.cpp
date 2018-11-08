@@ -10,15 +10,15 @@
 
 namespace /* anonymous */ {
 
-// This test makes sure that `caramel_poly::poly` allows overriding the concept map used
+// This test makes sure that `caramel::poly::poly` allows overriding the concept map used
 // for a type at construction time.
 
 constexpr auto f_NAME = POLY_FUNCTION_LABEL("f");
 constexpr auto g_NAME = POLY_FUNCTION_LABEL("g");
 
-struct Concept : decltype(caramel_poly::requires(
-  f_NAME = caramel_poly::function<int (caramel_poly::SelfPlaceholder&)>,
-  g_NAME = caramel_poly::function<int (caramel_poly::SelfPlaceholder&)>
+struct Concept : decltype(caramel::poly::requires(
+  f_NAME = caramel::poly::function<int (caramel::poly::SelfPlaceholder&)>,
+  g_NAME = caramel::poly::function<int (caramel::poly::SelfPlaceholder&)>
 )) { };
 
 struct Foo { };
@@ -26,7 +26,7 @@ struct Foo { };
 } // anonymous namespace
 
 template <class T>
-auto const caramel_poly::conceptMap<Concept, T, std::enable_if_t<std::is_same_v<T, Foo>>> = caramel_poly::makeConceptMap(
+auto const caramel::poly::conceptMap<Concept, T, std::enable_if_t<std::is_same_v<T, Foo>>> = caramel::poly::makeConceptMap(
   f_NAME = [](Foo&) { return 111; },
   g_NAME = [](Foo&) { return 888; }
 );
@@ -36,14 +36,14 @@ namespace /* anonymous */ {
 TEST(DynoTest, CtorMap) {
   {
 	Foo foo;
-	caramel_poly::Poly<Concept> poly{foo};
+	caramel::poly::Poly<Concept> poly{foo};
 	EXPECT_EQ(poly.virtual_(f_NAME)(poly), 111);
 	EXPECT_EQ(poly.virtual_(g_NAME)(poly), 888);
   }
 
   {
     Foo foo;
-    caramel_poly::Poly<Concept> poly{foo, caramel_poly::makeConceptMap(
+    caramel::poly::Poly<Concept> poly{foo, caramel::poly::makeConceptMap(
       f_NAME = [](Foo&) { return 222; }
     )};
 	EXPECT_EQ(poly.virtual_(f_NAME)(poly), 222);

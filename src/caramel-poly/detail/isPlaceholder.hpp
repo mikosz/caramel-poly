@@ -13,30 +13,30 @@
 
 #include "../SelfPlaceholder.hpp"
 
-namespace caramel_poly::detail {
+namespace caramel::poly::detail {
 
 // True if a type is a possibly const/ref-qualified placeholder, or a pointer to one.
 template <class T>
 constexpr auto isPlaceholder = false;
 
 template <>
-constexpr auto isPlaceholder<caramel_poly::SelfPlaceholder&> = true;
+constexpr auto isPlaceholder<caramel::poly::SelfPlaceholder&> = true;
 
 template <>
-constexpr auto isPlaceholder<caramel_poly::SelfPlaceholder&&> = true;
+constexpr auto isPlaceholder<caramel::poly::SelfPlaceholder&&> = true;
 
 template <>
-constexpr auto isPlaceholder<caramel_poly::SelfPlaceholder*> = true;
+constexpr auto isPlaceholder<caramel::poly::SelfPlaceholder*> = true;
 
 template <>
-constexpr auto isPlaceholder<const caramel_poly::SelfPlaceholder&> = true;
+constexpr auto isPlaceholder<const caramel::poly::SelfPlaceholder&> = true;
 
 template <>
-constexpr auto isPlaceholder<const caramel_poly::SelfPlaceholder&&> = true;
+constexpr auto isPlaceholder<const caramel::poly::SelfPlaceholder&&> = true;
 
 template <>
-constexpr auto isPlaceholder<const caramel_poly::SelfPlaceholder*> = true;
+constexpr auto isPlaceholder<const caramel::poly::SelfPlaceholder*> = true;
 
-} // namespace caramel_poly::detail
+} // namespace caramel::poly::detail
 
 #endif /* CARAMELPOLY_DETAIL_ISPLACEHOLDER_HPP__ */

@@ -14,7 +14,7 @@
 
 namespace /* anonymous */ {
 
-using namespace caramel_poly::detail;
+using namespace caramel::poly::detail;
 
 struct Functor {
 	std::pair<int, int> operator()(int arg) const {

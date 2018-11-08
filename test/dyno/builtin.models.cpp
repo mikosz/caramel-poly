@@ -20,12 +20,12 @@ struct non_copy_assignable { non_copy_assignable& operator=(non_copy_assignable 
 struct non_equality_comparable { friend bool operator==(non_equality_comparable const&, non_equality_comparable const&) = delete; };
 struct non_destructible { ~non_destructible() = delete; };
 
-static_assert(!caramel_poly::models<caramel_poly::DefaultConstructible, non_default_constructible>, "");
-static_assert(!caramel_poly::models<caramel_poly::MoveConstructible, non_move_constructible>, "");
-static_assert(!caramel_poly::models<caramel_poly::CopyConstructible, non_copy_constructible>, "");
-static_assert(caramel_poly::models<caramel_poly::MoveAssignable, non_move_assignable>, "");
-static_assert(caramel_poly::models<caramel_poly::CopyAssignable, non_copy_assignable>, "");
-static_assert(!caramel_poly::models<caramel_poly::EqualityComparable, non_equality_comparable>, "");
-static_assert(!caramel_poly::models<caramel_poly::Destructible, non_destructible>, "");
+static_assert(!caramel::poly::models<caramel::poly::DefaultConstructible, non_default_constructible>, "");
+static_assert(!caramel::poly::models<caramel::poly::MoveConstructible, non_move_constructible>, "");
+static_assert(!caramel::poly::models<caramel::poly::CopyConstructible, non_copy_constructible>, "");
+static_assert(caramel::poly::models<caramel::poly::MoveAssignable, non_move_assignable>, "");
+static_assert(caramel::poly::models<caramel::poly::CopyAssignable, non_copy_assignable>, "");
+static_assert(!caramel::poly::models<caramel::poly::EqualityComparable, non_equality_comparable>, "");
+static_assert(!caramel::poly::models<caramel::poly::Destructible, non_destructible>, "");
 
 } // anonymous namespace
