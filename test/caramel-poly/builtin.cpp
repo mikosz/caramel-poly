@@ -11,20 +11,19 @@ namespace /* anonymous */ {
 
 using namespace caramel::poly;
 
-struct S {
+struct Empty {
 };
 
-} // anonymous namespace
-
-template <class T>
-constexpr auto caramel::poly::conceptMap<TypeId, T, std::enable_if_t<std::is_same_v<S, T>>> = makeConceptMap(
-	);
-
-namespace /* anonymous */ {
-
 TEST(PolyTest, TypeIdAccessible) {
-	auto sp = Poly<TypeId>{S{}};
-	EXPECT_EQ(sp.virtual_(TYPEID_LABEL)(), typeid(S));
+	auto sp = Poly<TypeId>{Empty{}};
+
+	const auto storageInfo = sp.virtual_(STORAGE_INFO_LABEL)();
+	EXPECT_EQ(storageInfo.size, sizeof(Empty));
+	EXPECT_EQ(storageInfo.alignment, alignof(Empty));
+
+	const auto& reportedTypeid = sp.virtual_(TYPEID_LABEL)();
+	const auto& expectedTypeid = typeid(Empty);
+	EXPECT_EQ(reportedTypeid, expectedTypeid);
 }
 
 } // anonymous namespace

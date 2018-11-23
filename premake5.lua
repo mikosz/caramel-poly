@@ -44,6 +44,7 @@ workspace "caramel-poly"
 	filter {}
 
 	filter "action:gmake"
+		buildoptions { "-fPIC" }
 		linkoptions { "-pthread" }
 	filter {}
 	
@@ -70,6 +71,8 @@ workspace "caramel-poly"
 		defines { "_SCL_SECURE_NO_WARNINGS" }
 	filter {}
 
+	-- Projects
+	
 	structure.header_project("caramel-poly", "src")
 	
 	structure.executable_project("caramel-poly-test", "test", false, function()

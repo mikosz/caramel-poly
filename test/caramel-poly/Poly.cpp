@@ -24,7 +24,13 @@ struct Printable : decltype(requires(
 {
 };
 
-struct S {
+// TODO: Previously this struct was called S and WithFloat was called T. This worked in
+// most situations, but for some reason on clang in debug builds this was breaking
+// storage info tests, where the size and alignment of this struct would be returned
+// when reading it for builtin.cpp typeid test. Since these classes are in anonymous
+// namespaces there is no reason for this to happen and yet it does. This is probably
+// a configuration issue, but worth investigating.
+struct WithInt {
 	int i;
 
 	std::string print() const {
@@ -37,11 +43,11 @@ struct S {
 
 };
 
-std::string print(const S& s) {
+std::string print(const WithInt& s) {
 	return "fprint:S:" + std::to_string(s.i);
 }
 
-struct T {
+struct WithFloat {
 	float f;
 
 	std::string print() const {
@@ -54,7 +60,7 @@ struct T {
 
 };
 
-std::string print(const T& t) {
+std::string print(const WithFloat& t) {
 	return "fprint:T:" + std::to_string(t.f);
 }
 
@@ -77,7 +83,7 @@ constexpr auto caramel::poly::conceptMap<Printable, T, std::enable_if_t<std::is_
 namespace /* anonymous */ {
 
 TEST(PolyTest, InvokesBasicPolymorphicCalls) {
-	auto sp = Poly<Printable>(S{ 42 });
+	auto sp = Poly<Printable>(WithInt{ 42 });
 	EXPECT_EQ(sp.virtual_(CONST_PRINT_NAME)(), "cprint:S:42"s);
 	EXPECT_EQ(sp.virtual_(NONCONST_PRINT_NAME)(), "ncprint:S:42"s);
 	EXPECT_EQ(sp.virtual_(FREE_PRINT_NAME)(sp), "fprint:S:42"s);
@@ -85,7 +91,7 @@ TEST(PolyTest, InvokesBasicPolymorphicCalls) {
 	EXPECT_EQ(sp.invoke(NONCONST_PRINT_NAME), "ncprint:S:42"s);
 	EXPECT_EQ(sp.invoke(FREE_PRINT_NAME, sp), "fprint:S:42"s);
 
-	sp = Poly<Printable>(T{ 3.14f });
+	sp = Poly<Printable>(WithFloat{ 3.14f });
 	EXPECT_EQ(sp.virtual_(CONST_PRINT_NAME)(), "cprint:T:"s + std::to_string(3.14f));
 	EXPECT_EQ(sp.virtual_(NONCONST_PRINT_NAME)(), "ncprint:T:"s + std::to_string(3.14f));
 	EXPECT_EQ(sp.virtual_(FREE_PRINT_NAME)(sp), "fprint:T:"s + std::to_string(3.14f));
@@ -103,13 +109,13 @@ TEST(PolyTest, InvokesBasicPolymorphicCalls) {
 }
 
 TEST(PolyTest, StorableAndDestructibleByDefault) {
-	auto sp = Poly<Printable>(S{ 42 });
+	auto sp = Poly<Printable>(WithInt{ 42 });
 
-	static_assert(models<Storable, S>);
-	static_assert(models<Destructible, S>);
+	static_assert(models<Storable, WithInt>);
+	static_assert(models<Destructible, WithInt>);
 
-	EXPECT_EQ(sp.virtual_(STORAGE_INFO_LABEL)().size, sizeof(S));
-	EXPECT_EQ(sp.virtual_(STORAGE_INFO_LABEL)().alignment, alignof(S));
+	EXPECT_EQ(sp.virtual_(STORAGE_INFO_LABEL)().size, sizeof(WithInt));
+	EXPECT_EQ(sp.virtual_(STORAGE_INFO_LABEL)().alignment, alignof(WithInt));
 	sp.virtual_(DESTRUCT_LABEL);
 }
 

@@ -22,6 +22,7 @@ namespace caramel::poly {
 constexpr auto STORAGE_INFO_LABEL = POLY_FUNCTION_LABEL("storage-info");
 constexpr auto TYPEID_LABEL = POLY_FUNCTION_LABEL("typeid");
 constexpr auto DESTRUCT_LABEL = POLY_FUNCTION_LABEL("destruct");
+constexpr auto DEFAULT_CONSTRUCT_LABEL = POLY_FUNCTION_LABEL("default-construct");
 constexpr auto COPY_CONSTRUCT_LABEL = POLY_FUNCTION_LABEL("copy-construct");
 constexpr auto MOVE_CONSTRUCT_LABEL = POLY_FUNCTION_LABEL("move-construct");
 constexpr auto EQUAL_LABEL = POLY_FUNCTION_LABEL("equal");
@@ -70,7 +71,7 @@ auto const defaultConceptMap<TypeId, T> = caramel::poly::makeConceptMap(
 
 
 struct DefaultConstructible : decltype(caramel::poly::requires(
-	TYPEID_LABEL = caramel::poly::function<void (void*)>
+	DEFAULT_CONSTRUCT_LABEL = caramel::poly::function<void (void*)>
 	))
 {
 };
@@ -78,7 +79,7 @@ struct DefaultConstructible : decltype(caramel::poly::requires(
 template <typename T>
 auto const defaultConceptMap<DefaultConstructible, T, std::enable_if_t<std::is_default_constructible<T>::value>
 	> = caramel::poly::makeConceptMap(
-		TYPEID_LABEL = [](void* p) { new (p) T(); }
+		DEFAULT_CONSTRUCT_LABEL = [](void* p) { new (p) T(); }
 		);
 
 struct Destructible : decltype(caramel::poly::requires(
