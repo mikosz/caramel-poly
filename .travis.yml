@@ -20,7 +20,7 @@ branches:
 matrix:
   include:
     - env: COMPILER=clang++-7.0
-      addons: { apt: { packages: ["clang-7.0"], sources: ["llvm-toolchain-trusty-7.0", "ubuntu-toolchain-r-test"] } }
+      addons: { apt: { packages: ["clang-7.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-7"] } }
 
     - env: COMPILER=g++-7
       addons: { apt: { packages: ["g++-7"], sources: ["ubuntu-toolchain-r-test"] } }
