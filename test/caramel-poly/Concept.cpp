@@ -9,7 +9,7 @@
 
 namespace /* anonymous */ {
 
-using namespace caramel_poly;
+using namespace caramel::poly;
 
 TEST(ConceptTest, RequiresConstructsAConcept) {
 	const auto fooName = POLY_FUNCTION_LABEL("foo");

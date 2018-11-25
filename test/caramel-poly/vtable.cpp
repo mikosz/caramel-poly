@@ -9,12 +9,11 @@
 
 namespace /* anonymous */ {
 
-using namespace caramel_poly;
+using namespace caramel::poly;
 
 const auto fooName = POLY_FUNCTION_LABEL("foo");
 const auto barName = POLY_FUNCTION_LABEL("bar");
 const auto bazName = POLY_FUNCTION_LABEL("baz");
-const auto bzzName = POLY_FUNCTION_LABEL("bzz");
 
 struct Parent : decltype(requires(
 	fooName = method<int () const>
@@ -37,13 +36,13 @@ struct S {
 } // anonymous namespace
 
 template <class T>
-const auto caramel_poly::defaultConceptMap<Interface, T> = makeConceptMap(
+const auto caramel::poly::defaultConceptMap<Interface, T> = makeConceptMap(
 	POLY_FUNCTION_LABEL("foo") = [](const S& s) { return s.i; },
 	POLY_FUNCTION_LABEL("bar") = [](const S& s, int i) { return s.i * i; }
 	);
 
 template <class T>
-const auto caramel_poly::conceptMap<Interface, T, std::enable_if_t<std::is_same_v<T, S>>> = makeConceptMap(
+const auto caramel::poly::conceptMap<Interface, T, std::enable_if_t<std::is_same_v<T, S>>> = makeConceptMap(
 	POLY_FUNCTION_LABEL("baz") = [](S& s, double d) { s.i = static_cast<int>(d); }
 	);
 
@@ -188,7 +187,7 @@ TEST(VTableTest, LocalVTableGenerationTest) {
 	using Generated = VTable<Local<Everything>>;
 	const auto vtable = Generated::Type<Interface>{complete};
 
-	static_assert(sizeof(vtable, 3 * sizeof(void*)));
+	static_assert(sizeof(vtable) == 3 * sizeof(void*));
 
 	EXPECT_EQ((*vtable[fooName])(&s), 3);
 	EXPECT_EQ((*vtable[barName])(&s, 2), 6);
@@ -204,7 +203,7 @@ TEST(VTableTest, SplitVTableGenerationTest) {
 	using Generated = VTable<Local<Only<decltype(fooName)>>, Remote<EverythingElse>>;
 	const auto vtable = Generated::Type<Interface>{complete};
 
-	static_assert(sizeof(vtable, 2 * sizeof(void*)));
+	static_assert(sizeof(vtable) == 2 * sizeof(void*));
 
 	EXPECT_EQ((*vtable[fooName])(&s), 3);
 	EXPECT_EQ((*vtable[barName])(&s, 2), 6);

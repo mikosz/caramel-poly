@@ -14,14 +14,14 @@ namespace /* anonymous */ {
 
 constexpr auto draw_LABEL = POLY_FUNCTION_LABEL("draw");
 
-struct Drawable : decltype(caramel_poly::requires(
-	draw_LABEL = caramel_poly::method<void(std::ostream&) const>
+struct Drawable : decltype(caramel::poly::requires(
+	draw_LABEL = caramel::poly::method<void(std::ostream&) const>
 )) { };
 
 } // anonymous namespace
 
 template <typename T>
-auto const caramel_poly::defaultConceptMap<Drawable, T> = caramel_poly::makeConceptMap(
+auto const caramel::poly::defaultConceptMap<Drawable, T> = caramel::poly::makeConceptMap(
 	draw_LABEL = [](auto const& self, std::ostream& out) { self.draw(out); }
 );
 
@@ -35,7 +35,7 @@ struct drawable {
 	{ poly_.virtual_(draw_LABEL)(out); }
 
 private:
-	caramel_poly::Poly<Drawable> poly_;
+	caramel::poly::Poly<Drawable> poly_;
 };
 
 
@@ -44,7 +44,7 @@ struct Square { /* ... */ };
 } // anonymous namespace
 
 template <class T>
-auto const caramel_poly::conceptMap<Drawable, T, std::enable_if_t<std::is_same_v<T, Square>>> = caramel_poly::makeConceptMap(
+auto const caramel::poly::conceptMap<Drawable, T, std::enable_if_t<std::is_same_v<T, Square>>> = caramel::poly::makeConceptMap(
 	draw_LABEL = [](Square const& /*square*/, std::ostream& out) {
 	out << "square" << std::endl;
 }
@@ -61,9 +61,9 @@ struct Circle {
 } // anonymous namespace
 
 template <typename T>
-auto const caramel_poly::conceptMap<Drawable, std::vector<T>, std::void_t<decltype(
+auto const caramel::poly::conceptMap<Drawable, std::vector<T>, std::void_t<decltype(
 	std::cout << std::declval<T>()
-	)>> = caramel_poly::makeConceptMap(
+	)>> = caramel::poly::makeConceptMap(
 		draw_LABEL = [](std::vector<T> const& v, std::ostream& out) {
 	for (auto const& x : v)
 		out << x << ' ';

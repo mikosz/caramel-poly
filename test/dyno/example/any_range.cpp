@@ -26,17 +26,17 @@ constexpr auto cbegin_LABEL = POLY_FUNCTION_LABEL("cbegin");
 constexpr auto cend_LABEL = POLY_FUNCTION_LABEL("cend");
 
 template <typename Value, typename Category>
-struct Range : decltype(caramel_poly::requires(
-	begin_LABEL = caramel_poly::function<any_iterator<Value, Category>(caramel_poly::SelfPlaceholder&)>,
-	end_LABEL = caramel_poly::function<any_iterator<Value, Category>(caramel_poly::SelfPlaceholder&)>,
-	cbegin_LABEL = caramel_poly::function<any_iterator<Value const, Category>(caramel_poly::SelfPlaceholder const&)>,
-	cend_LABEL = caramel_poly::function<any_iterator<Value const, Category>(caramel_poly::SelfPlaceholder const&)>
+struct Range : decltype(caramel::poly::requires(
+	begin_LABEL = caramel::poly::function<any_iterator<Value, Category>(caramel::poly::SelfPlaceholder&)>,
+	end_LABEL = caramel::poly::function<any_iterator<Value, Category>(caramel::poly::SelfPlaceholder&)>,
+	cbegin_LABEL = caramel::poly::function<any_iterator<Value const, Category>(caramel::poly::SelfPlaceholder const&)>,
+	cend_LABEL = caramel::poly::function<any_iterator<Value const, Category>(caramel::poly::SelfPlaceholder const&)>
 )) { };
 
 } // anonymous namespace
 
 template <typename Value, typename Category, typename R>
-auto const caramel_poly::defaultConceptMap<Range<Value, Category>, R> = caramel_poly::makeConceptMap(
+auto const caramel::poly::defaultConceptMap<Range<Value, Category>, R> = caramel::poly::makeConceptMap(
 	begin_LABEL = [](R& range) -> any_iterator<Value, Category> {
 			return any_iterator<Value, Category>{range.begin()};
 		},
@@ -67,7 +67,7 @@ struct any_range {
 	auto cend() const   { return poly_.virtual_(cend_LABEL)(poly_); }
 
 private:
-	caramel_poly::Poly<Range<Value, Category>> poly_;
+	caramel::poly::Poly<Range<Value, Category>> poly_;
 };
 
 //

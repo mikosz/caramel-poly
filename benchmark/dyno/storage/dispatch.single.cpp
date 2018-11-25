@@ -31,9 +31,9 @@ template <std::size_t Bytes>
 using WithSize = std::aligned_storage_t<Bytes>;
 
 BENCHMARK_TEMPLATE(BM_dispatch_single, inheritance_tag,         WithSize<8>);
-BENCHMARK_TEMPLATE(BM_dispatch_single, caramel_poly::RemoteStorage<>,  WithSize<8>);
-BENCHMARK_TEMPLATE(BM_dispatch_single, caramel_poly::SBOStorage<4>,    WithSize<8>);
-BENCHMARK_TEMPLATE(BM_dispatch_single, caramel_poly::SBOStorage<8>,    WithSize<8>);
-BENCHMARK_TEMPLATE(BM_dispatch_single, caramel_poly::SBOStorage<16>,   WithSize<8>);
-BENCHMARK_TEMPLATE(BM_dispatch_single, caramel_poly::SBOStorage<32>,   WithSize<8>);
-BENCHMARK_TEMPLATE(BM_dispatch_single, caramel_poly::LocalStorage<32>, WithSize<8>);
+BENCHMARK_TEMPLATE(BM_dispatch_single, caramel::poly::RemoteStorage<>,  WithSize<8>);
+BENCHMARK_TEMPLATE(BM_dispatch_single, caramel::poly::SBOStorage<4>,    WithSize<8>);
+BENCHMARK_TEMPLATE(BM_dispatch_single, caramel::poly::SBOStorage<8>,    WithSize<8>);
+BENCHMARK_TEMPLATE(BM_dispatch_single, caramel::poly::SBOStorage<16>,   WithSize<8>);
+BENCHMARK_TEMPLATE(BM_dispatch_single, caramel::poly::SBOStorage<32>,   WithSize<8>);
+BENCHMARK_TEMPLATE(BM_dispatch_single, caramel::poly::LocalStorage<32>, WithSize<8>);

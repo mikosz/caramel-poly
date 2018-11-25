@@ -26,10 +26,11 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Author: vladl@google.com (Vlad Losev)
+
 
 // Type and function utilities for implementing parameterized tests.
+
+// GOOGLETEST_CM0001 DO NOT DELETE
 
 #ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PARAM_UTIL_H_
 #define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PARAM_UTIL_H_
@@ -38,21 +39,16 @@
 
 #include <iterator>
 #include <set>
+#include <tuple>
 #include <utility>
 #include <vector>
 
-// scripts/fuse_gtest.py depends on gtest's own header being #included
-// *unconditionally*.  Therefore these #includes cannot be moved
-// inside #if GTEST_HAS_PARAM_TEST.
 #include "gtest/internal/gtest-internal.h"
 #include "gtest/internal/gtest-linked_ptr.h"
 #include "gtest/internal/gtest-port.h"
 #include "gtest/gtest-printers.h"
 
-#if GTEST_HAS_PARAM_TEST
-
 namespace testing {
-
 // Input to a parameterized test name generator, describing a test parameter.
 // Consists of the parameter value and the integer parameter index.
 template <class ParamType>
@@ -76,7 +72,8 @@ struct PrintToStringParamName {
 namespace internal {
 
 // INTERNAL IMPLEMENTATION - DO NOT USE IN USER CODE.
-//
+// Utility Functions
+
 // Outputs a message explaining invalid registration of different
 // fixture class for the same test case. This may happen when
 // TEST_P macro is used to define two tests with the same name
@@ -331,8 +328,7 @@ class ValuesInIteratorRangeGenerator : public ParamGeneratorInterface<T> {
     // detect that fact. The client code, on the other hand, is
     // responsible for not calling Current() on an out-of-range iterator.
     virtual const T* Current() const {
-      if (value_.get() == NULL)
-        value_.reset(new T(*iterator_));
+      if (value_.get() == nullptr) value_.reset(new T(*iterator_));
       return value_.get();
     }
     virtual bool Equals(const ParamIteratorInterface<T>& other) const {
@@ -583,13 +579,10 @@ class ParameterizedTestCaseInfo : public ParameterizedTestCaseInfoBase {
 
           test_name_stream << test_info->test_base_name << "/" << param_name;
           MakeAndRegisterTestInfo(
-              test_case_name.c_str(),
-              test_name_stream.GetString().c_str(),
-              NULL,  // No type parameter.
-              PrintToString(*param_it).c_str(),
-              code_location_,
-              GetTestCaseTypeId(),
-              TestCase::SetUpTestCase,
+              test_case_name.c_str(), test_name_stream.GetString().c_str(),
+              nullptr,  // No type parameter.
+              PrintToString(*param_it).c_str(), code_location_,
+              GetTestCaseTypeId(), TestCase::SetUpTestCase,
               TestCase::TearDownTestCase,
               test_info->test_meta_factory->CreateTestFactory(*param_it));
         }  // for param_it
@@ -680,7 +673,7 @@ class ParameterizedTestCaseRegistry {
   ParameterizedTestCaseInfo<TestCase>* GetTestCasePatternHolder(
       const char* test_case_name,
       CodeLocation code_location) {
-    ParameterizedTestCaseInfo<TestCase>* typed_test_info = NULL;
+    ParameterizedTestCaseInfo<TestCase>* typed_test_info = nullptr;
     for (TestCaseInfoContainer::iterator it = test_case_infos_.begin();
          it != test_case_infos_.end(); ++it) {
       if ((*it)->GetTestCaseName() == test_case_name) {
@@ -700,7 +693,7 @@ class ParameterizedTestCaseRegistry {
         break;
       }
     }
-    if (typed_test_info == NULL) {
+    if (typed_test_info == nullptr) {
       typed_test_info = new ParameterizedTestCaseInfo<TestCase>(
           test_case_name, code_location);
       test_case_infos_.push_back(typed_test_info);
@@ -723,8 +716,36 @@ class ParameterizedTestCaseRegistry {
 };
 
 }  // namespace internal
-}  // namespace testing
 
-#endif  //  GTEST_HAS_PARAM_TEST
+// Forward declarations of ValuesIn(), which is implemented in
+// include/gtest/gtest-param-test.h.
+template <class Container>
+internal::ParamGenerator<typename Container::value_type> ValuesIn(
+    const Container& container);
+
+namespace internal {
+// Used in the Values() function to provide polymorphic capabilities.
+
+template <typename... Ts>
+class ValueArray {
+ public:
+  ValueArray(Ts... v) : v_{std::move(v)...} {}
+
+  template <typename T>
+  operator ParamGenerator<T>() const {  // NOLINT
+    return ValuesIn(MakeVector<T>(MakeIndexSequence<sizeof...(Ts)>()));
+  }
+
+ private:
+  template <typename T, size_t... I>
+  std::vector<T> MakeVector(IndexSequence<I...>) const {
+    return std::vector<T>{static_cast<T>(v_.template Get<I>())...};
+  }
+
+  FlatTuple<Ts...> v_;
+};
+
+}  // namespace internal
+}  // namespace testing
 
 #endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PARAM_UTIL_H_

@@ -23,17 +23,17 @@ template <typename Signature>
 struct Callable;
 
 template <typename R, typename ...Args>
-struct Callable<R(Args...)> : decltype(caramel_poly::requires(
-	caramel_poly::CopyConstructible{},
-	caramel_poly::MoveConstructible{},
-	caramel_poly::Destructible{},
-	call_LABEL = caramel_poly::function<R(caramel_poly::SelfPlaceholder const&, Args...)>
+struct Callable<R(Args...)> : decltype(caramel::poly::requires(
+	caramel::poly::CopyConstructible{},
+	caramel::poly::MoveConstructible{},
+	caramel::poly::Destructible{},
+	call_LABEL = caramel::poly::function<R(caramel::poly::SelfPlaceholder const&, Args...)>
 )) { };
 
 } // anonymous namespace
 
 template <typename R, typename ...Args, typename F>
-auto const caramel_poly::defaultConceptMap<Callable<R(Args...)>, F> = caramel_poly::makeConceptMap(
+auto const caramel::poly::defaultConceptMap<Callable<R(Args...)>, F> = caramel::poly::makeConceptMap(
 	call_LABEL = [](F const& f, Args ...args) -> R {
 			return f(std::forward<Args>(args)...);
 		}
@@ -53,17 +53,17 @@ struct basic_function<R(Args...), StoragePolicy> {
 	{ return poly_.virtual_(call_LABEL)(poly_, std::forward<Args>(args)...); }
 
 private:
-	caramel_poly::Poly<Callable<R(Args...)>, StoragePolicy> poly_;
+	caramel::poly::Poly<Callable<R(Args...)>, StoragePolicy> poly_;
 };
 
 template <typename Signature>
-using function = basic_function<Signature, caramel_poly::SBOStorage<16>>;
+using function = basic_function<Signature, caramel::poly::SBOStorage<16>>;
 
 template <typename Signature>
-using function_view = basic_function<Signature, caramel_poly::NonOwningStorage>;
+using function_view = basic_function<Signature, caramel::poly::NonOwningStorage>;
 
 template <typename Signature> // could also templatize the size
-using inplace_function = basic_function<Signature, caramel_poly::LocalStorage<16>>;
+using inplace_function = basic_function<Signature, caramel::poly::LocalStorage<16>>;
 
 
 //

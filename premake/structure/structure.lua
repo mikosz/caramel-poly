@@ -57,11 +57,11 @@ local create_main_project = function(name, src_dir)
 	project "*"
 		
 	includedirs(src_dir)
-	gather_headers(src_dir)
 end
 
 function m.header_project(name, src_dir, common_settings)
 	create_main_project(name, src_dir)
+	gather_headers(src_dir)
 
 	project(name)
 		kind "Utility"
@@ -74,6 +74,7 @@ end
 
 function m.library_project(name, src_dir, common_settings)
 	create_main_project(name, src_dir)
+	gather_headers(src_dir)
 
 	project(name)
 		kind "StaticLib"
@@ -112,9 +113,11 @@ function m.executable_project(name, src_dir, is_windowed, common_settings)
 		
 		targetdir(target_dir_path("bin"))
 		
-		filter "configurations:Debug*"
-			targetsuffix(".d")
-		filter {}
+		-- TODO: disabled .d suffix for .exe - for caramel-poly doesn't make sense and
+		-- raises issues with CI
+		-- filter "configurations:Debug*"
+			-- targetsuffix(".d")
+		-- filter {}
 		
 		if common_settings then
 			common_settings()
@@ -184,19 +187,20 @@ function m.create_install_project()
 	project "*"
 end
 
-function m.create_run_tests_project()
-	project "RUN_TESTS"
-		kind "Utility"
-		dependson(test_projects)
+-- TODO: doesn't work
+-- function m.create_run_tests_project()
+	-- project "RUN_TESTS"
+		-- kind "Utility"
+		-- dependson(test_projects)
 		
-		for _, test in pairs(test_projects) do
-			postbuildcommands {
-				"{ECHO} Running "..test,
-				"%{wks.location}%{cfg.shortname}/tests/"..test..".exe" -- ".exe" could come from a token?
-			}
-		end
-	project "*"
-end
+		-- for _, test in pairs(test_projects) do
+			-- postbuildcommands {
+				-- "{ECHO} Running "..test,
+				-- "%{wks.location}%{cfg.shortname}/tests/"..test..".exe" -- ".exe" could come from a token?
+			-- }
+		-- end
+	-- project "*"
+-- end
 
 function m.create_build_all_project()
 	project "BUILD_ALL"

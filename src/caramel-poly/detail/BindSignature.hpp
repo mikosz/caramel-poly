@@ -12,7 +12,7 @@
 #include "TransformSignature.hpp"
 #include "../SelfPlaceholder.hpp"
 
-namespace caramel_poly::detail {
+namespace caramel::poly::detail {
 
 template <class Old, class New, class T>
 struct ReplaceImpl {
@@ -77,6 +77,6 @@ struct Replace {
 template <class Signature, class T>
 using BindSignature = TransformSignature<Signature, Replace<SelfPlaceholder, T>::template Type>;
 
-} // namespace caramel_poly::detail
+} // namespace caramel::poly::detail
 
 #endif /* CARAMELPOLY_DETAIL_BINDSIGNATURE_HPP__ */

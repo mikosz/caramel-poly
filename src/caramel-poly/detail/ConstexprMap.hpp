@@ -9,7 +9,7 @@
 #include "ConstexprList.hpp"
 #include "ConstexprPair.hpp"
 
-namespace caramel_poly::detail {
+namespace caramel::poly::detail {
 
 template <class... Entries>
 class ConstexprMap;
@@ -70,7 +70,7 @@ public:
 
 	template <class... OtherEntries>
 	constexpr auto insertAll([[maybe_unused]] ConstexprList<OtherEntries...> other) const {
-		if constexpr (empty(ConstexprMap<OtherEntries...>::Entries{})) {
+		if constexpr (empty(typename ConstexprMap<OtherEntries...>::Entries{})) {
 			return *this;
 		} else {
 			return
@@ -110,6 +110,6 @@ constexpr auto keys(ConstexprMap<ConstexprPair<Keys, Values>...>) {
 	return ConstexprList<Keys...>{};
 }
 
-} // namespace caramel_poly::detail
+} // namespace caramel::poly::detail
 
 #endif /* CARAMELPOLY_DETAIL_CONSTEXPRMAP_HPP__ */

@@ -15,8 +15,8 @@
 
 namespace /* anonymous */ {
 
-using namespace caramel_poly;
-using namespace caramel_poly::detail;
+using namespace caramel::poly;
+using namespace caramel::poly::detail;
 
 struct S {
 };

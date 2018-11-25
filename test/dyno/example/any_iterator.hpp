@@ -24,40 +24,40 @@ constexpr auto distance_LABEL = POLY_FUNCTION_LABEL("distance");
 // interface in terms of compile-time strings, assuming these may be fulfilled
 // in possibly many different ways.
 template <typename Reference>
-struct Iterator : decltype(caramel_poly::requires(
-	caramel_poly::TypeId{},
-	caramel_poly::CopyConstructible{},
-	caramel_poly::MoveConstructible{},
-	caramel_poly::CopyAssignable{},
-	caramel_poly::Destructible{},
-	caramel_poly::Swappable{},
-	increment_LABEL = caramel_poly::function<void (caramel_poly::SelfPlaceholder&)>,
-	dereference_LABEL = caramel_poly::function<Reference (caramel_poly::SelfPlaceholder&)>
+struct Iterator : decltype(caramel::poly::requires(
+	caramel::poly::TypeId{},
+	caramel::poly::CopyConstructible{},
+	caramel::poly::MoveConstructible{},
+	caramel::poly::CopyAssignable{},
+	caramel::poly::Destructible{},
+	caramel::poly::Swappable{},
+	increment_LABEL = caramel::poly::function<void (caramel::poly::SelfPlaceholder&)>,
+	dereference_LABEL = caramel::poly::function<Reference (caramel::poly::SelfPlaceholder&)>
 )) { };
 
 template <typename Reference>
-struct InputIterator : decltype(caramel_poly::requires(
+struct InputIterator : decltype(caramel::poly::requires(
 	Iterator<Reference>{},
-	caramel_poly::EqualityComparable{}
+	caramel::poly::EqualityComparable{}
 )) { };
 
 template <typename Reference>
-struct ForwardIterator : decltype(caramel_poly::requires(
+struct ForwardIterator : decltype(caramel::poly::requires(
 	InputIterator<Reference>{},
-	caramel_poly::DefaultConstructible{}
+	caramel::poly::DefaultConstructible{}
 )) { };
 
 template <typename Reference>
-struct BidirectionalIterator : decltype(caramel_poly::requires(
+struct BidirectionalIterator : decltype(caramel::poly::requires(
 	ForwardIterator<Reference>{},
-	decrement_LABEL = caramel_poly::function<void (caramel_poly::SelfPlaceholder&)>
+	decrement_LABEL = caramel::poly::function<void (caramel::poly::SelfPlaceholder&)>
 )) { };
 
 template <typename Reference, typename Difference>
-struct RandomAccessIterator : decltype(caramel_poly::requires(
+struct RandomAccessIterator : decltype(caramel::poly::requires(
 	BidirectionalIterator<Reference>{},
-	advance_LABEL = caramel_poly::function<void (caramel_poly::SelfPlaceholder&, Difference)>,
-	distance_LABEL = caramel_poly::function<Difference (caramel_poly::SelfPlaceholder const&, caramel_poly::SelfPlaceholder const&)>
+	advance_LABEL = caramel::poly::function<void (caramel::poly::SelfPlaceholder&, Difference)>,
+	distance_LABEL = caramel::poly::function<Difference (caramel::poly::SelfPlaceholder const&, caramel::poly::SelfPlaceholder const&)>
 )) { };
 
 
@@ -65,18 +65,18 @@ struct RandomAccessIterator : decltype(caramel_poly::requires(
 // (method names as compile-time strings) to actual implementations for a
 // specific iterator type.
 template <typename Ref, typename T>
-auto const caramel_poly::defaultConceptMap<Iterator<Ref>, T> = caramel_poly::makeConceptMap(
+auto const caramel::poly::defaultConceptMap<Iterator<Ref>, T> = caramel::poly::makeConceptMap(
 	increment_LABEL = [](T& self) { ++self; },
 	dereference_LABEL = [](T& self) -> Ref { return *self; }
 );
 
 template <typename Ref, typename T>
-auto const caramel_poly::defaultConceptMap<BidirectionalIterator<Ref>, T> = caramel_poly::makeConceptMap(
+auto const caramel::poly::defaultConceptMap<BidirectionalIterator<Ref>, T> = caramel::poly::makeConceptMap(
 	decrement_LABEL = [](T& self) -> void { --self; }
 );
 
 template <typename Ref, typename Diff, typename T>
-auto const caramel_poly::defaultConceptMap<RandomAccessIterator<Ref, Diff>, T> = caramel_poly::makeConceptMap(
+auto const caramel::poly::defaultConceptMap<RandomAccessIterator<Ref, Diff>, T> = caramel::poly::makeConceptMap(
 	advance_LABEL = [](T& self, Diff diff) -> void {
 			std::advance(self, diff);
 		},
@@ -132,16 +132,16 @@ private:
 	using Concept = typename detail::iterator_category_to_concept<
 			iterator_category, reference, difference_type
 		>::type;
-	using ActualConcept = decltype(caramel_poly::requires(
+	using ActualConcept = decltype(caramel::poly::requires(
 		Concept{},
-		caramel_poly::TypeId{} // For assertion in operator==
+		caramel::poly::TypeId{} // For assertion in operator==
 	));
 
-	using Storage = caramel_poly::LocalStorage<
+	using Storage = caramel::poly::LocalStorage<
 		sizeof(std::array<int, 4>::iterator),
 		alignof(std::array<int, 4>::iterator)
 		>;
-	caramel_poly::Poly<ActualConcept, Storage> poly_;
+	caramel::poly::Poly<ActualConcept, Storage> poly_;
 
 public:
 	template <typename It>
@@ -203,8 +203,8 @@ public:
 	}
 
 	friend bool operator==(any_iterator const& a, any_iterator const& b) {
-		assert(a.poly_.virtual_(caramel_poly::TYPEID_LABEL)() == b.poly_.virtual_(caramel_poly::TYPEID_LABEL)());
-		return a.poly_.virtual_(caramel_poly::EQUAL_LABEL)(a.poly_, b.poly_);
+		assert(a.poly_.virtual_(caramel::poly::TYPEID_LABEL)() == b.poly_.virtual_(caramel::poly::TYPEID_LABEL)());
+		return a.poly_.virtual_(caramel::poly::EQUAL_LABEL)(a.poly_, b.poly_);
 	}
 
 	friend bool operator!=(any_iterator const& a, any_iterator const& b) {

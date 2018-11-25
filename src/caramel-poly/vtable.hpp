@@ -19,7 +19,7 @@
 #include "Concept.hpp"
 #include "ConceptMap.hpp"
 
-namespace caramel_poly {
+namespace caramel::poly {
 
 // concept VTable
 //
@@ -65,7 +65,7 @@ struct LocalVTable<detail::ConstexprPair<Name, Clause>...> {
 	constexpr LocalVTable() = default;
 
 	template <class ConceptMap>
-	constexpr explicit LocalVTable([[maybe_unused]] ConceptMap map) :
+	constexpr explicit LocalVTable(ConceptMap map) :
 		vtbl_{
 			detail::makeConstexprMap(
 				detail::makeConstexprPair(
@@ -90,7 +90,7 @@ struct LocalVTable<detail::ConstexprPair<Name, Clause>...> {
 		} else {
 			static_assert(
 				containsFunction,
-				"caramel_poly::LocalVTable::operator[]: Request for a virtual function that is "
+				"caramel::poly::LocalVTable::operator[]: Request for a virtual function that is "
 				"not in the vtable. Was this function specified in the concept that "
 				"was used to instantiate this vtable? You can find the contents of the "
 				"vtable and the function you were trying to access in the compiler "
@@ -194,7 +194,7 @@ struct JoinedVTable {
 
 		if constexpr (inFirst && inSecond) {
 			static_assert(!inFirst || !inSecond,
-				"caramel_poly::JoinedVTable::operator[]: Request for a virtual function that is "
+				"caramel::poly::JoinedVTable::operator[]: Request for a virtual function that is "
 				"contained in both vtables of a joined vtable. Since this is most likely "
 				"a programming error, this is not allowed. You can find the contents of "
 				"the vtable and the function you were trying to access in the compiler "
@@ -202,7 +202,7 @@ struct JoinedVTable {
 				"`JoinedVTable<VTABLE 1, VTABLE 2>::operator[]<FUNCTION NAME>`");
 		} else if constexpr (!inFirst && !inSecond) {
 			static_assert(inFirst || inSecond,
-				"caramel_poly::JoinedVTable::operator[]: Request for a virtual function that is "
+				"caramel::poly::JoinedVTable::operator[]: Request for a virtual function that is "
 				"not present in any of the joined vtables. Make sure you meant to look "
 				"this function up, and otherwise check whether the two sub-vtables look "
 				"as expected. You can find the contents of the joined vtables and the "
@@ -232,7 +232,7 @@ struct Only {
 	constexpr auto operator()(All all) const {
 		auto matched = detail::makeConstexprList(Functions{}...);
 		static_assert(isSubset(decltype(matched){}, All{}),
-			"caramel_poly::Only: Some functions specified in this selector are not part of "
+			"caramel::poly::Only: Some functions specified in this selector are not part of "
 			"the concept to which the selector was applied.");
 		return makeConstexprPair(difference(all, matched), matched);
 	}
@@ -244,7 +244,7 @@ struct Except {
 	constexpr auto operator()(All all) const {
 		auto notMatched = makeConstexprList(Functions{}...);
 		static_assert(isSubset(decltype(notMatched){}, All{}),
-			"caramel_poly::Except: Some functions specified in this selector are not part of "
+			"caramel::poly::Except: Some functions specified in this selector are not part of "
 			"the concept to which the selector was applied.");
 		return makeConstexprPair(notMatched, difference(all, notMatched));
 	}
@@ -265,13 +265,13 @@ template <class T>
 constexpr auto isValidSelector = false;
 
 template <class... Methods>
-constexpr auto isValidSelector<caramel_poly::Only<Methods...>> = true;
+constexpr auto isValidSelector<caramel::poly::Only<Methods...>> = true;
 
 template <class... Methods>
-constexpr auto isValidSelector<caramel_poly::Except<Methods...>> = true;
+constexpr auto isValidSelector<caramel::poly::Except<Methods...>> = true;
 
 template <>
-constexpr auto isValidSelector<caramel_poly::Everything> = true;
+constexpr auto isValidSelector<caramel::poly::Everything> = true;
 
 } // namespace detail
 
@@ -280,14 +280,14 @@ constexpr auto isValidSelector<caramel_poly::Everything> = true;
 template <class Selector>
 struct Local {
 	static_assert(detail::isValidSelector<Selector>,
-		"caramel_poly::Local: Provided invalid selector. Valid selectors are "
-		"'caramel_poly::Only<METHODS...>', 'caramel_poly::Except<METHODS...>', "
-		"'caramel_poly::Everything', and 'caramel_poly::Everything_else'.");
+		"caramel::poly::Local: Provided invalid selector. Valid selectors are "
+		"'caramel::poly::Only<METHODS...>', 'caramel::poly::Except<METHODS...>', "
+		"'caramel::poly::Everything', and 'caramel::poly::Everything_else'.");
 
 	template <class Concept, class Functions>
 	static constexpr auto create(Concept, Functions functions) {
 		return unpack(functions, [](auto... f) {
-			using VTable = caramel_poly::LocalVTable<
+			using VTable = caramel::poly::LocalVTable<
 				detail::ConstexprPair<decltype(f), decltype(Concept{}.getSignature(f))>...
 				>;
 			return VTable{};
@@ -300,15 +300,15 @@ struct Local {
 template <class Selector>
 struct Remote {
 	static_assert(detail::isValidSelector<Selector>,
-		"caramel_poly::Remote: Provided invalid selector. Valid selectors are "
-		"'caramel_poly::Only<METHODS...>', 'caramel_poly::Except<METHODS...>', "
-		"'caramel_poly::Everything', and 'caramel_poly::Everything_else'.");
+		"caramel::poly::Remote: Provided invalid selector. Valid selectors are "
+		"'caramel::poly::Only<METHODS...>', 'caramel::poly::Except<METHODS...>', "
+		"'caramel::poly::Everything', and 'caramel::poly::Everything_else'.");
 
 	template <class Concept, class Functions>
 	static constexpr auto create(Concept, Functions functions) {
 		return unpack(functions, [](auto... f) {
-			using VTable = caramel_poly::RemoteVTable<
-				caramel_poly::LocalVTable<
+			using VTable = caramel::poly::RemoteVTable<
+				caramel::poly::LocalVTable<
 					detail::ConstexprPair<decltype(f), decltype(Concept{}.getSignature(f))>...
 					>
 				>;
@@ -327,14 +327,14 @@ template <class VTable>
 constexpr auto isEmptyVTable = false;
 
 template <>
-constexpr auto isEmptyVTable<caramel_poly::LocalVTable<>> = true;
+constexpr auto isEmptyVTable<caramel::poly::LocalVTable<>> = true;
 
 } // namespace detail
 
 template <class Concept, class Policies>
 constexpr auto generateVTable(Policies policies) {
-	auto functions = caramel_poly::detail::clauseNames(Concept{});
-	auto state = makeConstexprPair(functions, caramel_poly::LocalVTable<>{});
+	auto functions = caramel::poly::detail::clauseNames(Concept{});
+	auto state = makeConstexprPair(functions, caramel::poly::LocalVTable<>{});
 
 	auto result = foldLeft(state, policies, [](auto state, auto policy) {
 			auto functions = state.first();
@@ -349,7 +349,7 @@ constexpr auto generateVTable(Policies policies) {
 				auto newVTable = decltype(policy.create(Concept{}, matched)){};
 				return makeConstexprPair(remaining, newVTable);
 			} else {
-				auto newVTable = caramel_poly::JoinedVTable<
+				auto newVTable = caramel::poly::JoinedVTable<
 					decltype(vtable),
 					decltype(policy.create(Concept{}, matched))
 					>{};
@@ -359,7 +359,7 @@ constexpr auto generateVTable(Policies policies) {
 
 	constexpr bool allFunctionsWereTaken = empty(result.first());
 	static_assert(allFunctionsWereTaken,
-		"caramel_poly::VTable: The policies specified in the vtable did not fully cover all "
+		"caramel::poly::VTable: The policies specified in the vtable did not fully cover all "
 		"the functions provided by the concept. Some functions were not mapped to "
 		"any vtable, which is an error");
 	return result.second();
@@ -376,13 +376,13 @@ constexpr auto generateVTable(Policies policies) {
 // by the `Selector` are the ones to which the policy applies. Policies
 // provided by the library are:
 //
-//  caramel_poly::Remote<Selector>
+//  caramel::poly::Remote<Selector>
 //    All functions selected by `Selector` will be stored in a remote vtable.
 //    The vtable object is just a pointer to an actual vtable, and each access
 //    to the vtable requires one indirection. In vanilla C++, this is the usual
 //    vtable implementation.
 //
-//  caramel_poly::Local<Selector>
+//  caramel::poly::Local<Selector>
 //    All functions selected by `Selector` will be stored in a local vtable.
 //    The vtable object will actually contain function pointers for all the
 //    selected functions. When accessing a virtual function, no additional
@@ -394,39 +394,39 @@ constexpr auto generateVTable(Policies policies) {
 // Selectors are used to pick which policy applies to which functions when
 // defining a `vtable`. For example, one might want to define a vtable where
 // all the functions except one (say `"f"`) are stored remotely, with `"f"`
-// being stored locally. This can be achieved by using the `caramel_poly::remote` policy
-// with a selector that picks all functions except `"f"`, and the `caramel_poly::local`
+// being stored locally. This can be achieved by using the `caramel::poly::remote` policy
+// with a selector that picks all functions except `"f"`, and the `caramel::poly::local`
 // policy with a selector that picks everything (all that remains). Note that
 // when multiple selectors are specified, functions picked by earlier selectors
 // will effectively be removed from the concept for later selectors, which
 // supports this use case. Otherwise, one would have to specify that the
-// `caramel_poly::local` contains everything except the `"f"` function, which is
+// `caramel::poly::local` contains everything except the `"f"` function, which is
 // cumbersome. Selectors provided by the library are:
 //
-//  caramel_poly::only<functions...>
+//  caramel::poly::only<functions...>
 //    Picks only the specified functions from a concept. `functions` must be
-//    compile-time strings, such as `caramel_poly::only<decltype("foo"_s), decltype("bar"_s)>`.
+//    compile-time strings, such as `caramel::poly::only<decltype("foo"_s), decltype("bar"_s)>`.
 //
-//  caramel_poly::except<functions...>
+//  caramel::poly::except<functions...>
 //    Picks all but the specified functions from a concept. `functions` must
-//    be compile-time strings, such as `caramel_poly::except<decltype("foo"_s), decltype("bar"_s)>`.
+//    be compile-time strings, such as `caramel::poly::except<decltype("foo"_s), decltype("bar"_s)>`.
 //
-//  caramel_poly::everything
+//  caramel::poly::everything
 //    Picks all the functions from a concept.
 //
-//  caramel_poly::everything_else
-//    Equivalent to `caramel_poly::everything`, but prettier to read when other
+//  caramel::poly::everything_else
+//    Equivalent to `caramel::poly::everything`, but prettier to read when other
 //    policies are used before it.
 template <class... Policies>
 struct VTable {
 
 	template <class Concept>
 	using Type = decltype(
-		caramel_poly::generateVTable<Concept>(detail::ConstexprList<Policies...>{})
+		caramel::poly::generateVTable<Concept>(detail::ConstexprList<Policies...>{})
 		);
 
 };
 
-} // namespace caramel_poly
+} // namespace caramel::poly
 
 #endif /* CARAMELPOLY_VTABLE_HPP__ */

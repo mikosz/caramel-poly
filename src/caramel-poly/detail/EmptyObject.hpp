@@ -9,7 +9,7 @@
 #ifndef CARAMELPOLY_DETAIL_EMPTYOBJECT_HPP__
 #define CARAMELPOLY_DETAIL_EMPTYOBJECT_HPP__
 
-namespace caramel_poly {
+namespace caramel::poly {
 namespace detail {
 
 // Hack to get an instance of an empty type that is not default constructible,
@@ -101,6 +101,6 @@ private:
 };
 
 } // namespace detail
-} // namespace caramel_poly
+} // namespace caramel::poly
 
 #endif /* CARAMELPOLY_DETAIL_EMPTYOBJECT_HPP__ */

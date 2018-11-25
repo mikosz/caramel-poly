@@ -29,14 +29,14 @@ static void BM_copy(benchmark::State& state) {
 template <std::size_t Bytes>
 using WithSize = std::aligned_storage_t<Bytes>;
 
-BENCHMARK_TEMPLATE(BM_copy, caramel_poly::RemoteStorage<>, WithSize<4>);
-BENCHMARK_TEMPLATE(BM_copy, caramel_poly::SBOStorage<4>, WithSize<4>);
-BENCHMARK_TEMPLATE(BM_copy, caramel_poly::SBOStorage<8>, WithSize<4>);
-BENCHMARK_TEMPLATE(BM_copy, caramel_poly::SBOStorage<16>, WithSize<4>);
-BENCHMARK_TEMPLATE(BM_copy, caramel_poly::LocalStorage<16>, WithSize<4>);
+BENCHMARK_TEMPLATE(BM_copy, caramel::poly::RemoteStorage<>, WithSize<4>);
+BENCHMARK_TEMPLATE(BM_copy, caramel::poly::SBOStorage<4>, WithSize<4>);
+BENCHMARK_TEMPLATE(BM_copy, caramel::poly::SBOStorage<8>, WithSize<4>);
+BENCHMARK_TEMPLATE(BM_copy, caramel::poly::SBOStorage<16>, WithSize<4>);
+BENCHMARK_TEMPLATE(BM_copy, caramel::poly::LocalStorage<16>, WithSize<4>);
 
-BENCHMARK_TEMPLATE(BM_copy, caramel_poly::RemoteStorage<>, WithSize<16>);
-BENCHMARK_TEMPLATE(BM_copy, caramel_poly::SBOStorage<4>, WithSize<16>);
-BENCHMARK_TEMPLATE(BM_copy, caramel_poly::SBOStorage<8>, WithSize<16>);
-BENCHMARK_TEMPLATE(BM_copy, caramel_poly::SBOStorage<16>, WithSize<16>);
-BENCHMARK_TEMPLATE(BM_copy, caramel_poly::LocalStorage<16>, WithSize<16>);
+BENCHMARK_TEMPLATE(BM_copy, caramel::poly::RemoteStorage<>, WithSize<16>);
+BENCHMARK_TEMPLATE(BM_copy, caramel::poly::SBOStorage<4>, WithSize<16>);
+BENCHMARK_TEMPLATE(BM_copy, caramel::poly::SBOStorage<8>, WithSize<16>);
+BENCHMARK_TEMPLATE(BM_copy, caramel::poly::SBOStorage<16>, WithSize<16>);
+BENCHMARK_TEMPLATE(BM_copy, caramel::poly::LocalStorage<16>, WithSize<16>);

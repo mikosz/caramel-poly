@@ -6,7 +6,7 @@
 
 #include <type_traits>
 
-namespace caramel_poly::detail {
+namespace caramel::poly::detail {
 
 template <class FirstT, class SecondT, class = void>
 class ConstexprPairStorage;
@@ -80,6 +80,6 @@ constexpr auto makeConstexprPair(First f, Second s) {
 constexpr auto first = [](auto p) { return p.first(); };
 constexpr auto second = [](auto p) { return p.second(); };
 
-} // namespace caramel_poly::detail
+} // namespace caramel::poly::detail
 
 #endif /* CARAMELPOLY_DETAIL_CONSTEXPRPAIR_HPP__ */

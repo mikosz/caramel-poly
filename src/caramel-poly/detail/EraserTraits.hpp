@@ -14,7 +14,7 @@
 
 #include "../SelfPlaceholder.hpp"
 
-namespace caramel_poly::detail {
+namespace caramel::poly::detail {
 
 // Traits for types that can be used to erase other types. The following traits
 // should be provided:
@@ -23,10 +23,10 @@ namespace caramel_poly::detail {
 // struct ErasePlaceholder;
 // 
 // Metafunction transforming the type of a possibly cv and ref-qualified
-// placeholder (a `caramel_poly::SelfPlaceholder`) into a representation suitable
+// placeholder (a `caramel::poly::SelfPlaceholder`) into a representation suitable
 // for passing around as a parameter to an erased function. Basically, this turns a
-// type like `caramel_poly::SelfPlaceholder&` into a `void*`, and similarly for other
-// types of possibly, const or ref-qualified `caramel_poly::SelfPlaceholder`s, but it
+// type like `caramel::poly::SelfPlaceholder&` into a `void*`, and similarly for other
+// types of possibly, const or ref-qualified `caramel::poly::SelfPlaceholder`s, but it
 // can be customized for custom eraser types.
 // 
 // template <class Eraser, class Placeholder, class Actual>
@@ -40,10 +40,10 @@ namespace caramel_poly::detail {
 // reference or a pointer to an actual type and passes it as a `void*`, with
 // the proper cv qualifiers. Note that an eraser is not expected to support
 // erasure of arbitrary types. For example, it is perfectly fine to give an
-// error if one tries to erase an `int` as a `caramel_poly::SelfPlaceholder&`,
+// error if one tries to erase an `int` as a `caramel::poly::SelfPlaceholder&`,
 // since that makes no sense. However, it is probably a good idea to support
 // inexact casts that do make sense, such as erasing `int&` to
-// `caramel_poly::SelfPlaceholder const&` (even though the cv-qualifiers don't
+// `caramel::poly::SelfPlaceholder const&` (even though the cv-qualifiers don't
 // match). This is left to the implementation of the specific eraser.
 //
 // template <class Eraser, class Placeholder, class Actual>
@@ -60,8 +60,8 @@ namespace caramel_poly::detail {
 template <class Eraser, class T>
 struct ErasePlaceholder {
 
-	static_assert(!std::is_same<T, caramel_poly::SelfPlaceholder>{},
-		"caramel_poly::SelfPlaceholder may not be passed by value; it is only a placeholder");
+	static_assert(!std::is_same<T, caramel::poly::SelfPlaceholder>{},
+		"caramel::poly::SelfPlaceholder may not be passed by value; it is only a placeholder");
 
 	using Type = T;
 
@@ -89,32 +89,32 @@ struct Unerase {
 
 // Specialization for the `void` Eraser, which uses `void*` to erase types.
 template <>
-struct ErasePlaceholder<void, const caramel_poly::SelfPlaceholder&> {
+struct ErasePlaceholder<void, const caramel::poly::SelfPlaceholder&> {
 	using Type = const void*;
 };
 
 template <>
-struct ErasePlaceholder<void, caramel_poly::SelfPlaceholder&> {
+struct ErasePlaceholder<void, caramel::poly::SelfPlaceholder&> {
 	using Type = void*;
 };
 
 template <>
-struct ErasePlaceholder<void, caramel_poly::SelfPlaceholder&&> {
+struct ErasePlaceholder<void, caramel::poly::SelfPlaceholder&&> {
 	using Type = void*;
 };
 
 template <>
-struct ErasePlaceholder<void, caramel_poly::SelfPlaceholder*> {
+struct ErasePlaceholder<void, caramel::poly::SelfPlaceholder*> {
 	using Type = void*;
 };
 
 template <>
-struct ErasePlaceholder<void, const caramel_poly::SelfPlaceholder*> {
+struct ErasePlaceholder<void, const caramel::poly::SelfPlaceholder*> {
 	using Type = const void*;
 };
 
 template <>
-struct Erase<void, const caramel_poly::SelfPlaceholder&> {
+struct Erase<void, const caramel::poly::SelfPlaceholder&> {
 
 	template <class Arg>
 	static constexpr const void* apply(const Arg& arg) { 
@@ -124,7 +124,7 @@ struct Erase<void, const caramel_poly::SelfPlaceholder&> {
 };
 
 template <>
-struct Erase<void, caramel_poly::SelfPlaceholder&> {
+struct Erase<void, caramel::poly::SelfPlaceholder&> {
 
 	template <class Arg>
 	static constexpr void* apply(Arg& arg) {
@@ -134,7 +134,7 @@ struct Erase<void, caramel_poly::SelfPlaceholder&> {
 };
 
 template <>
-struct Erase<void, caramel_poly::SelfPlaceholder&&> {
+struct Erase<void, caramel::poly::SelfPlaceholder&&> {
 
 	template <class Arg>
 	static constexpr void* apply(Arg&& arg) {
@@ -145,7 +145,7 @@ struct Erase<void, caramel_poly::SelfPlaceholder&&> {
 };
 
 template <>
-struct Erase<void, const caramel_poly::SelfPlaceholder*> {
+struct Erase<void, const caramel::poly::SelfPlaceholder*> {
 
 	template <class Arg>
 	static constexpr const void* apply(const Arg* arg) {
@@ -154,7 +154,7 @@ struct Erase<void, const caramel_poly::SelfPlaceholder*> {
 
 };
 template <>
-struct Erase<void, caramel_poly::SelfPlaceholder*> {
+struct Erase<void, caramel::poly::SelfPlaceholder*> {
 
 	template <class Arg>
 	static constexpr void* apply(Arg* arg) {
@@ -164,7 +164,7 @@ struct Erase<void, caramel_poly::SelfPlaceholder*> {
 };
 
 template <class Actual>
-struct Unerase<void, caramel_poly::SelfPlaceholder&, Actual&> {
+struct Unerase<void, caramel::poly::SelfPlaceholder&, Actual&> {
 
 	static constexpr Actual& apply(void* arg) {
 		return *static_cast<Actual*>(arg);
@@ -173,7 +173,7 @@ struct Unerase<void, caramel_poly::SelfPlaceholder&, Actual&> {
 };
 
 template <class Actual>
-struct Unerase<void, const caramel_poly::SelfPlaceholder&, const Actual&> {
+struct Unerase<void, const caramel::poly::SelfPlaceholder&, const Actual&> {
 
 	static constexpr const Actual& apply(const void* arg) {
 		return *static_cast<const Actual*>(arg);
@@ -182,7 +182,7 @@ struct Unerase<void, const caramel_poly::SelfPlaceholder&, const Actual&> {
 };
 
 template <class Actual>
-struct Unerase<void, caramel_poly::SelfPlaceholder&&, Actual&&> {
+struct Unerase<void, caramel::poly::SelfPlaceholder&&, Actual&&> {
 
 	static constexpr Actual&& apply(void* arg) {
 		return std::move(*static_cast<Actual*>(arg));
@@ -191,7 +191,7 @@ struct Unerase<void, caramel_poly::SelfPlaceholder&&, Actual&&> {
 };
 
 template <class Actual>
-struct Unerase<void, caramel_poly::SelfPlaceholder*, Actual*> {
+struct Unerase<void, caramel::poly::SelfPlaceholder*, Actual*> {
 
 	static constexpr Actual* apply(void* arg) {
 		return static_cast<Actual*>(arg);
@@ -200,7 +200,7 @@ struct Unerase<void, caramel_poly::SelfPlaceholder*, Actual*> {
 };
 
 template <class Actual>
-struct Unerase<void, const caramel_poly::SelfPlaceholder*, const Actual*> {
+struct Unerase<void, const caramel::poly::SelfPlaceholder*, const Actual*> {
 
 	static constexpr const Actual* apply(const void* arg) {
 		return static_cast<const Actual*>(arg);
@@ -208,6 +208,6 @@ struct Unerase<void, const caramel_poly::SelfPlaceholder*, const Actual*> {
 
 };
 
-} // namespace caramel_poly::detail
+} // namespace caramel::poly::detail
 
 #endif // CARAMELPOLY_DETAIL_ERASERTRAITS_HPP__

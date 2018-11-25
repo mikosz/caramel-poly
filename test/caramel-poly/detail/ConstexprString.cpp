@@ -16,8 +16,8 @@
 namespace /* anonymous */ {
 
 using namespace std::string_literals;
-using namespace caramel_poly;
-using namespace caramel_poly::detail;
+using namespace caramel::poly;
+using namespace caramel::poly::detail;
 
 TEST(StringTest, HasLength) {
 	constexpr auto cs = CONSTEXPR_STRING("123456");
@@ -26,7 +26,8 @@ TEST(StringTest, HasLength) {
 
 TEST(StringTest, CharsAreAccessible) {
 	constexpr auto cs = CONSTEXPR_STRING("01234");
-	static_assert(cs[2] == '2');
+//	static_assert(cs[2] == '2');
+	EXPECT_EQ(cs[2], '2'); // static assert above doesn't compile on clang-5.0
 }
 
 TEST(StringTest, CstrIsAccessible) {

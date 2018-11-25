@@ -15,7 +15,7 @@ template <typename VTablePolicy>
 static void BM_dispatch2(benchmark::State& state) {
 	unsigned int x = 0;
 	model<VTablePolicy> m{x};
-	int const N = state.range(0);
+	int const N = static_cast<int>(state.range(0));
 	while (state.KeepRunning()) {
 		for (int i = 0; i != N; ++i) {
 			benchmark::DoNotOptimize(m);
@@ -26,9 +26,9 @@ static void BM_dispatch2(benchmark::State& state) {
 }
 
 template <typename ...InlineMethods>
-using inline_only = caramel_poly::VTable<
-	caramel_poly::Local<caramel_poly::Only<InlineMethods...>>,
-	caramel_poly::Remote<caramel_poly::EverythingElse>
+using inline_only = caramel::poly::VTable<
+	caramel::poly::Local<caramel::poly::Only<InlineMethods...>>,
+	caramel::poly::Remote<caramel::poly::EverythingElse>
 >;
 
 static constexpr int D2_N = 100;

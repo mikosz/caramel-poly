@@ -9,10 +9,10 @@
 #ifndef CARAMELPOLY_SELFPLACEHOLDER_HPP__
 #define CARAMELPOLY_SELFPLACEHOLDER_HPP__
 
-namespace caramel_poly {
+namespace caramel::poly {
 
 struct SelfPlaceholder;
 
-} // namespace caramel_poly
+} // namespace caramel::poly
 
 #endif /* CARAMELPOLY_SELFPLACEHOLDER_HPP__ */

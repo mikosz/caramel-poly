@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 
 #include "caramel-poly/builtin.hpp"
-#include "caramel-poly/poly.hpp"
+#include "caramel-poly/Poly.hpp"
 
 #include <string>
 
@@ -16,7 +16,7 @@ TEST(DynoTest, UnsafeGet) {
 
   {
     // non-const version
-    caramel_poly::Poly<caramel_poly::CopyConstructible> poly{foobar};
+    caramel::poly::Poly<caramel::poly::CopyConstructible> poly{foobar};
     std::string* s = poly.unsafeGet<std::string>();
     EXPECT_EQ(*s, foobar);
 
@@ -29,7 +29,7 @@ TEST(DynoTest, UnsafeGet) {
 
   {
     // const version
-    caramel_poly::Poly<caramel_poly::CopyConstructible> const poly{foobar};
+    caramel::poly::Poly<caramel::poly::CopyConstructible> const poly{foobar};
     std::string const* s = poly.unsafeGet<std::string>();
     EXPECT_EQ(*s, foobar);
   }

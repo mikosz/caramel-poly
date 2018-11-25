@@ -63,15 +63,15 @@ void draw(document_t<Object> const& self, std::ostream& out) {
 
 
 
-struct Drawable : decltype(caramel_poly::requires(
-	draw_LABEL = caramel_poly::function<void(caramel_poly::SelfPlaceholder const&, std::ostream&)>
+struct Drawable : decltype(caramel::poly::requires(
+	draw_LABEL = caramel::poly::function<void(caramel::poly::SelfPlaceholder const&, std::ostream&)>
 )) { };
 
 class object_t {
 public:
 	template <typename T>
 	object_t(T x)
-		: poly_{ std::move(x), caramel_poly::makeConceptMap(
+		: poly_{ std::move(x), caramel::poly::makeConceptMap(
 			draw_LABEL = [](T const& self, std::ostream& out) { draw(self, out); }
 		) }
 	{ }
@@ -81,9 +81,9 @@ public:
 	}
 
 private:
-	using Storage = caramel_poly::SharedRemoteStorage<>;
-	using VTable = caramel_poly::VTable<caramel_poly::Remote<caramel_poly::Everything>>;
-	caramel_poly::Poly<Drawable, Storage, VTable> poly_;
+	using Storage = caramel::poly::SharedRemoteStorage<>;
+	using VTable = caramel::poly::VTable<caramel::poly::Remote<caramel::poly::Everything>>;
+	caramel::poly::Poly<Drawable, Storage, VTable> poly_;
 };
 
 TEST(DynoTest, DrawableDynoExample) {

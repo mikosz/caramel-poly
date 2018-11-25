@@ -1,0 +1,85 @@
+# Copyright Mikolaj Radwan 2018
+# Distributed under the MIT license (See accompanying file LICENSE)
+#
+# This is Louis Dionne's Dyno library adapted to work on Visual Studio 2017 and
+# without Boost, modified to my taste. All credit for the design and delivery goes
+# to Louis. His original implementation may be found here:
+# https://github.com/ldionne/dyno
+
+language: cpp
+os: linux
+dist: trusty
+sudo: true
+
+# Do not build branches of the form "pr/*". By prefixing pull requests coming
+# from branches inside the repository with pr/, this avoids building both the
+# branch push _and_ the pull request.
+branches:
+  except: /pr\/.*/
+
+matrix:
+  include:
+    - env: COMPILER=clang++-7
+      addons: { apt: { packages: ["clang-7"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-7"] } }
+
+    - env: COMPILER=g++-7
+      addons: { apt: { packages: ["g++-7"], sources: ["ubuntu-toolchain-r-test"] } }
+
+install:
+  # Set the ${CXX} and ${CC} variables properly. They are picked up by CMake
+  # to determine the C++ and C compilers, respectively.
+  - export CXX=${COMPILER}
+  - if [[ "${CXX}" == "g++"* ]]; then export CC="${CXX/++/cc}"; fi
+  - if [[ "${CXX}" == "clang++"* ]]; then export CC="${CXX/++/}"; fi
+  - echo "CXX = ${CXX}" && ${CXX} --version
+  - echo "CC = ${CC}" && ${CC} --version
+
+  # Dependencies required by the CI are installed in ${TRAVIS_BUILD_DIR}/deps/
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
+
+  # On Linux, install libc++ and libc++abi when building with Clang.
+  # Otherwise, it uses the libstdc++ provided with the system.
+  - |
+    if [[ "${CXX}" == "clang"* && "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      if [[ "${CXX}" == "clang++-7" ]]; then LLVM_VERSION="7.0.0"; fi
+      LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
+      LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
+      LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
+      mkdir -p llvm llvm/build llvm/projects/libcxx llvm/projects/libcxxabi
+      travis_retry wget -O - ${LLVM_URL} | tar --strip-components=1 -xJ -C llvm
+      travis_retry wget -O - ${LIBCXX_URL} | tar --strip-components=1 -xJ -C llvm/projects/libcxx
+      travis_retry wget -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C llvm/projects/libcxxabi
+      (cd llvm/build && cmake .. -DCMAKE_INSTALL_PREFIX=${DEPS_DIR}/llvm/install)
+      (cd llvm/build/projects/libcxx && make install -j2)
+      (cd llvm/build/projects/libcxxabi && make install -j2)
+      export CXXFLAGS="-isystem ${DEPS_DIR}/llvm/install/include/c++/v1"
+      export LDFLAGS="-L ${DEPS_DIR}/llvm/install/lib -l c++ -l c++abi"
+      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${DEPS_DIR}/llvm/install/lib"
+    fi
+  - |
+    if [[ "${CXX}" == "g++"* ]]; then
+      export SKIP_BENCHMARK=1
+    fi
+  - |
+    git clone https://github.com/google/benchmark.git
+    cd benchmark
+    mkdir build/
+    cd build/
+    cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DBENCHMARK_ENABLE_GTEST_TESTS=OFF
+    make
+    sudo make install
+before_script:
+  - cd "${TRAVIS_BUILD_DIR}"
+script:
+  - ./create-project-gmake.sh
+  - cd build/
+  - make config=debugstatic_linux caramel-poly-test
+  - debugstatic_linux/bin/caramel-poly-test
+  - if [[ $SKIP_BENCHMARK != 1 ]]; then make config=debugstatic_linux caramel-poly-benchmark; fi
+  - if [[ $SKIP_BENCHMARK != 1 ]]; then debugstatic_linux/bin/caramel-poly-benchmark; fi
+  - make config=releasestatic_linux caramel-poly-test
+  - releasestatic_linux/bin/caramel-poly-test
+  - if [[ $SKIP_BENCHMARK != 1 ]]; then make config=releasestatic_linux caramel-poly-benchmark; fi
+  - if [[ $SKIP_BENCHMARK != 1 ]]; then releasestatic_linux/bin/caramel-poly-benchmark; fi
+  

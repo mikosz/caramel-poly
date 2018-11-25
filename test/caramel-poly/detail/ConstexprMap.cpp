@@ -9,8 +9,8 @@
 
 namespace /* anonymous */ {
 
-using namespace caramel_poly;
-using namespace caramel_poly::detail;
+using namespace caramel::poly;
+using namespace caramel::poly::detail;
 
 template <int i>
 struct S {
@@ -113,7 +113,6 @@ TEST(ConstexprMap, InsertAddsEntryIfKeyDoesntExist) {
 	{
 		constexpr auto empty = makeConstexprMap();
 		constexpr auto one = empty.insert(S<1>{}, V{ 1 });
-		constexpr auto stillOne = one.insert(S<1>{}, V{ 2 });
 		constexpr auto oneTwo = one.insert(S<2>{}, V{ 2 });
 		static_assert(oneTwo[S<1>{}].i == 1);
 		static_assert(oneTwo[S<2>{}].i == 2);

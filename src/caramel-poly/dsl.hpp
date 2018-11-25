@@ -14,7 +14,7 @@
 #include "detail/ConstexprString.hpp"
 #include "SelfPlaceholder.hpp"
 
-namespace caramel_poly {
+namespace caramel::poly {
 
 template <class Signature>
 struct Function {
@@ -40,34 +40,34 @@ struct Method;
 
 // Right-hand-side of a clause in a concept that signifies a method with the
 // given signature. The first parameter of the resulting function is implicitly
-// `caramel_poly::SelfPlaceholder&` for a non-const method, and
-// `const caramel_poly::SelfPlaceholder&` for a const method.
+// `caramel::poly::SelfPlaceholder&` for a non-const method, and
+// `const caramel::poly::SelfPlaceholder&` for a const method.
 template <class Signature>
 constexpr auto method = Method<Signature>{};
 
 template <class R, class... Args>
 struct Method<R(Args...)> {
-	using Type = R (caramel_poly::SelfPlaceholder&, Args...);
+	using Type = R (caramel::poly::SelfPlaceholder&, Args...);
 };
 
 template <class R, class... Args>
 struct Method<R(Args...) &> {
-	using Type = R (caramel_poly::SelfPlaceholder&, Args...);
+	using Type = R (caramel::poly::SelfPlaceholder&, Args...);
 };
 
 template <class R, class... Args>
 struct Method<R(Args...) &&> {
-	using Type = R (caramel_poly::SelfPlaceholder&&, Args...);
+	using Type = R (caramel::poly::SelfPlaceholder&&, Args...);
 };
 
 template <class R, class... Args>
 struct Method<R(Args...) const> {
-	using Type = R (const caramel_poly::SelfPlaceholder&, Args...);
+	using Type = R (const caramel::poly::SelfPlaceholder&, Args...);
 };
 
 template <class R, class... Args>
 struct Method<R(Args...) const&> {
-	using Type = R (const caramel_poly::SelfPlaceholder&, Args...);
+	using Type = R (const caramel::poly::SelfPlaceholder&, Args...);
 };
 
 // const&& not supported because it's stupid
@@ -90,7 +90,7 @@ public:
 
 	ConstexprList<Args...> args;
 
-	// All the constructors are private so that only `caramel_poly::MethodName` can
+	// All the constructors are private so that only `caramel::poly::MethodName` can
 	// construct an instance of this. The intent is that we can only
 	// manipulate temporaries of this type.
 
@@ -162,7 +162,7 @@ constexpr auto operator""_s() {
 // brining the literal in scope (through a using declaration or such),
 // which is not always convenient or possible.
 #define POLY_FUNCTION_LABEL(s)                                                   \
-  (::caramel_poly::detail::prepareString([]{                             \
+  (::caramel::poly::detail::prepareString([]{                             \
 	  struct tmp {                                                       \
 		  /* exclude null terminator in size() */                        \
 		  static constexpr std::size_t size() { return sizeof(s) - 1; }  \
@@ -172,6 +172,6 @@ constexpr auto operator""_s() {
   }()))                                                                  \
 /**/
 
-} // namespace caramel_poly
+} // namespace caramel::poly
 
 #endif /* CARAMELPOLY_DSL_HPP__ */

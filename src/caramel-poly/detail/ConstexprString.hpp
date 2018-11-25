@@ -12,7 +12,10 @@
 #include <utility>
 #include <iosfwd>
 
-namespace caramel_poly::detail {
+namespace caramel::poly::detail {
+
+template <char... CHARS>
+constexpr const char COMPILE_STRING_STORAGE[] = { CHARS..., '\0' };
 
 template <char... CHARS>
 class ConstexprString {
@@ -49,9 +52,6 @@ std::ostream& operator<<(std::ostream& os, ConstexprString<CHARS...> s) {
 	return os << s.c_str();
 }
 
-template <char... CHARS>
-constexpr const char COMPILE_STRING_STORAGE[] = { CHARS..., '\0' };
-
 template <class S, std::size_t... N>
 constexpr auto prepare_impl(S, std::index_sequence<N...>)
 {
@@ -63,10 +63,10 @@ constexpr decltype(auto) prepare(S s) {
 	return prepare_impl(s, std::make_index_sequence<sizeof(S::get()) - 1>{});
 }
 
-} // namespace caramel_poly::detail
+} // namespace caramel::poly::detail
 
 #define CONSTEXPR_STRING(s)                                                 \
-    (::caramel_poly::detail::prepare([]{                                    \
+    (::caramel::poly::detail::prepare([]{                                    \
         struct tmp {                                                        \
             static constexpr decltype(auto) get() {                         \
 				return s;                                                   \

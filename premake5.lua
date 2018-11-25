@@ -1,6 +1,5 @@
 structure = require "structure"
 
-include "premake5.cfg.lua"
 include "googletest.lua"
 include "googlebenchmark.lua"
 
@@ -12,7 +11,7 @@ workspace "caramel-poly"
 
 	configurations { "DebugStatic", "DebugMemcheckStatic", "ProfileBuildTimes", "ReleaseStatic" }
 	
-	platforms { "Win64" }
+	platforms { "Win64", "Linux" }
 	
 	language "C++"
 
@@ -34,16 +33,33 @@ workspace "caramel-poly"
 	
 	-- Platform specific settings
 	
-	filter "platforms:Win32"
-		system "Windows"
-		architecture "x32"
-
 	filter "platforms:Win64"
 		system "Windows"
 		architecture "x64"
 		
+	filter "platforms:Linux"
+		system "Linux"
+		architecture "x64"
+		
+	filter {}
+
+	filter "action:gmake"
+		buildoptions { "-fPIC" }
+		linkoptions { "-pthread" }
 	filter {}
 	
+	-- C++ Standard
+
+	filter "action:vs*"
+		buildoptions { "/std:c++latest" }
+		defines { "GTEST_LANG_CXX11=1" }
+	filter {}
+
+	filter "action:gmake"
+		buildoptions { "-std=c++17" }
+		defines { "GTEST_LANG_CXX11=1" }
+	filter {}
+		
 	-- Warnings
 	
 	warnings "Extra"
@@ -53,10 +69,10 @@ workspace "caramel-poly"
 	
 	filter "action:vs*"
 		defines { "_SCL_SECURE_NO_WARNINGS" }
-		buildoptions { "/std:c++latest" }
-		defines { "GTEST_LANG_CXX11=1" }
 	filter {}
 
+	-- Projects
+	
 	structure.header_project("caramel-poly", "src")
 	
 	structure.executable_project("caramel-poly-test", "test", false, function()
@@ -71,5 +87,5 @@ workspace "caramel-poly"
 
 	structure.create_build_all_project()
 	structure.create_install_project()
-	structure.create_run_tests_project()
-	
+	-- TODO: doesn't work
+	-- structure.create_run_tests_project()

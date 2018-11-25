@@ -38,7 +38,7 @@ public:
 		return &*it_;
 	}
 
-	bool equal(const IAnyIterator& other) const {
+	bool equal(const IAnyIterator& other) const override {
 		return it_ == reinterpret_cast<const AnyIteratorImpl<Iterator>&>(other).it_;
 	}
 
@@ -50,8 +50,8 @@ private:
 
 template <class Value, class Reference = Value&>
 struct any_iterator {
-	using value_type = typename Value;
-	using reference = typename Reference;
+	using value_type = Value;
+	using reference = Reference;
 
 	template <typename Iterator>
 	explicit any_iterator(Iterator it)

@@ -13,7 +13,7 @@
 #include <cassert>
 #include <unordered_map>
 
-namespace caramel_poly::test {
+namespace caramel::poly::test {
 
 class ConstructionRegistry {
 public:
@@ -104,7 +104,7 @@ private:
 
 };
 
-} // namespace caramel_poly::test
+} // namespace caramel::poly::test
 
 #endif /* CARAMELPOLY_TEST_CONSTRUCTIONREGISTRY_HPP__ */
 

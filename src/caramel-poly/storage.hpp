@@ -19,7 +19,7 @@
 #include "dsl.hpp"
 #include "builtin.hpp"
 
-namespace caramel_poly {
+namespace caramel::poly {
 
 struct MallocAllocator {
 	static void* allocate(std::size_t size) {
@@ -102,7 +102,7 @@ struct MallocAllocator {
 //             storage. If `T` is not the actual type of the object stored
 //             inside the polymorphic storage, the behavior is undefined.
 //
-// static constexpr bool canStore(caramel_poly::StorageInfo);
+// static constexpr bool canStore(caramel::poly::StorageInfo);
 //  Semantics: Return whether the polymorphic storage can store an object with
 //             the specified type information.
 
@@ -124,6 +124,10 @@ template <
 class SBOStorage {
 public:
 
+	static constexpr std::size_t SBSIZE = (SIZE < sizeof(void*)) ? sizeof(void*) : SIZE;
+	static constexpr std::size_t SBALIGN =
+		(ALIGN == static_cast<std::size_t>(-1)) ? alignof(std::aligned_storage_t<SBSIZE>) : ALIGN;
+
 	SBOStorage() = delete;
 	SBOStorage(const SBOStorage&) = delete;
 	SBOStorage(SBOStorage&&) = delete;
@@ -135,7 +139,7 @@ public:
 		// TODO: We could also construct the object at an aligned address within
 		// the buffer, which would require computing the right address everytime
 		// we access the buffer as a T, but would allow more Ts to fit in the SBO.
-		if constexpr (canStore(caramel_poly::storageInfoFor<RawT>)) {
+		if constexpr (canStore(caramel::poly::storageInfoFor<RawT>)) {
 			usesHeap_ = false;
 			new (&sb_) RawT(std::forward<T>(t));
 		} else {
@@ -254,9 +258,6 @@ public:
 
 private:
 
-	static constexpr std::size_t SBSIZE = (SIZE < sizeof(void*)) ? sizeof(void*) : SIZE;
-	static constexpr std::size_t SBALIGN =
-		(ALIGN == static_cast<std::size_t>(-1)) ? alignof(std::aligned_storage_t<SBSIZE>) : ALIGN;
 	using SBStorage = std::aligned_storage_t<SBSIZE, SBALIGN>;
 
 	union {
@@ -267,8 +268,8 @@ private:
 	// TODO: It might be possible to pack this bool inside the union somehow.
 	bool usesHeap_;
 
-	static constexpr bool canStore(caramel_poly::StorageInfo info) {
-		return info.size <= sizeof(SBStorage) && alignof(SBStorage) % info.alignment == 0;
+	static constexpr bool canStore(caramel::poly::StorageInfo info) {
+		return (info.size <= SBSIZE) && (SBALIGN % info.alignment == 0);
 	}
 
 };
@@ -366,7 +367,7 @@ struct SharedRemoteStorage {
 
 	template <class T, class RawT = std::decay_t<T>>
 	explicit SharedRemoteStorage(T&& t) :
-		ptr_{Allocator::makeShared<RawT>(std::forward<T>(t))}
+		ptr_{Allocator::template makeShared<RawT>(std::forward<T>(t))}
 	{
 	}
 
@@ -432,8 +433,8 @@ public:
 		// TODO: We could also construct the object at an aligned address within
 		// the buffer, which would require computing the right address everytime
 		// we access the buffer as a T, but would allow more Ts to fit inside it.
-		static_assert(canStore(caramel_poly::storageInfoFor<RawT>),
-			"caramel_poly::LocalStorage: Trying to construct from an object that won't fit "
+		static_assert(canStore(caramel::poly::storageInfoFor<RawT>),
+			"caramel::poly::LocalStorage: Trying to construct from an object that won't fit "
 			"in the local storage."
 			);
 
@@ -443,7 +444,7 @@ public:
 	template <class VTable>
 	LocalStorage(const LocalStorage& other, const VTable& vtable) {
 		assert(canStore(vtable[STORAGE_INFO_LABEL]()) &&
-			"caramel_poly::LocalStorage: Trying to copy-construct using a vtable that "
+			"caramel::poly::LocalStorage: Trying to copy-construct using a vtable that "
 			"describes an object that won't fit in the storage.");
 
 		vtable[COPY_CONSTRUCT_LABEL](this->get(), other.get());
@@ -452,7 +453,7 @@ public:
 	template <class VTable>
 	LocalStorage(LocalStorage&& other, const VTable& vtable) {
 		assert(canStore(vtable[STORAGE_INFO_LABEL]()) &&
-			"caramel_poly::LocalStorage: Trying to move-construct using a vtable that "
+			"caramel::poly::LocalStorage: Trying to move-construct using a vtable that "
 			"describes an object that won't fit in the storage.");
 
 		vtable[MOVE_CONSTRUCT_LABEL](this->get(), other.get());
@@ -493,7 +494,7 @@ public:
 		return static_cast<const T*>(static_cast<const void*>(&buffer_));
 	}
 
-	static constexpr bool canStore(caramel_poly::StorageInfo info) {
+	static constexpr bool canStore(caramel::poly::StorageInfo info) {
 		return
 			info.size <= sizeof(Buffer) &&
 			alignof(Buffer) % info.alignment == 0
@@ -559,7 +560,7 @@ struct NonOwningStorage {
 		return static_cast<const T*>(ptr_);
 	}
 
-	static constexpr bool canStore(caramel_poly::StorageInfo) {
+	static constexpr bool canStore(caramel::poly::StorageInfo) {
 		return true;
 	}
 
@@ -571,6 +572,6 @@ private:
 
 // #TODO_Caramel: dropped fallback storage, as I don't really see the need to have it. Copy it if necessary.
 
-} // namespace caramel_poly
+} // namespace caramel::poly
 
 #endif /* CARAMELPOLY_STORAGE_HPP__ */
