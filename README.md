@@ -1,4 +1,5 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/qg92fbe46d8w2kh8?svg=true)](https://ci.appveyor.com/project/mikosz/caramel-poly)
+[![Build Status](https://travis-ci.org/mikosz/caramel-poly.svg?branch=master)](https://travis-ci.org/mikosz/caramel-poly)
 
 # caramel-poly
 
