@@ -2,7 +2,7 @@
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE.md or copy at http://boost.org/LICENSE_1_0.txt)
 
-#include "caramel-poly/Concept.hpp"
+#include "caramel-poly/Trait.hpp"
 #include "caramel-poly/Poly.hpp"
 
 namespace /* anonymous */ {
@@ -13,13 +13,13 @@ namespace /* anonymous */ {
 
 constexpr auto f_NAME = POLY_FUNCTION_LABEL("f");
 
-struct Concept : decltype(caramel::poly::requires(
+struct Trait : decltype(caramel::poly::require(
   f_NAME = caramel::poly::function<void (caramel::poly::SelfPlaceholder&)>
 )) { };
 
 using Storage = caramel::poly::RemoteStorage<>;
 using VTable = caramel::poly::VTable<caramel::poly::Remote<caramel::poly::Everything>>;
-using Poly = caramel::poly::Poly<Concept, Storage, VTable>;
+using Poly = caramel::poly::Poly<Trait, Storage, VTable>;
 static_assert(sizeof(Poly) == 2 * sizeof(void*));
 
 } // anonymous namespace

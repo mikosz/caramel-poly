@@ -28,8 +28,8 @@ struct ApplyErasePlaceholder {
 //
 // Basically, this turns types like `caramel::poly::SelfPlaceholder&` into `void*`
 // (or what's specified by the given `Eraser`) at the top-level of the signature.
-// This is used when we need to generate a vtable from a concept definition. The
-// concept defines signatures with placeholders, and we need to generate a concrete
+// This is used when we need to generate a vtable from a trait definition. The
+// trait defines signatures with placeholders, and we need to generate a concrete
 // function type that can be stored in a vtable. That concrete type is the result of
 // `EraseSignature`.
 //

@@ -31,14 +31,14 @@ constexpr auto operator!=(Function<Sig1> m1, Function<Sig2> m2) {
 	return !(m1 == m2);
 }
 
-// Right-hand-side of a clause in a concept that signifies a function with the given signature.
+// Right-hand-side of a clause in a trait that signifies a function with the given signature.
 template <class Signature>
 constexpr auto function = Function<Signature>{};
 
 template <class Signature>
 struct Method;
 
-// Right-hand-side of a clause in a concept that signifies a method with the
+// Right-hand-side of a clause in a trait that signifies a method with the
 // given signature. The first parameter of the resulting function is implicitly
 // `caramel::poly::SelfPlaceholder&` for a non-const method, and
 // `const caramel::poly::SelfPlaceholder&` for a const method.
@@ -146,7 +146,7 @@ constexpr auto prepareString(S) {
 inline namespace literals {
 
 // Creates a compile-time string that can be used as the left-hand-side when
-// defining clauses or filling concept maps.
+// defining clauses or filling trait maps.
 template <class CharT, CharT... CHARS>
 constexpr auto operator""_s() {
 	return detail::MethodName<CHARS...>{};

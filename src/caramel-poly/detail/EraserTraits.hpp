@@ -55,7 +55,7 @@ namespace caramel::poly::detail {
 // The eraser can assume that the object that was erased is indeed of the
 // requested type. This function is used to transform an object with an
 // erased representation into an object that can be passed to a function
-// stored in a concept map.
+// stored in a trait map.
 
 template <class Eraser, class T>
 struct ErasePlaceholder {

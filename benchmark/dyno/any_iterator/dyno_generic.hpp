@@ -15,7 +15,7 @@ constexpr auto decrement_LABEL = POLY_FUNCTION_LABEL("decrement");
 constexpr auto dereference_LABEL = POLY_FUNCTION_LABEL("dereference");
 
 template <typename Reference>
-struct Iterator : decltype(caramel::poly::requires(
+struct Iterator : decltype(caramel::poly::require(
 	caramel::poly::MoveConstructible{},
 	increment_LABEL = caramel::poly::function<void (caramel::poly::SelfPlaceholder&)>,
 	dereference_LABEL = caramel::poly::function<Reference (caramel::poly::SelfPlaceholder&)>,
@@ -29,7 +29,7 @@ struct any_iterator {
 
 	template <typename It>
 	explicit any_iterator(It it)
-		: poly_{std::move(it), caramel::poly::makeConceptMap(
+		: poly_{std::move(it), caramel::poly::makeTraitMap(
 			increment_LABEL = [](It& self) { ++self; },
 			dereference_LABEL = [](It& self) -> decltype(auto) { return *self; },
 			caramel::poly::EQUAL_LABEL = [](It const& a, It const& b) -> bool { return a == b; }

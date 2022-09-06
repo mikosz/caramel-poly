@@ -14,7 +14,7 @@ constexpr auto f1_LABEL = POLY_FUNCTION_LABEL("f1");
 constexpr auto f2_LABEL = POLY_FUNCTION_LABEL("f2");
 constexpr auto f3_LABEL = POLY_FUNCTION_LABEL("f3");
 
-struct Concept : decltype(caramel::poly::requires(
+struct Trait : decltype(caramel::poly::require(
 	caramel::poly::CopyConstructible{},
 	caramel::poly::MoveConstructible{},
 	caramel::poly::Swappable{},
@@ -26,7 +26,7 @@ struct Concept : decltype(caramel::poly::requires(
 )) { };
 
 template <typename T>
-auto const caramel::poly::defaultConceptMap<Concept, T> = caramel::poly::makeConceptMap(
+auto const caramel::poly::defaultTraitMap<Trait, T> = caramel::poly::makeTraitMap(
 	f1_LABEL = [](T& self) { benchmark::DoNotOptimize(self); },
 	f2_LABEL = [](T& self) { benchmark::DoNotOptimize(self); },
 	f3_LABEL = [](T& self) { benchmark::DoNotOptimize(self); }
@@ -46,7 +46,7 @@ struct model {
 	void f3() { poly_.virtual_(f3_LABEL)(poly_); }
 
 private:
-	caramel::poly::Poly<Concept, StoragePolicy> poly_;
+	caramel::poly::Poly<Trait, StoragePolicy> poly_;
 };
 
 struct inheritance_tag { };

@@ -3,8 +3,8 @@
 // (See accompanying file LICENSE.md or copy at http://boost.org/LICENSE_1_0.txt)
 
 #include "caramel-poly/builtin.hpp"
-#include "caramel-poly/Concept.hpp"
-#include "caramel-poly/ConceptMap.hpp"
+#include "caramel-poly/Trait.hpp"
+#include "caramel-poly/TraitMap.hpp"
 
 // This test makes sure that our builtin concepts properly report that types
 // that do not model them do not, instead of failing because of lack of

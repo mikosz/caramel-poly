@@ -1,0 +1,140 @@
+cmake_minimum_required(VERSION 3.23)
+project(caramel_poly)
+
+set(CMAKE_CXX_STANDARD 20)
+
+include_directories(benchmark/dyno/any_iterator)
+include_directories(benchmark/dyno/storage)
+include_directories(benchmark/dyno/vtable)
+include_directories(src)
+include_directories(src/caramel-poly)
+include_directories(src/caramel-poly/detail)
+include_directories(src/caramel-poly/detail/boost_callable_traits)
+include_directories(src/caramel-poly/detail/boost_callable_traits/detail)
+include_directories(src/caramel-poly/detail/boost_callable_traits/detail/polyfills)
+include_directories(src/caramel-poly/detail/boost_callable_traits/detail/unguarded)
+include_directories(test)
+include_directories(test/dyno)
+include_directories(test/dyno/example)
+
+add_library(caramel_poly INTERFACE
+        src/caramel-poly/detail/boost_callable_traits/detail/polyfills/disjunction.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/polyfills/make_index_sequence.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/function.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/function_2.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/function_3.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/function_ptr.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/function_ptr_2.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/function_ptr_3.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/function_ptr_varargs.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/function_ptr_varargs_2.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/function_ptr_varargs_3.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/pmf.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/pmf_2.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/pmf_3.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/pmf_4.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/pmf_varargs.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/pmf_varargs_2.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/pmf_varargs_3.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/unguarded/pmf_varargs_4.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/config.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/core.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/default_callable_traits.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/forward_declarations.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/function.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/function_object.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/is_invocable_impl.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/parameter_index_helper.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/pmd.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/pmf.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/qualifier_flags.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/set_function_qualifiers.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/sfinae_errors.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/traits.hpp
+        src/caramel-poly/detail/boost_callable_traits/detail/utility.hpp
+        src/caramel-poly/detail/boost_callable_traits/function_type.hpp
+        src/caramel-poly/detail/BindSignature.hpp
+        src/caramel-poly/detail/ConstexprList.hpp
+        src/caramel-poly/detail/ConstexprMap.hpp
+        src/caramel-poly/detail/ConstexprPair.hpp
+        src/caramel-poly/detail/ConstexprString.hpp
+        src/caramel-poly/detail/DefaultConstructibleLambda.hpp
+        src/caramel-poly/detail/EmptyObject.hpp
+        src/caramel-poly/detail/EraseFunction.hpp
+        src/caramel-poly/detail/EraserTraits.hpp
+        src/caramel-poly/detail/EraseSignature.hpp
+        src/caramel-poly/detail/isPlaceholder.hpp
+        src/caramel-poly/detail/TransformSignature.hpp
+        src/caramel-poly/builtin.hpp
+        src/caramel-poly/dsl.hpp
+        src/caramel-poly/Poly.hpp
+        src/caramel-poly/SelfPlaceholder.hpp
+        src/caramel-poly/storage.hpp
+        src/caramel-poly/Trait.hpp
+        src/caramel-poly/TraitMap.hpp
+        src/caramel-poly/vtable.hpp
+        )
+
+add_executable(caramel_poly_benchmark
+        benchmark/dyno/any_iterator/any_iterator.cpp
+        benchmark/dyno/any_iterator/dyno_generic.hpp
+        benchmark/dyno/any_iterator/handrolled_remote_storage.hpp
+        benchmark/dyno/any_iterator/handrolled_sean.hpp
+        benchmark/dyno/any_iterator/handrolled_vtable.hpp
+        benchmark/dyno/any_iterator/sean.hpp
+        benchmark/dyno/any_iterator/virtual.hpp
+        benchmark/dyno/storage/ctor.copy.cpp
+        benchmark/dyno/storage/ctor.cpp
+        benchmark/dyno/storage/ctor.move.cpp
+        benchmark/dyno/storage/dispatch.many.cpp
+        benchmark/dyno/storage/dispatch.single.cpp
+        benchmark/dyno/storage/model.hpp
+        benchmark/dyno/storage/swap.different.cpp
+        benchmark/dyno/storage/swap.same.cpp
+        benchmark/dyno/vtable/dispatch2.cpp
+        benchmark/dyno/vtable/dispatch3.cpp
+        benchmark/dyno/vtable/dispatch4.cpp
+        benchmark/dyno/vtable/model.hpp
+        benchmark/main.cpp
+        )
+
+add_executable(caramel_poly_test
+        test/caramel-poly/detail/BindSignature.cpp
+        test/caramel-poly/detail/ConstexprList.cpp
+        test/caramel-poly/detail/ConstexprMap.cpp
+        test/caramel-poly/detail/ConstexprPair.cpp
+        test/caramel-poly/detail/ConstexprString.cpp
+        test/caramel-poly/detail/DefaultConstructibleLambda.cpp
+        test/caramel-poly/detail/EraseFunction.cpp
+        test/caramel-poly/detail/EraserTraits.cpp
+        test/caramel-poly/detail/EraseSignature.cpp
+        test/caramel-poly/detail/TransformSignature.cpp
+        test/caramel-poly/builtin.cpp
+        test/caramel-poly/Poly.cpp
+        test/caramel-poly/storage.cpp
+        test/caramel-poly/Trait.cpp
+        test/caramel-poly/TraitMap.cpp
+        test/caramel-poly/vtable.cpp
+        test/dyno/example/any_iterator.cpp
+        test/dyno/example/any_iterator.hpp
+        test/dyno/example/any_range.cpp
+        test/dyno/example/drawable.dyno.cpp
+        test/dyno/example/function.cpp
+        test/dyno/example/overview.cpp
+        test/dyno/example/readme.cpp
+        test/dyno/example/readme.non_member.cpp
+        test/dyno/example/vtable_traits.cpp
+        test/dyno/awful.hpp
+        test/dyno/builtin.models.cpp
+        test/dyno/poly.ctor.copy.cpp
+        test/dyno/poly.ctor.implicit.cpp
+        test/dyno/poly.ctor.implicit.double_wrap.cpp
+        test/dyno/poly.ctor.map.cpp
+        test/dyno/poly.remote.size.cpp
+        test/dyno/poly.unsafe_get.cpp
+        test/dyno/poly.virtual.cpp
+        test/dyno/poly.virtual.method.cpp
+        test/ConstructionRegistry.hpp
+        test/main.cpp)
+
+target_include_directories(caramel_poly_test PRIVATE external/googletest/include)

@@ -4,8 +4,8 @@
 
 #include <gtest/gtest.h>
 
-#include "caramel-poly/Concept.hpp"
-#include "caramel-poly/ConceptMap.hpp"
+#include "caramel-poly/Trait.hpp"
+#include "caramel-poly/TraitMap.hpp"
 #include "caramel-poly/Poly.hpp"
 
 namespace /* anonymous */ {
@@ -20,7 +20,7 @@ constexpr auto e_NAME = POLY_FUNCTION_LABEL("e");
 // virtual functions with placeholders. The expected behavior is that we
 // pass a `caramel::poly::poly`, and it gets translated to a `void*` internally.
 
-struct Concept : decltype(caramel::poly::requires(
+struct Trait : decltype(caramel::poly::require(
   a_NAME = caramel::poly::function<int (caramel::poly::SelfPlaceholder&)>,
   b_NAME = caramel::poly::function<int (caramel::poly::SelfPlaceholder&&)>,
   c_NAME = caramel::poly::function<int (caramel::poly::SelfPlaceholder*)>,
@@ -33,7 +33,7 @@ struct Foo { };
 } // anonymous namespace
 
 template <class T>
-auto const caramel::poly::conceptMap<Concept, T, std::enable_if_t<std::is_same_v<Foo, T>>> = caramel::poly::makeConceptMap(
+auto const caramel::poly::conceptMap<Trait, T, std::enable_if_t<std::is_same_v<Foo, T>>> = caramel::poly::makeTraitMap(
   a_NAME = [](Foo&) { return 111; },
   b_NAME = [](Foo&&) { return 222; },
   c_NAME = [](Foo*) { return 333; },
@@ -46,27 +46,27 @@ namespace /* anonymous */ {
 TEST(DynoTest, Virtual) {
   {
     Foo foo;
-    caramel::poly::Poly<Concept> poly{foo};
+    caramel::poly::Poly<Trait> poly{foo};
     EXPECT_EQ(poly.virtual_(a_NAME)(poly), 111);
   }
   {
     Foo foo;
-    caramel::poly::Poly<Concept> poly{foo};
+    caramel::poly::Poly<Trait> poly{foo};
 	EXPECT_EQ(poly.virtual_(b_NAME)(std::move(poly)), 222);
   }
   {
     Foo foo;
-    caramel::poly::Poly<Concept> poly{foo};
+    caramel::poly::Poly<Trait> poly{foo};
 	EXPECT_EQ(poly.virtual_(c_NAME)(&poly), 333);
   }
   {
     Foo foo;
-    caramel::poly::Poly<Concept> const poly{foo};
+    caramel::poly::Poly<Trait> const poly{foo};
 	EXPECT_EQ(poly.virtual_(d_NAME)(poly), 444);
   }
   {
     Foo foo;
-    caramel::poly::Poly<Concept> const poly{foo};
+    caramel::poly::Poly<Trait> const poly{foo};
 	EXPECT_EQ(poly.virtual_(e_NAME)(&poly), 555);
   }
 }

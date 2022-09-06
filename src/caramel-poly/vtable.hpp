@@ -16,30 +16,30 @@
 #include "detail/EraseSignature.hpp"
 #include "detail/ConstexprMap.hpp"
 #include "detail/ConstexprPair.hpp"
-#include "Concept.hpp"
-#include "ConceptMap.hpp"
+#include "Trait.hpp"
+#include "TraitMap.hpp"
 
 namespace caramel::poly {
 
-// concept VTable
+// trait VTable
 //
 // A VTable is a mapping from statically-known function names to
 // dynamically-known function pointers. In some sense, a vtable is
-// a type-erased concept map.
+// a type-erased trait map.
 //
 // In addition to being `Swappable`, a type `Table` satisfying the `VTable`
-// concept must provide the following functions as part of its interface:
+// trait must provide the following functions as part of its interface:
 //
-// template <class ConceptMap> explicit Table(ConceptMap);
-//  Semantics: Construct a vtable with the functions from a concept map.
-//             Note that the actual instance of the concept map being passed
+// template <class TraitMap> explicit Table(TraitMap);
+//  Semantics: Construct a vtable with the functions from a trait map.
+//             Note that the actual instance of the trait map being passed
 //             as a parameter is not required to be used; if that is enough
-//             for the purpose of the vtable, any instance of that concept
+//             for the purpose of the vtable, any instance of that trait
 //             map sharing the same type may be used.
 //
-//             Note: Concept maps have unique types, so this wording is only
+//             Note: Trait maps have unique types, so this wording is only
 //                   a way of ensuring we can statically construct a vtable
-//                   from just the type of that concept map.
+//                   from just the type of that trait map.
 //
 // template <class Name> constexpr auto contains(Name) const;
 //  Semantics: Return whether the vtable contains a function with the given
@@ -64,8 +64,8 @@ struct LocalVTable<detail::ConstexprPair<Name, Clause>...> {
 	
 	constexpr LocalVTable() = default;
 
-	template <class ConceptMap>
-	constexpr explicit LocalVTable(ConceptMap map) :
+	template <class TraitMap>
+	constexpr explicit LocalVTable(TraitMap map) :
 		vtbl_{
 			detail::makeConstexprMap(
 				detail::makeConstexprPair(
@@ -91,7 +91,7 @@ struct LocalVTable<detail::ConstexprPair<Name, Clause>...> {
 			static_assert(
 				containsFunction,
 				"caramel::poly::LocalVTable::operator[]: Request for a virtual function that is "
-				"not in the vtable. Was this function specified in the concept that "
+				"not in the vtable. Was this function specified in the trait that "
 				"was used to instantiate this vtable? You can find the contents of the "
 				"vtable and the function you were trying to access in the compiler "
 				"error message, probably in the following format: "
@@ -125,8 +125,8 @@ private:
 
 namespace detail {
 
-template <class VTable, class ConceptMap>
-static const VTable STATIC_VTABLE{ ConceptMap{} };
+template <class VTable, class TraitMap>
+static const VTable STATIC_VTABLE{ TraitMap{} };
 
 } // namespace detail
 
@@ -137,9 +137,9 @@ struct RemoteVTable {
 
 	constexpr RemoteVTable() = default;
 
-	template <class ConceptMap>
-	constexpr explicit RemoteVTable(ConceptMap) :
-		vptr_{&detail::STATIC_VTABLE<VTable, ConceptMap>}
+	template <class TraitMap>
+	constexpr explicit RemoteVTable(TraitMap) :
+		vptr_{&detail::STATIC_VTABLE<VTable, TraitMap>}
 	{
 	}
 
@@ -175,8 +175,8 @@ struct JoinedVTable {
 
 	constexpr JoinedVTable() = default;
 
-	template <class ConceptMap>
-	constexpr explicit JoinedVTable(ConceptMap map) :
+	template <class TraitMap>
+	constexpr explicit JoinedVTable(TraitMap map) :
 		first_{map},
 		second_{map}
 	{
@@ -233,7 +233,7 @@ struct Only {
 		auto matched = detail::makeConstexprList(Functions{}...);
 		static_assert(isSubset(decltype(matched){}, All{}),
 			"caramel::poly::Only: Some functions specified in this selector are not part of "
-			"the concept to which the selector was applied.");
+			"the trait to which the selector was applied.");
 		return makeConstexprPair(difference(all, matched), matched);
 	}
 };
@@ -245,7 +245,7 @@ struct Except {
 		auto notMatched = makeConstexprList(Functions{}...);
 		static_assert(isSubset(decltype(notMatched){}, All{}),
 			"caramel::poly::Except: Some functions specified in this selector are not part of "
-			"the concept to which the selector was applied.");
+			"the trait to which the selector was applied.");
 		return makeConstexprPair(notMatched, difference(all, notMatched));
 	}
 };
@@ -284,11 +284,11 @@ struct Local {
 		"'caramel::poly::Only<METHODS...>', 'caramel::poly::Except<METHODS...>', "
 		"'caramel::poly::Everything', and 'caramel::poly::Everything_else'.");
 
-	template <class Concept, class Functions>
-	static constexpr auto create(Concept, Functions functions) {
+	template <class Trait, class Functions>
+	static constexpr auto create(Trait, Functions functions) {
 		return unpack(functions, [](auto... f) {
 			using VTable = caramel::poly::LocalVTable<
-				detail::ConstexprPair<decltype(f), decltype(Concept{}.getSignature(f))>...
+				detail::ConstexprPair<decltype(f), decltype(Trait{}.getSignature(f))>...
 				>;
 			return VTable{};
 		});
@@ -304,12 +304,12 @@ struct Remote {
 		"'caramel::poly::Only<METHODS...>', 'caramel::poly::Except<METHODS...>', "
 		"'caramel::poly::Everything', and 'caramel::poly::Everything_else'.");
 
-	template <class Concept, class Functions>
-	static constexpr auto create(Concept, Functions functions) {
+	template <class Trait, class Functions>
+	static constexpr auto create(Trait, Functions functions) {
 		return unpack(functions, [](auto... f) {
 			using VTable = caramel::poly::RemoteVTable<
 				caramel::poly::LocalVTable<
-					detail::ConstexprPair<decltype(f), decltype(Concept{}.getSignature(f))>...
+					detail::ConstexprPair<decltype(f), decltype(Trait{}.getSignature(f))>...
 					>
 				>;
 			return VTable{};
@@ -331,9 +331,9 @@ constexpr auto isEmptyVTable<caramel::poly::LocalVTable<>> = true;
 
 } // namespace detail
 
-template <class Concept, class Policies>
+template <class Trait, class Policies>
 constexpr auto generateVTable(Policies policies) {
-	auto functions = caramel::poly::detail::clauseNames(Concept{});
+	auto functions = caramel::poly::detail::clauseNames(Trait{});
 	auto state = makeConstexprPair(functions, caramel::poly::LocalVTable<>{});
 
 	auto result = foldLeft(state, policies, [](auto state, auto policy) {
@@ -346,12 +346,12 @@ constexpr auto generateVTable(Policies policies) {
 
 			constexpr auto isEmpty = detail::isEmptyVTable<decltype(vtable)>;
 			if constexpr (isEmpty) {
-				auto newVTable = decltype(policy.create(Concept{}, matched)){};
+				auto newVTable = decltype(policy.create(Trait{}, matched)){};
 				return makeConstexprPair(remaining, newVTable);
 			} else {
 				auto newVTable = caramel::poly::JoinedVTable<
 					decltype(vtable),
-					decltype(policy.create(Concept{}, matched))
+					decltype(policy.create(Trait{}, matched))
 					>{};
 				return makeConstexprPair(remaining, newVTable);
 			}
@@ -360,15 +360,15 @@ constexpr auto generateVTable(Policies policies) {
 	constexpr bool allFunctionsWereTaken = empty(result.first());
 	static_assert(allFunctionsWereTaken,
 		"caramel::poly::VTable: The policies specified in the vtable did not fully cover all "
-		"the functions provided by the concept. Some functions were not mapped to "
+		"the functions provided by the trait. Some functions were not mapped to "
 		"any vtable, which is an error");
 	return result.second();
 }
 
 // Policy-based interface for defining vtables.
 //
-// This type does not model the `VTable` concept itself; instead, it is used
-// to generate a type that models that concept.
+// This type does not model the `VTable` trait itself; instead, it is used
+// to generate a type that models that trait.
 //
 // A `vtable` is parameterized on one or more policies, which specify how
 // the vtable is implemented under the hood. Some policies can be further
@@ -390,7 +390,7 @@ constexpr auto generateVTable(Policies policies) {
 //    cost of space inside the vtable object.
 //
 //
-// A selector is a type that selects a subset of functions defined by a concept.
+// A selector is a type that selects a subset of functions defined by a trait.
 // Selectors are used to pick which policy applies to which functions when
 // defining a `vtable`. For example, one might want to define a vtable where
 // all the functions except one (say `"f"`) are stored remotely, with `"f"`
@@ -398,21 +398,21 @@ constexpr auto generateVTable(Policies policies) {
 // with a selector that picks all functions except `"f"`, and the `caramel::poly::local`
 // policy with a selector that picks everything (all that remains). Note that
 // when multiple selectors are specified, functions picked by earlier selectors
-// will effectively be removed from the concept for later selectors, which
+// will effectively be removed from the trait for later selectors, which
 // supports this use case. Otherwise, one would have to specify that the
 // `caramel::poly::local` contains everything except the `"f"` function, which is
 // cumbersome. Selectors provided by the library are:
 //
 //  caramel::poly::only<functions...>
-//    Picks only the specified functions from a concept. `functions` must be
+//    Picks only the specified functions from a trait. `functions` must be
 //    compile-time strings, such as `caramel::poly::only<decltype("foo"_s), decltype("bar"_s)>`.
 //
 //  caramel::poly::except<functions...>
-//    Picks all but the specified functions from a concept. `functions` must
+//    Picks all but the specified functions from a trait. `functions` must
 //    be compile-time strings, such as `caramel::poly::except<decltype("foo"_s), decltype("bar"_s)>`.
 //
 //  caramel::poly::everything
-//    Picks all the functions from a concept.
+//    Picks all the functions from a trait.
 //
 //  caramel::poly::everything_else
 //    Equivalent to `caramel::poly::everything`, but prettier to read when other
@@ -420,9 +420,9 @@ constexpr auto generateVTable(Policies policies) {
 template <class... Policies>
 struct VTable {
 
-	template <class Concept>
+	template <class Trait>
 	using Type = decltype(
-		caramel::poly::generateVTable<Concept>(detail::ConstexprList<Policies...>{})
+		caramel::poly::generateVTable<Trait>(detail::ConstexprList<Policies...>{})
 		);
 
 };

@@ -63,7 +63,7 @@ void draw(document_t<Object> const& self, std::ostream& out) {
 
 
 
-struct Drawable : decltype(caramel::poly::requires(
+struct Drawable : decltype(caramel::poly::require(
 	draw_LABEL = caramel::poly::function<void(caramel::poly::SelfPlaceholder const&, std::ostream&)>
 )) { };
 
@@ -71,7 +71,7 @@ class object_t {
 public:
 	template <typename T>
 	object_t(T x)
-		: poly_{ std::move(x), caramel::poly::makeConceptMap(
+		: poly_{ std::move(x), caramel::poly::makeTraitMap(
 			draw_LABEL = [](T const& self, std::ostream& out) { draw(self, out); }
 		) }
 	{ }

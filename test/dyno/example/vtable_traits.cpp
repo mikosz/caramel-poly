@@ -26,7 +26,7 @@ constexpr auto distance_LABEL = POLY_FUNCTION_LABEL("distance");
 // other functions (e.g. the destructor) in a remote vtable.
 
 template <typename Reference>
-struct Iterator : decltype(caramel::poly::requires(
+struct Iterator : decltype(caramel::poly::require(
 	caramel::poly::DefaultConstructible{},
 	caramel::poly::CopyConstructible{},
 	caramel::poly::CopyAssignable{},
@@ -43,7 +43,7 @@ struct Iterator : decltype(caramel::poly::requires(
 } // anonymous namespace
 
 template <typename Ref, typename T>
-auto const caramel::poly::defaultConceptMap<Iterator<Ref>, T> = caramel::poly::makeConceptMap(
+auto const caramel::poly::defaultTraitMap<Iterator<Ref>, T> = caramel::poly::makeTraitMap(
 	increment_LABEL = [](T& self) { ++self; },
 	decrement_LABEL = [](T& self) -> void { --self; },
 	dereference_LABEL = [](T& self) -> Ref { return *self; },
@@ -66,7 +66,7 @@ struct any_iterator {
 	using difference_type = std::ptrdiff_t;
 
 private:
-	using Concept = Iterator<reference>;
+	using Trait = Iterator<reference>;
 	using Storage = caramel::poly::RemoteStorage<>;
 	using VTable = caramel::poly::VTable<
 		caramel::poly::Local<
@@ -78,7 +78,7 @@ private:
 			>,
 			caramel::poly::Remote<caramel::poly::EverythingElse>
 		>;
-	caramel::poly::Poly<Concept, Storage, VTable> poly_;
+	caramel::poly::Poly<Trait, Storage, VTable> poly_;
 
 public:
 	template <typename It>

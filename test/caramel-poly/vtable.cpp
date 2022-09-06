@@ -15,13 +15,13 @@ const auto fooName = POLY_FUNCTION_LABEL("foo");
 const auto barName = POLY_FUNCTION_LABEL("bar");
 const auto bazName = POLY_FUNCTION_LABEL("baz");
 
-struct Parent : decltype(requires(
+struct Parent : decltype(require(
 	fooName = method<int () const>
 	))
 {
 };
 
-struct Interface : decltype(requires(
+struct Interface : decltype(require(
 	Parent{},
 	barName = method<int (int) const>,
 	bazName = method<void (double)>
@@ -36,13 +36,13 @@ struct S {
 } // anonymous namespace
 
 template <class T>
-const auto caramel::poly::defaultConceptMap<Interface, T> = makeConceptMap(
+const auto caramel::poly::defaultTraitMap<Interface, T> = makeTraitMap(
 	POLY_FUNCTION_LABEL("foo") = [](const S& s) { return s.i; },
 	POLY_FUNCTION_LABEL("bar") = [](const S& s, int i) { return s.i * i; }
 	);
 
 template <class T>
-const auto caramel::poly::conceptMap<Interface, T, std::enable_if_t<std::is_same_v<T, S>>> = makeConceptMap(
+const auto caramel::poly::conceptMap<Interface, T, std::enable_if_t<std::is_same_v<T, S>>> = makeTraitMap(
 	POLY_FUNCTION_LABEL("baz") = [](S& s, double d) { s.i = static_cast<int>(d); }
 	);
 
@@ -51,7 +51,7 @@ namespace /* anonymous */ {
 TEST(VTableTest, LocalVTableStoredFunctionsAreAccessible) {
 	auto s = S{ 3 };
 
-	const auto complete = completeConceptMap<Interface, S>(conceptMap<Interface, S>);
+	const auto complete = completeTraitMap<Interface, S>(conceptMap<Interface, S>);
 	const auto vtable = LocalVTable<
 		detail::ConstexprPair<std::decay_t<decltype(fooName)>, decltype(Interface{}.getSignature(fooName))>,
 		detail::ConstexprPair<std::decay_t<decltype(barName)>, decltype(Interface{}.getSignature(barName))>,
@@ -72,7 +72,7 @@ TEST(VTableTest, LocalVTableStoredFunctionsAreAccessible) {
 TEST(VTableTest, RemoteVTableStoredFunctionsAreAccessible) {
 	auto s = S{ 3 };
 
-	const auto complete = completeConceptMap<Interface, S>(conceptMap<Interface, S>);
+	const auto complete = completeTraitMap<Interface, S>(conceptMap<Interface, S>);
 	using Local = LocalVTable<
 		detail::ConstexprPair<std::decay_t<decltype(fooName)>, decltype(Interface{}.getSignature(fooName))>,
 		detail::ConstexprPair<std::decay_t<decltype(barName)>, decltype(Interface{}.getSignature(barName))>,
@@ -94,7 +94,7 @@ TEST(VTableTest, RemoteVTableStoredFunctionsAreAccessible) {
 TEST(VTableTest, JoinedVTableStoredFunctionsAreAccessible) {
 	auto s = S{ 3 };
 
-	const auto complete = completeConceptMap<Interface, S>(conceptMap<Interface, S>);
+	const auto complete = completeTraitMap<Interface, S>(conceptMap<Interface, S>);
 	using FooBar = LocalVTable<
 		detail::ConstexprPair<std::decay_t<decltype(fooName)>, decltype(Interface{}.getSignature(fooName))>,
 		detail::ConstexprPair<std::decay_t<decltype(barName)>, decltype(Interface{}.getSignature(barName))>
@@ -137,7 +137,7 @@ TEST(VTableTest, OnlySelectsListedFunctions) {
 		);
 
 	// Should not compile with error "Some functions specified in this selector are not part of
-	// the concept to which the selector was applied"
+	// the trait to which the selector was applied"
 	// using NotASubsetSelector = Only<decltype(fooName), decltype(bzzName)>;
 	// using NotASubsetSelected = decltype(NotASubsetSelector{}(All{}));
 }
@@ -158,7 +158,7 @@ TEST(VTableTest, ExceptSelectsListedFunctions) {
 		);
 
 	// Should not compile with error "Some functions specified in this selector are not part of
-	// the concept to which the selector was applied"
+	// the trait to which the selector was applied"
 	// using NotASubsetSelector = Except<decltype(fooName), decltype(bzzName)>;
 	// using NotASubsetSelected = decltype(NotASubsetSelector{}(All{}));
 }
@@ -182,7 +182,7 @@ TEST(VTableTest, LocalVTableGenerationTest) {
 
 	auto s = S{ 3 };
 
-	const auto complete = completeConceptMap<Interface, S>(conceptMap<Interface, S>);
+	const auto complete = completeTraitMap<Interface, S>(conceptMap<Interface, S>);
 
 	using Generated = VTable<Local<Everything>>;
 	const auto vtable = Generated::Type<Interface>{complete};
@@ -198,7 +198,7 @@ TEST(VTableTest, LocalVTableGenerationTest) {
 TEST(VTableTest, SplitVTableGenerationTest) {
 	auto s = S{ 3 };
 
-	const auto complete = completeConceptMap<Interface, S>(conceptMap<Interface, S>);
+	const auto complete = completeTraitMap<Interface, S>(conceptMap<Interface, S>);
 
 	using Generated = VTable<Local<Only<decltype(fooName)>>, Remote<EverythingElse>>;
 	const auto vtable = Generated::Type<Interface>{complete};

@@ -18,7 +18,7 @@ namespace /* anonymous */ {
 constexpr auto draw_LABEL = POLY_FUNCTION_LABEL("draw");
 
 // Define the interface of something that can be drawn
-struct Drawable : decltype(caramel::poly::requires(
+struct Drawable : decltype(caramel::poly::require(
 	draw_LABEL = caramel::poly::function<void(std::ostream&, caramel::poly::SelfPlaceholder const&)>
 )) { };
 
@@ -26,9 +26,9 @@ struct Drawable : decltype(caramel::poly::requires(
 
 // Define how concrete types can fulfill that interface
 template <typename T>
-auto const caramel::poly::defaultConceptMap<Drawable, T> = caramel::poly::makeConceptMap(
+auto const caramel::poly::defaultTraitMap<Drawable, T> = caramel::poly::makeTraitMap(
 	draw_LABEL = [](std::ostream& out, T const& self) { self.draw(out); }
-	//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ matches the concept definition
+	//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ matches the trait definition
 	);
 
 namespace /* anonymous */ {

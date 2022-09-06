@@ -23,7 +23,7 @@ template <typename Signature>
 struct Callable;
 
 template <typename R, typename ...Args>
-struct Callable<R(Args...)> : decltype(caramel::poly::requires(
+struct Callable<R(Args...)> : decltype(caramel::poly::require(
 	caramel::poly::CopyConstructible{},
 	caramel::poly::MoveConstructible{},
 	caramel::poly::Destructible{},
@@ -33,7 +33,7 @@ struct Callable<R(Args...)> : decltype(caramel::poly::requires(
 } // anonymous namespace
 
 template <typename R, typename ...Args, typename F>
-auto const caramel::poly::defaultConceptMap<Callable<R(Args...)>, F> = caramel::poly::makeConceptMap(
+auto const caramel::poly::defaultTraitMap<Callable<R(Args...)>, F> = caramel::poly::makeTraitMap(
 	call_LABEL = [](F const& f, Args ...args) -> R {
 			return f(std::forward<Args>(args)...);
 		}

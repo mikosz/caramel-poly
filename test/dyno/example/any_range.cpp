@@ -26,7 +26,7 @@ constexpr auto cbegin_LABEL = POLY_FUNCTION_LABEL("cbegin");
 constexpr auto cend_LABEL = POLY_FUNCTION_LABEL("cend");
 
 template <typename Value, typename Category>
-struct Range : decltype(caramel::poly::requires(
+struct Range : decltype(caramel::poly::require(
 	begin_LABEL = caramel::poly::function<any_iterator<Value, Category>(caramel::poly::SelfPlaceholder&)>,
 	end_LABEL = caramel::poly::function<any_iterator<Value, Category>(caramel::poly::SelfPlaceholder&)>,
 	cbegin_LABEL = caramel::poly::function<any_iterator<Value const, Category>(caramel::poly::SelfPlaceholder const&)>,
@@ -36,7 +36,7 @@ struct Range : decltype(caramel::poly::requires(
 } // anonymous namespace
 
 template <typename Value, typename Category, typename R>
-auto const caramel::poly::defaultConceptMap<Range<Value, Category>, R> = caramel::poly::makeConceptMap(
+auto const caramel::poly::defaultTraitMap<Range<Value, Category>, R> = caramel::poly::makeTraitMap(
 	begin_LABEL = [](R& range) -> any_iterator<Value, Category> {
 			return any_iterator<Value, Category>{range.begin()};
 		},

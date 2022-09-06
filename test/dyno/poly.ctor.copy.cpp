@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 
 #include "caramel-poly/builtin.hpp"
-#include "caramel-poly/Concept.hpp"
+#include "caramel-poly/Trait.hpp"
 #include "caramel-poly/Poly.hpp"
 
 #include "awful.hpp"
@@ -17,7 +17,7 @@ namespace /* anonymous */ {
 TEST(DynoTest, CtorCopy) {
   // Make sure the copy constructor is not instantiated unless requested.
   {
-    using NonCopyable = decltype(caramel::poly::requires(caramel::poly::MoveConstructible{},
+    using NonCopyable = decltype(caramel::poly::require(caramel::poly::MoveConstructible{},
                                                 caramel::poly::Destructible{}));
     caramel::poly::Poly<NonCopyable> a{awful::noncopyable{}};
     caramel::poly::Poly<NonCopyable> b{std::move(a)};

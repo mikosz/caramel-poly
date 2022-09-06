@@ -19,12 +19,12 @@ constexpr auto dereference_LABEL = POLY_FUNCTION_LABEL("dereference");
 constexpr auto advance_LABEL = POLY_FUNCTION_LABEL("advance");
 constexpr auto distance_LABEL = POLY_FUNCTION_LABEL("distance");
 
-// This is the definition of an Iterator concept using a "generic" language.
+// This is the definition of an Iterator trait using a "generic" language.
 // Instead of defining specific methods that must be defined, it defines its
 // interface in terms of compile-time strings, assuming these may be fulfilled
 // in possibly many different ways.
 template <typename Reference>
-struct Iterator : decltype(caramel::poly::requires(
+struct Iterator : decltype(caramel::poly::require(
 	caramel::poly::TypeId{},
 	caramel::poly::CopyConstructible{},
 	caramel::poly::MoveConstructible{},
@@ -36,47 +36,47 @@ struct Iterator : decltype(caramel::poly::requires(
 )) { };
 
 template <typename Reference>
-struct InputIterator : decltype(caramel::poly::requires(
+struct InputIterator : decltype(caramel::poly::require(
 	Iterator<Reference>{},
 	caramel::poly::EqualityComparable{}
 )) { };
 
 template <typename Reference>
-struct ForwardIterator : decltype(caramel::poly::requires(
+struct ForwardIterator : decltype(caramel::poly::require(
 	InputIterator<Reference>{},
 	caramel::poly::DefaultConstructible{}
 )) { };
 
 template <typename Reference>
-struct BidirectionalIterator : decltype(caramel::poly::requires(
+struct BidirectionalIterator : decltype(caramel::poly::require(
 	ForwardIterator<Reference>{},
 	decrement_LABEL = caramel::poly::function<void (caramel::poly::SelfPlaceholder&)>
 )) { };
 
 template <typename Reference, typename Difference>
-struct RandomAccessIterator : decltype(caramel::poly::requires(
+struct RandomAccessIterator : decltype(caramel::poly::require(
 	BidirectionalIterator<Reference>{},
 	advance_LABEL = caramel::poly::function<void (caramel::poly::SelfPlaceholder&, Difference)>,
 	distance_LABEL = caramel::poly::function<Difference (caramel::poly::SelfPlaceholder const&, caramel::poly::SelfPlaceholder const&)>
 )) { };
 
 
-// This is some kind of concept map; it maps the "generic" iterator interface
+// This is some kind of trait map; it maps the "generic" iterator interface
 // (method names as compile-time strings) to actual implementations for a
 // specific iterator type.
 template <typename Ref, typename T>
-auto const caramel::poly::defaultConceptMap<Iterator<Ref>, T> = caramel::poly::makeConceptMap(
+auto const caramel::poly::defaultTraitMap<Iterator<Ref>, T> = caramel::poly::makeTraitMap(
 	increment_LABEL = [](T& self) { ++self; },
 	dereference_LABEL = [](T& self) -> Ref { return *self; }
 );
 
 template <typename Ref, typename T>
-auto const caramel::poly::defaultConceptMap<BidirectionalIterator<Ref>, T> = caramel::poly::makeConceptMap(
+auto const caramel::poly::defaultTraitMap<BidirectionalIterator<Ref>, T> = caramel::poly::makeTraitMap(
 	decrement_LABEL = [](T& self) -> void { --self; }
 );
 
 template <typename Ref, typename Diff, typename T>
-auto const caramel::poly::defaultConceptMap<RandomAccessIterator<Ref, Diff>, T> = caramel::poly::makeConceptMap(
+auto const caramel::poly::defaultTraitMap<RandomAccessIterator<Ref, Diff>, T> = caramel::poly::makeTraitMap(
 	advance_LABEL = [](T& self, Diff diff) -> void {
 			std::advance(self, diff);
 		},
@@ -110,10 +110,10 @@ struct iterator_category_to_concept<std::random_access_iterator_tag, Reference, 
 };
 } // end namespace detail
 
-  // This defines a type-erased wrapper satisfying a specific concept (Iterator)
+  // This defines a type-erased wrapper satisfying a specific trait (Iterator)
   // and providing the given interface (methods, etc..). The choice of how to
   // store the type-erased object and how to implement the VTable should be done
-  // here, and should be disjoint from the actual concept definition and concept
+  // here, and should be disjoint from the actual trait definition and trait
   // map above.
 template <
 	typename Value,
@@ -129,11 +129,11 @@ struct any_iterator {
 	using difference_type = Difference;
 
 private:
-	using Concept = typename detail::iterator_category_to_concept<
+	using Trait = typename detail::iterator_category_to_concept<
 			iterator_category, reference, difference_type
 		>::type;
-	using ActualConcept = decltype(caramel::poly::requires(
-		Concept{},
+	using ActualTrait = decltype(caramel::poly::require(
+		Trait{},
 		caramel::poly::TypeId{} // For assertion in operator==
 	));
 
@@ -141,7 +141,7 @@ private:
 		sizeof(std::array<int, 4>::iterator),
 		alignof(std::array<int, 4>::iterator)
 		>;
-	caramel::poly::Poly<ActualConcept, Storage> poly_;
+	caramel::poly::Poly<ActualTrait, Storage> poly_;
 
 public:
 	template <typename It>

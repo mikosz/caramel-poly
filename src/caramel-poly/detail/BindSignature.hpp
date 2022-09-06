@@ -72,7 +72,7 @@ struct Replace {
 // into `void (T const&, int, T*)`, where `T` is the type we are _binding_
 // the signature to.
 //
-// This is used to make sure that the functions provided in a concept map
+// This is used to make sure that the functions provided in a trait map
 // have the right signature.
 template <class Signature, class T>
 using BindSignature = TransformSignature<Signature, Replace<SelfPlaceholder, T>::template Type>;

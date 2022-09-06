@@ -14,15 +14,15 @@
 
 #include "detail/isPlaceholder.hpp"
 #include "builtin.hpp"
-#include "Concept.hpp"
-#include "ConceptMap.hpp"
+#include "Trait.hpp"
+#include "TraitMap.hpp"
 #include "storage.hpp"
 #include "vtable.hpp"
 
 namespace caramel::poly {
 
 // A `caramel::poly::Poly` encapsulates an object of a polymorphic type that supports the
-// interface of the given `Concept`.
+// interface of the given `Trait`.
 //
 // `caramel::poly::Poly` is meant to be used as a holder for a polymorphic object. It can
 // manage the lifetime of that object and provide access to its dynamically-
@@ -38,13 +38,13 @@ namespace caramel::poly {
 // polymorphism.
 //
 // Different aspects of a `caramel::poly::Poly` can also be customized:
-//  `Concept`
-//    The concept satisfied by `caramel::poly::Poly`. This determines which methods will
+//  `Trait`
+//    The trait satisfied by `caramel::poly::Poly`. This determines which methods will
 //    be available for dynamic dispatching.
 //
 //  `Storage`
 //    The type used to provide the storage for the managed object. This must
-//    be a model of the `PolymorphicStorage` concept.
+//    be a model of the `PolymorphicStorage` trait.
 //
 //  `VTable`
 //    The policy specifying how to implement the dynamic dispatching mechanism
@@ -58,24 +58,24 @@ namespace caramel::poly {
 // - Is it actually OK to require Destructible and Storable all the time?
 // - Test that we can't call e.g. a non-const method on a const poly.
 template <
-	class Concept,
+	class Trait,
 	class Storage = caramel::poly::RemoteStorage<>,
 	class VTablePolicy = caramel::poly::VTable<caramel::poly::Remote<caramel::poly::Everything>>
 	>
 struct Poly {
 private:
 
-	using ActualConcept = decltype(caramel::poly::requires(
-		Concept{},
+	using ActualTrait = decltype(caramel::poly::require(
+		Trait{},
 		caramel::poly::Destructible{},
 		caramel::poly::Storable{}
 		));
 
 public:
 
-	template <class T, class RawT = std::decay_t<T>, class ConceptMap>
-	Poly(T&& t, ConceptMap map) :
-		vtable_{caramel::poly::completeConceptMap<ActualConcept, RawT>(map)},
+	template <class T, class RawT = std::decay_t<T>, class TraitMap>
+	Poly(T&& t, TraitMap map) :
+		vtable_{caramel::poly::completeTraitMap<ActualTrait, RawT>(map)},
 		storage_{std::forward<T>(t)}
 	{
 	}
@@ -84,10 +84,10 @@ public:
 		class T,
 		class RawT = std::decay_t<T>,
 		class = std::enable_if_t<!std::is_same<RawT, Poly>::value>,
-		class = std::enable_if_t<caramel::poly::models<ActualConcept, RawT>>
+		class = std::enable_if_t<caramel::poly::models<ActualTrait, RawT>>
 		>
 	Poly(T&& t) :
-		Poly{std::forward<T>(t), caramel::poly::conceptMap<ActualConcept, RawT>}
+		Poly{std::forward<T>(t), caramel::poly::conceptMap<ActualTrait, RawT>}
 	{
 	}
 
@@ -129,38 +129,38 @@ public:
 
 	template <
 		class Function,
-		bool HasClause = contains(caramel::poly::detail::clauseNames(ActualConcept{}), Function{}),
+		bool HasClause = contains(caramel::poly::detail::clauseNames(ActualTrait{}), Function{}),
 		std::enable_if_t<HasClause>* = nullptr
 		>
 	constexpr decltype(auto) virtual_(Function name) const & {
-		auto clauses = caramel::poly::detail::makeConstexprMap(caramel::poly::detail::clauses(ActualConcept{}));
+		auto clauses = caramel::poly::detail::makeConstexprMap(caramel::poly::detail::clauses(ActualTrait{}));
 		return virtualImpl(clauses[name], name);
 	}
 
 	template <
 		class Function,
-		bool HasClause = contains(caramel::poly::detail::clauseNames(ActualConcept{}), Function{}),
+		bool HasClause = contains(caramel::poly::detail::clauseNames(ActualTrait{}), Function{}),
 		std::enable_if_t<HasClause>* = nullptr
 		>
 	constexpr decltype(auto) virtual_(Function name) & {
-		auto clauses = caramel::poly::detail::makeConstexprMap(caramel::poly::detail::clauses(ActualConcept{}));
+		auto clauses = caramel::poly::detail::makeConstexprMap(caramel::poly::detail::clauses(ActualTrait{}));
 		return virtualImpl(clauses[name], name);
 	}
 
 	template <
 		class Function,
-		bool HasClause = contains(caramel::poly::detail::clauseNames(ActualConcept{}), Function{}),
+		bool HasClause = contains(caramel::poly::detail::clauseNames(ActualTrait{}), Function{}),
 		std::enable_if_t<HasClause>* = nullptr
 		>
 	constexpr decltype(auto) virtual_(Function name) && {
-		auto clauses = caramel::poly::detail::makeConstexprMap(caramel::poly::detail::clauses(ActualConcept{}));
+		auto clauses = caramel::poly::detail::makeConstexprMap(caramel::poly::detail::clauses(ActualTrait{}));
 		return virtualImpl(clauses[name], name);
 	}
 
 	template <
 		class Function,
 		class... Args,
-		bool HasClause = contains(caramel::poly::detail::clauseNames(ActualConcept{}), Function{}),
+		bool HasClause = contains(caramel::poly::detail::clauseNames(ActualTrait{}), Function{}),
 		std::enable_if_t<HasClause>* = nullptr
 		>
 	decltype(auto) invoke(Function name, Args&&... args) const & {
@@ -170,7 +170,7 @@ public:
 	template <
 		class Function,
 		class... Args,
-		bool HasClause = contains(caramel::poly::detail::clauseNames(ActualConcept{}), Function{}),
+		bool HasClause = contains(caramel::poly::detail::clauseNames(ActualTrait{}), Function{}),
 		std::enable_if_t<HasClause>* = nullptr
 		>
 	decltype(auto) invoke(Function name, Args&&... args) & {
@@ -180,7 +180,7 @@ public:
 	template <
 		class Function,
 		class... Args,
-		bool HasClause = contains(caramel::poly::detail::clauseNames(ActualConcept{}), Function{}),
+		bool HasClause = contains(caramel::poly::detail::clauseNames(ActualTrait{}), Function{}),
 		std::enable_if_t<HasClause>* = nullptr
 		>
 	decltype(auto) invoke(Function name, Args&&... args) && {
@@ -207,7 +207,7 @@ public:
 
 private:
 
-	using VTable = typename VTablePolicy::template Type<ActualConcept>;
+	using VTable = typename VTablePolicy::template Type<ActualTrait>;
 
 	VTable vtable_;
 

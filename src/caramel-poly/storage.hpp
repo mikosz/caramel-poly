@@ -36,9 +36,9 @@ struct MallocAllocator {
 	}
 };
 
-// concept PolymorphicStorage
+// trait PolymorphicStorage
 //
-// The PolymorphicStorage concept represents storage that can be used to store
+// The PolymorphicStorage trait represents storage that can be used to store
 // an object of an arbitrary type. In a sense, it is like a special-purpose
 // allocator that could only ever allocate a single object.
 //
@@ -48,7 +48,7 @@ struct MallocAllocator {
 // "forgetting" the type information of what they hold, which is why they
 // must be passed a vtable to perform most operations.
 //
-// A type `Storage` satisfying the `PolymorphicStorage` concept must provide
+// A type `Storage` satisfying the `PolymorphicStorage` trait must provide
 // the following functions as part of its interface:
 //
 // template <class T> explicit Storage(T&&);

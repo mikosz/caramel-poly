@@ -14,8 +14,8 @@
 #include <typeinfo>
 
 #include "detail/ConstexprString.hpp"
-#include "ConceptMap.hpp"
-#include "Concept.hpp"
+#include "TraitMap.hpp"
+#include "Trait.hpp"
 
 namespace caramel::poly {
 
@@ -45,69 +45,69 @@ struct StorageInfo {
 template <typename T>
 constexpr auto storageInfoFor = StorageInfo{ sizeof(T), alignof(T) };
 
-struct Storable : decltype(caramel::poly::requires(
+struct Storable : decltype(caramel::poly::require(
 	STORAGE_INFO_LABEL = caramel::poly::function<caramel::poly::StorageInfo()>
 	))
 {
 };
 
 template <typename T>
-auto const defaultConceptMap<Storable, T> = caramel::poly::makeConceptMap(
+auto const defaultTraitMap<Storable, T> = caramel::poly::makeTraitMap(
 	// Can't use storageInfoFor here, for Visual C++ it returns { 0, 0 }
 	STORAGE_INFO_LABEL = []() { return caramel::poly::StorageInfo{ sizeof(T), alignof(T) }; }
 	);
 
 
-struct TypeId : decltype(caramel::poly::requires(
+struct TypeId : decltype(caramel::poly::require(
 	TYPEID_LABEL = caramel::poly::function<const std::type_info&()>
 	))
 {
 };
 
 template <typename T>
-auto const defaultConceptMap<TypeId, T> = caramel::poly::makeConceptMap(
+auto const defaultTraitMap<TypeId, T> = caramel::poly::makeTraitMap(
 	TYPEID_LABEL = []() -> const std::type_info& { return typeid(T); }
 	);
 
 
-struct DefaultConstructible : decltype(caramel::poly::requires(
+struct DefaultConstructible : decltype(caramel::poly::require(
 	DEFAULT_CONSTRUCT_LABEL = caramel::poly::function<void (void*)>
 	))
 {
 };
 
 template <typename T>
-auto const defaultConceptMap<DefaultConstructible, T, std::enable_if_t<std::is_default_constructible<T>::value>
-	> = caramel::poly::makeConceptMap(
+auto const defaultTraitMap<DefaultConstructible, T, std::enable_if_t<std::is_default_constructible<T>::value>
+	> = caramel::poly::makeTraitMap(
 		DEFAULT_CONSTRUCT_LABEL = [](void* p) { new (p) T(); }
 		);
 
-struct Destructible : decltype(caramel::poly::requires(
+struct Destructible : decltype(caramel::poly::require(
 	DESTRUCT_LABEL = caramel::poly::function<void (caramel::poly::SelfPlaceholder&)>
 	))
 {
 };
 
 template <typename T>
-auto const defaultConceptMap<Destructible, T, std::enable_if_t<std::is_destructible<T>::value>
-	> = caramel::poly::makeConceptMap(
+auto const defaultTraitMap<Destructible, T, std::enable_if_t<std::is_destructible_v<T> && !std::is_trivially_destructible_v<T>>
+	> = caramel::poly::makeTraitMap(
 		DESTRUCT_LABEL = [](T& self) { self.~T(); }
 		);
 
-struct MoveConstructible : decltype(caramel::poly::requires(
+struct MoveConstructible : decltype(caramel::poly::require(
 	MOVE_CONSTRUCT_LABEL = caramel::poly::function<void (void*, caramel::poly::SelfPlaceholder&&)>
 	))
 {
 };
 
 template <typename T>
-auto const defaultConceptMap<MoveConstructible, T, std::enable_if_t<std::is_move_constructible<T>::value>
-	> = caramel::poly::makeConceptMap(
+auto const defaultTraitMap<MoveConstructible, T, std::enable_if_t<std::is_move_constructible<T>::value>
+	> = caramel::poly::makeTraitMap(
 		MOVE_CONSTRUCT_LABEL = [](void* p, T&& other) { new (p) T(std::move(other)); }
 		);
 
 
-struct CopyConstructible : decltype(caramel::poly::requires(
+struct CopyConstructible : decltype(caramel::poly::require(
 	caramel::poly::Storable{},
 	//caramel::poly::MoveConstructible{},
 	COPY_CONSTRUCT_LABEL = caramel::poly::function<void (void*, const caramel::poly::SelfPlaceholder&)>
@@ -116,20 +116,20 @@ struct CopyConstructible : decltype(caramel::poly::requires(
 };
 
 template <typename T>
-auto const defaultConceptMap<CopyConstructible, T, std::enable_if_t<std::is_copy_constructible<T>::value>
-	> = caramel::poly::makeConceptMap(
+auto const defaultTraitMap<CopyConstructible, T, std::enable_if_t<std::is_copy_constructible<T>::value>
+	> = caramel::poly::makeTraitMap(
 		COPY_CONSTRUCT_LABEL = [](void* p, T const& other) { new (p) T(other); }
 		);
 
 
-struct MoveAssignable : decltype(caramel::poly::requires(
+struct MoveAssignable : decltype(caramel::poly::require(
 	// No virtual function required to support this so far
 	))
 {
 };
 
 
-struct CopyAssignable : decltype(caramel::poly::requires(
+struct CopyAssignable : decltype(caramel::poly::require(
 	caramel::poly::MoveAssignable{}
 	// No additional virtual functions required to support this so far
 	))
@@ -137,14 +137,14 @@ struct CopyAssignable : decltype(caramel::poly::requires(
 };
 
 
-struct Swappable : decltype(caramel::poly::requires(
+struct Swappable : decltype(caramel::poly::require(
 	// No virtual functions required to support this so far
 	))
 {
 };
 
 
-struct EqualityComparable : decltype(caramel::poly::requires(
+struct EqualityComparable : decltype(caramel::poly::require(
 	EQUAL_LABEL = caramel::poly::function<
 		bool (const caramel::poly::SelfPlaceholder&, const caramel::poly::SelfPlaceholder&)>
 	))
@@ -152,8 +152,8 @@ struct EqualityComparable : decltype(caramel::poly::requires(
 };
 
 template <typename T>
-auto const defaultConceptMap<EqualityComparable, T, decltype((void)(std::declval<T>() == std::declval<T>()))
-	> = caramel::poly::makeConceptMap(
+auto const defaultTraitMap<EqualityComparable, T, decltype((void)(std::declval<T>() == std::declval<T>()))
+	> = caramel::poly::makeTraitMap(
 		EQUAL_LABEL = [](T const& a, T const& b) -> bool { return a == b; }
 		);
 

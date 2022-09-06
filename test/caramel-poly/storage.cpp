@@ -19,7 +19,7 @@ struct S {
 	void* p[PTRS];
 };
 
-struct ObjectInterface : decltype(caramel::poly::requires(
+struct ObjectInterface : decltype(caramel::poly::require(
 	caramel::poly::Storable{},
 	caramel::poly::Destructible{},
 	caramel::poly::CopyConstructible{},
@@ -123,7 +123,7 @@ TYPED_TEST(AllStorageTest, HasStorageInfoForObject) {
 	auto original = Object(registry);
 	Storage s{original};
 
-	const auto complete = completeConceptMap<ObjectInterface, Object>(conceptMap<ObjectInterface, Object>);
+	const auto complete = completeTraitMap<ObjectInterface, Object>(conceptMap<ObjectInterface, Object>);
 	using VTable = VTable<Local<Everything>>;
 	auto vtable = VTable::Type<ObjectInterface>{complete};
 
@@ -143,7 +143,7 @@ TYPED_TEST(AllStorageTest, DestroysStoredObject) {
 		auto original = Object(registry);
 		Storage s{original};
 
-		const auto complete = completeConceptMap<ObjectInterface, Object>(
+		const auto complete = completeTraitMap<ObjectInterface, Object>(
 			conceptMap<ObjectInterface, Object>);
 		using VTable = VTable<Local<Everything>>;
 		auto vtable = VTable::Type<ObjectInterface>{complete};
@@ -163,7 +163,7 @@ TYPED_TEST(LocalStorageTest, MovesStoredObject) {
 	auto original = Object(registry);
 	Storage s{original};
 
-	const auto complete = completeConceptMap<ObjectInterface, Object>(
+	const auto complete = completeTraitMap<ObjectInterface, Object>(
 		conceptMap<ObjectInterface, Object>);
 	using VTable = VTable<Local<Everything>>;
 	auto vtable = VTable::Type<ObjectInterface>{complete};
@@ -185,7 +185,7 @@ TYPED_TEST(RemoteStorageTest, MovesPointerToStoredObject) {
 	Storage s{original};
 	auto* storedData = s.template get<Object>();
 
-	const auto complete = completeConceptMap<ObjectInterface, Object>(
+	const auto complete = completeTraitMap<ObjectInterface, Object>(
 		conceptMap<ObjectInterface, Object>);
 	using VTable = VTable<Local<Everything>>;
 	auto vtable = VTable::Type<ObjectInterface>{complete};
@@ -207,7 +207,7 @@ TYPED_TEST(OwningStorageTest, CopiesStoredObject) {
 	auto original = Object(registry);
 	auto s = Storage(original);
 
-	const auto complete = completeConceptMap<ObjectInterface, Object>(
+	const auto complete = completeTraitMap<ObjectInterface, Object>(
 		conceptMap<ObjectInterface, Object>);
 	using VTable = VTable<Local<Everything>>;
 	auto vtable = VTable::Type<ObjectInterface>{complete};
@@ -229,7 +229,7 @@ TYPED_TEST(NonOwningStorageTest, CopiesPointerToStoredObject) {
 	auto s = Storage(original);
 	auto* storedData = s.template get<Object>();
 
-	const auto complete = completeConceptMap<ObjectInterface, Object>(
+	const auto complete = completeTraitMap<ObjectInterface, Object>(
 		conceptMap<ObjectInterface, Object>);
 	using VTable = VTable<Local<Everything>>;
 	auto vtable = VTable::Type<ObjectInterface>{complete};

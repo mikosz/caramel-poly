@@ -4,14 +4,14 @@
 
 #include <gtest/gtest.h>
 
-#include "caramel-poly/Concept.hpp"
-#include "caramel-poly/ConceptMap.hpp"
+#include "caramel-poly/Trait.hpp"
+#include "caramel-poly/TraitMap.hpp"
 #include "caramel-poly/Poly.hpp"
 
 namespace /* anonymous */ {
 
 // This test makes sure that `caramel::poly::poly` adds an implicit first argument
-// when a function in a concept is defined using `method` instead of
+// when a function in a trait is defined using `method` instead of
 // `function`.
 
 constexpr auto a_NAME = POLY_FUNCTION_LABEL("a");
@@ -20,7 +20,7 @@ constexpr auto c_NAME = POLY_FUNCTION_LABEL("c");
 constexpr auto d_NAME = POLY_FUNCTION_LABEL("d");
 constexpr auto e_NAME = POLY_FUNCTION_LABEL("e");
 
-struct Concept : decltype(caramel::poly::requires(
+struct Trait : decltype(caramel::poly::require(
   a_NAME = caramel::poly::method<int (int)>,
   b_NAME = caramel::poly::method<int (int) &>,
   c_NAME = caramel::poly::method<int (int) &&>,
@@ -33,7 +33,7 @@ struct Foo { };
 } // anonymous namespace
 
 template <class T>
-auto const caramel::poly::conceptMap<Concept, T, std::enable_if_t<std::is_same_v<T, Foo>>> = caramel::poly::makeConceptMap(
+auto const caramel::poly::conceptMap<Trait, T, std::enable_if_t<std::is_same_v<T, Foo>>> = caramel::poly::makeTraitMap(
   a_NAME = [](Foo&, int) { return 111; },
   b_NAME = [](Foo&, int) { return 222; },
   c_NAME = [](Foo&&, int) { return 333; },
@@ -46,28 +46,28 @@ namespace /* anonymous */ {
 TEST(DynoTest, VirtualMethod) {
   {
     Foo foo;
-    caramel::poly::Poly<Concept> poly{foo};
+    caramel::poly::Poly<Trait> poly{foo};
     EXPECT_EQ(poly.virtual_(a_NAME)(int{}), 111);
   }
   {
     Foo foo;
-    caramel::poly::Poly<Concept> poly{foo};
+    caramel::poly::Poly<Trait> poly{foo};
 	EXPECT_EQ(poly.virtual_(b_NAME)(int{}), 222);
   }
   // #TODO_Caramel: doesn't compile
  // {
  //   Foo foo;
- //   caramel::poly::Poly<Concept> poly{foo};
+ //   caramel::poly::Poly<Trait> poly{foo};
 	//EXPECT_EQ(std::move(poly).virtual_(c_NAME)(int{}), 333);
  // }
   {
     Foo foo;
-    caramel::poly::Poly<Concept> const poly{foo};
+    caramel::poly::Poly<Trait> const poly{foo};
 	EXPECT_EQ(poly.virtual_(d_NAME)(int{}), 444);
   }
   {
     Foo foo;
-    caramel::poly::Poly<Concept> const poly{foo};
+    caramel::poly::Poly<Trait> const poly{foo};
 	EXPECT_EQ(poly.virtual_(e_NAME)(int{}), 555);
   }
 }
